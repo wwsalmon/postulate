@@ -1,16 +1,80 @@
-html,
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-family: "IBM Plex Sans", sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.content {
+    font-size: 20px;
 }
 
-* {
-  box-sizing: border-box;
+.up-h1 {
+    font-size: 36px;
+    font-family: "Alegreya", serif;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.up-h2 {
+    font-size: 24px;
+    line-height: 1.1;
+    @apply opacity-50;
+}
+
+.up-ui-title {
+    font-weight: 700;
+}
+
+.up-ui-item-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.up-ui-item-subtitle {
+    font-size: 20px;
+}
+
+.up-button {
+    @apply px-4 h-12 rounded-md transition font-semibold;
+}
+
+.up-button.small {
+    @apply h-10;
+}
+
+a.up-button {
+    @apply inline-block;
+    line-height: 3rem;
+}
+
+a.up-button.small {
+    line-height: 2.5rem;
+}
+
+.up-button:disabled {
+    @apply opacity-25;
+    cursor: not-allowed;
+}
+
+.up-button.primary {
+    background-color: #0026FF;
+    @apply text-white;
+}
+
+.up-button:not(.text):not(.primary) {
+    @apply border-2 border-black;
+}
+
+.up-button:not(.text):not(:disabled):hover {
+    @apply bg-black text-white;
+}
+
+.up-button.text:not(:disabled):hover{
+    @apply bg-gray-100;
+}
+
+.up-container {
+    @apply px-6 mx-auto max-w-4xl;
 }
