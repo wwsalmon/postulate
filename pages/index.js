@@ -7,7 +7,7 @@ export default function Home() {
     return (
         <>
             <Head>
-                <title>Updately: The best place for founders and teams to build in public</title>
+                <title>Updately: The best platform for founders and teams to build in public</title>
             </Head>
             <div className="up-container flex h-16 items-center sticky top-0">
                 <img src="/logo.svg" alt="Updately logo" className="h-12"/>
