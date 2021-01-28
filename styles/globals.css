@@ -14,7 +14,7 @@ body {
     font-size: 36px;
     font-family: "Alegreya", serif;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 1.2;
 }
 
 .up-h2 {
@@ -34,6 +34,10 @@ body {
 
 .up-ui-item-subtitle {
     font-size: 20px;
+}
+
+.up-font-display {
+    font-family: "Alegreya", serif;
 }
 
 .up-button {
@@ -76,5 +80,5 @@ a.up-button.small {
 }
 
 .up-container {
-    @apply px-6 mx-auto max-w-4xl;
+    @apply px-6 mx-auto max-w-5xl;
 }
