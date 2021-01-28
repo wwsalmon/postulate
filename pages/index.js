@@ -4,6 +4,8 @@ import HomeStep from "../components/home-step";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
+    const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0";
+    const thirdContainerStyling = "md:flex -mx-4";
 
     return (
         <>
@@ -16,43 +18,127 @@ export default function Home() {
             </div>
             <div className="up-container sm:flex items-center py-16">
                 <div className="sm:w-1/2 sm:pr-8 pb-8 sm:pb-0">
-                    <h1 className="text-5xl up-font-display font-bold leading-tight mb-4">Supercharge your learning and creativity</h1>
-                    <p className="text-2xl leading-normal">Updately is an all-in-one tool for collecting and publishing your knowledge.</p>
+                    <h1 className="md:text-5xl text-4xl up-font-display font-bold leading-tight md:leading-tight mb-4">Supercharge your learning and creativity</h1>
+                    <p className="md:text-2xl text-xl leading-normal md:leading-normal">Updately is an <strong>all-in-one tool</strong> for <strong>collecting and publishing your knowledge</strong>.</p>
                 </div>
                 <div className="sm:w-1/2">
-                    <img src="/hero-diagram.svg" alt="Supercharge your learning and creativity with Updately" className="ml-auto"/>
+                    <img src="/hero-diagram.svg" alt="Supercharge your learning and creativity with Updately" className="mx-auto"/>
                 </div>
             </div>
             <hr className="my-8"/>
             <div className="up-container py-8">
-                <h2 className="up-ui-item-title">How it works</h2>
-                <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}/>
-                <HomeStep number={2} title="Turn snippets into public posts">
-                    <p>Testing</p>
+                <h2 className="up-ui-item-title">Here's how it works:</h2>
+                <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}>
+                    <div className={thirdContainerStyling + " mt-8"}>
+                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
+                            <p className="up-ui-title mb-4">Time-based</p>
+                            <div className="shadow-xl p-4">
+                                <p>Today I started building the MVP for curate.it. Using Next.js + MongoDB as my stack...</p>
+                            </div>
+                        </div>
+                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
+                            <p className="up-ui-title mb-4">Progress-based</p>
+                            <div className="shadow-xl p-4">
+                                <p>First, I ran <code>npx create-next-app curate.it</code>, then installed Typescript and Tailwind...</p>
+                            </div>
+                        </div>
+                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
+                            <p className="up-ui-title mb-4">Save outside resources</p>
+                            <div className="shadow-xl p-4">
+                                <div className="flex mb-4">
+                                    <img src="/nextauth.png" alt="NextAuth.js logo" className="w-6 h-6 mr-4"/>
+                                    <p>NextAuth.js | next-auth.js.org</p>
+                                </div>
+                                <p>Mind-blowingly easy way to set up auth in Next.js! Just create an...</p>
+                            </div>
+                        </div>
+                    </div>
                 </HomeStep>
-                <HomeStep number={3} title="Share knowledge on profile and project pages">
-                    <p>Testing</p>
+                <hr className="my-4"/>
+                <HomeStep number={2} title={<>Turn snippets into <strong>public posts</strong></>}>
+                    <div className="-mx-6 md:flex mt-8 items-center opacity-50 hover:opacity-75 transition">
+                        <div className="mx-6 md:w-1/3 mb-12 md:mb-0 hidden md:block">
+                            <div className="shadow-xl p-4 my-4">
+                                <p>Today I started building the MVP for curate.it. Using Next.js + MongoDB as my stack...</p>
+                            </div>
+                            <div className="shadow-xl p-4 my-4">
+                                <p>First, I ran <code>npx create-next-app curate.it</code>, then installed Typescript and Tailwind...</p>
+                            </div>
+                            <div className="shadow-xl p-4 my-4">
+                                <div className="flex mb-4">
+                                    <img src="/nextauth.png" alt="NextAuth.js logo" className="w-6 h-6 mr-4"/>
+                                    <p>NextAuth.js | next-auth.js.org</p>
+                                </div>
+                                <p>Mind-blowingly easy way to set up auth in Next.js! Just create an...</p>
+                            </div>
+                        </div>
+                        <div className="mx-6 md:w-2/3">
+                            <div className="prose content">
+                                <h2># How to Build a Social Platform Using Next.js and MongoDB</h2>
+                                <p>
+                                    Today, I built the MVP for curate.it, a platform for expert-curated lists and social bookmarking.
+                                    I used <b>**Next.js and MongoDB**</b> to build as fast as possible.
+                                    In this post, I'll give an overview of my setup, libraries I used, etc. to implement <b>**posts, notifications, comments, user profiles, and more.**</b>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </HomeStep>
+                <hr className="my-4"/>
+                <HomeStep number={3} title={<><strong>Share your knowledge</strong> through profile and project pages</>}>
+                    <div className="-mx-6 md:flex mt-12 opacity-50 hover:opacity-75 transition">
+                        <div className="mx-6 md:w-1/3 mb-12 md:mb-0">
+                            <div className="flex items-center">
+                                <img src="/sz-headshot.jpg" alt="Profile picture of Samson Zhang" className="rounded-full w-12 h-12 mr-4"/>
+                                <p className="content">Samson Zhang</p>
+                            </div>
+                            <hr className="my-4"/>
+                            <p className="up-ui-title">Projects</p>
+                            <p className="my-2">curate.it (4)</p>
+                            <p className="my-2">Physics research (2)</p>
+                            <p className="my-2">Revolutionary reading club (1)</p>
+                            <hr className="my-4"/>
+                            <p className="up-ui-title">Tags</p>
+                            <p className="my-2">#nextjs (4)</p>
+                            <p className="my-2">#webdev (4)</p>
+                            <p className="my-2">#swe (4)</p>
+                        </div>
+                        <div className="mx-6 md:w-2/3">
+                            <div className="mb-8">
+                                <p className="up-ui-item-title mb-2">How to Build a Social Platform Using Next.js and MongoDB</p>
+                                <p>April 10 in curate.it <b className="opacity-50">#nextjs #mongodb #webdev #swe</b></p>
+                            </div>
+                            <div className="mb-8">
+                                <p className="up-ui-item-title mb-2">How Do Transistors Work? The Building Blocks of Modern Computing</p>
+                                <p>April 2 in Physics Research <b className="opacity-50">#engineering #physics</b></p>
+                            </div>
+                            <div className="mb-8">
+                                <p className="up-ui-item-title mb-2">The Importance of Theory to Revolution | Notes on Lenin's "What Is to Be Done?", Chapter 1</p>
+                                <p>March 27 in Revolutionary Reading Club <b className="opacity-50">#book #socialscience</b></p>
+                            </div>
+                        </div>
+                    </div>
                 </HomeStep>
             </div>
             <hr className="my-8"/>
             <div className="up-container py-8">
                 <h2 className="up-ui-item-title mb-8">Updately is...</h2>
-                <div className="md:flex md:-mx-4">
-                    <div className="md:w-1/3 md:mx-4 mb-12 md:mb-0">
+                <div className={thirdContainerStyling}>
+                    <div className={thirdStyling}>
                         <div className={badgeStyling}>
                             <FiBookOpen/>
                         </div>
                         <h3 className="content mb-2">Your go-to knowledge base</h3>
                         <p className="up-ui-subtitle">All your thoughts, links, and work in one place</p>
                     </div>
-                    <div className="md:w-1/3 md:mx-4 mb-12 md:mb-0">
+                    <div className={thirdStyling}>
                         <div className={badgeStyling}>
                             <FiEdit2/>
                         </div>
                         <h3 className="content mb-2">A robust brainstorming and writing tool</h3>
                         <p className="up-ui-subtitle">Connect your ideas together through snippets and write in a beautiful WYSIWYG markdown editor</p>
                     </div>
-                    <div className="md:w-1/3 md:mx-4 mb-12 md:mb-0">
+                    <div className={thirdStyling}>
                         <div className={badgeStyling}>
                             <FiHeart/>
                         </div>
