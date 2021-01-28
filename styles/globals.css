@@ -62,7 +62,7 @@ a.up-button.small {
     cursor: not-allowed;
 }
 
-.up-button.primary {
+.up-button.primary, .up-primary {
     background-color: #0026FF;
     @apply text-white;
 }

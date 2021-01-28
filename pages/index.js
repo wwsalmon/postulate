@@ -1,11 +1,27 @@
+import {useState} from "react";
 import {FiEdit2, FiBookOpen, FiHeart} from "react-icons/fi";
 import Head from "next/head";
 import HomeStep from "../components/home-step";
+import axios from "axios";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
     const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0";
     const thirdContainerStyling = "md:flex -mx-4";
+    const [email, setEmail] = useState("");
+    const [submitted, setSubmitted] = useState(null);
+    const [error, setError] = useState(null);
+
+    function onWaitlistSubmit() {
+        axios.post("/api/waitlist", {
+            email: email,
+            url: window.location.href,
+        }).then(res => {
+            setSubmitted(res.data);
+        }).catch(e => {
+            setError(e);
+        });
+    }
 
     return (
         <>
@@ -14,7 +30,7 @@ export default function Home() {
             </Head>
             <div className="up-container flex h-16 items-center sticky top-0">
                 <img src="/logo.svg" alt="Updately logo" className="h-12"/>
-                <button className="up-button primary ml-auto small" disabled>Coming soon</button>
+                <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
             </div>
             <div className="up-container sm:flex items-center py-16">
                 <div className="sm:w-1/2 sm:pr-8 pb-8 sm:pb-0">
@@ -25,8 +41,33 @@ export default function Home() {
                     <img src="/hero-diagram.svg" alt="Supercharge your learning and creativity with Updately" className="mx-auto"/>
                 </div>
             </div>
-            <hr className="my-8"/>
-            <div className="up-container py-8">
+            <div className="w-full up-primary" id="waitlist">
+                <div className="up-container py-8">
+                    <div className="sm:flex items-center">
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Sign up for the waitlist</h2>
+                        {submitted ? (
+                            <div className="ml-auto">
+                                <p>
+                                    You are in <strong>position {submitted && submitted.data.current_priority + 10}</strong>.
+                                    Get your friends to sign up with this link to move up in the list: <code>{submitted && submitted.data.referral_link}</code>
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="ml-auto flex">
+                                <input
+                                    type="text"
+                                    className="p-2 rounded-md text-black"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                />
+                                <button className="up-button primary ml-4" onClick={onWaitlistSubmit}>Sign up</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div className="up-container py-8 mt-8">
                 <h2 className="up-ui-item-title">Here's how it works:</h2>
                 <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}>
                     <div className={thirdContainerStyling + " mt-8"}>
