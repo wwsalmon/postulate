@@ -40,6 +40,8 @@ body {
     font-family: "Alegreya", serif;
 }
 
+/* buttons */
+
 .up-button {
     @apply px-4 h-12 rounded-md transition font-semibold;
 }
