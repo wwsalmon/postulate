@@ -1,4 +1,10 @@
-export default function HomeStep({number, title, children}) {
+import {ReactNode} from "react";
+
+export default function HomeStep({number, title, children}: {
+    number: number,
+    title: ReactNode,
+    children: ReactNode,
+}) {
     return (
         <div className="flex my-16">
             <div className="w-10 h-10 rounded-full bg-gray-100 font-bold mr-6 flex items-center justify-center">
