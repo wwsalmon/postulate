@@ -30,11 +30,11 @@ export default function Home() {
             <Head>
                 <title>Updately: Supercharge Your Creativity by Learning in public</title>
             </Head>
-            <div className="px-6 mx-auto max-w-5xl flex h-16 items-center sticky top-0">
+            <div className="px-4 mx-auto max-w-5xl flex h-16 items-center sticky top-0">
                 <img src="/logo.svg" alt="Updately logo" className="h-12"/>
                 <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
             </div>
-            <div className="up-container sm:flex items-center py-16">
+            <div className="px-4 mx-auto max-w-5xl sm:flex items-center py-16">
                 <div className="sm:w-1/2 sm:pr-8 pb-8 sm:pb-0">
                     <h1 className="md:text-5xl text-4xl up-font-display font-bold leading-tight md:leading-tight mb-4">Supercharge your learning and creativity</h1>
                     <p className="md:text-2xl text-xl leading-normal md:leading-normal">Updately is an <strong>all-in-one tool</strong> for <strong>collecting and publishing your knowledge</strong>.</p>
@@ -44,7 +44,7 @@ export default function Home() {
                 </div>
             </div>
             <div className="w-full up-primary" id="waitlist">
-                <div className="up-container py-8">
+                <div className="px-4 mx-auto max-w-5xl py-8">
                     <div className="sm:flex items-center">
                         <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Sign up for the waitlist</h2>
                         {submitted ? (
@@ -69,7 +69,7 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <div className="up-container py-8 mt-8">
+            <div className="px-4 mx-auto max-w-5xl py-8 mt-8">
                 <h2 className="up-ui-item-title">Here's how it works:</h2>
                 <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}>
                     <div className={thirdContainerStyling + " mt-8"}>
@@ -164,7 +164,7 @@ export default function Home() {
                 </HomeStep>
             </div>
             <hr className="my-8"/>
-            <div className="up-container py-8">
+            <div className="px-4 mx-auto max-w-5xl py-8">
                 <h2 className="up-ui-item-title mb-8">Updately is...</h2>
                 <div className={thirdContainerStyling}>
                     <div className={thirdStyling}>
@@ -191,13 +191,13 @@ export default function Home() {
                 </div>
             </div>
             <hr className="my-8"/>
-            <div className="up-container py-8">
+            <div className="px-4 mx-auto max-w-5xl py-8">
                 <h2 className="up-ui-item-title mb-8">The Updately manifesto</h2>
                 <p className="up-font-display text-3xl leading-normal my-8">"...among all notetaking strategies, the <b>only one that actually simplifies knowledge management</b> and makes it more effective is to <b>publish your learning, experiences, and insights in public.</b>"</p>
                 <p className="content">Read founder Samson Zhang's blog post <a href="https://www.samsonzhang.com/2021/01/27/how-i-use-learning-in-public-as-my-personal-knowledge-management-strategy.html" className="underline">How I Use Learning in Public as My Personal Knowledge Management Strategy</a></p>
             </div>
             <hr className="my-8"/>
-            <div className="up-container py-8">
+            <div className="px-4 mx-auto max-w-5xl py-8">
                 <p>
                     Follow <a href="https://twitter.com/updatelyapp" className="underline">Updately on Twitter</a>.
                     Built with ♥ by <a href="https://twitter.com/wwsalmon" className="underline">Samson Zhang</a>
