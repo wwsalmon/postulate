@@ -20,6 +20,7 @@ export interface UserObj {
 }
 
 export interface ProjectObj {
+    urlName: string,
     userId: string, // ID
     name: string,
     description: string,
@@ -27,6 +28,7 @@ export interface ProjectObj {
 }
 
 export interface SnippetObj {
+    urlName: string,
     projectId: string,
     type: "general" | "update" | "resource",
     body: string,
@@ -37,6 +39,7 @@ export interface SnippetObj {
 }
 
 export interface PostObj {
+    urlName: string,
     projectId: string,
     title: string,
     body: string,
@@ -46,4 +49,5 @@ export interface PostObj {
 
 export interface SessionObj extends SessionBase {
     userId: string,
+    username: string,
 }

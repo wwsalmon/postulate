@@ -3,6 +3,7 @@ import {ProjectObj} from "../utils/types";
 
 const ProjectSchema = new mongoose.Schema({
     userId: mongoose.Schema.Types.ObjectId,
+    urlName: {type: String, required: true},
     name: {type: String, required: true},
     description: {type: String, required: true, unique: true},
     stars: [mongoose.Schema.Types.ObjectId],

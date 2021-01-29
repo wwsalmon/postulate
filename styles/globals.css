@@ -59,6 +59,10 @@ a.up-button.small {
     line-height: 2.5rem;
 }
 
+a.up-button.small:not(.primary):not(.text) {
+    line-height: 2.4rem;
+}
+
 .up-button:disabled {
     @apply opacity-25;
     cursor: not-allowed;

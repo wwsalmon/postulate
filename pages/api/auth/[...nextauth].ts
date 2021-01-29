@@ -25,10 +25,12 @@ const options: InitOptions = {
             let newSession: SessionObj = {
                 ...session,
                 userId: "",
+                username: "",
             }
 
             if (foundUser) {
                 newSession.userId = foundUser._id;
+                newSession.username = foundUser.username;
             }
 
             return newSession;

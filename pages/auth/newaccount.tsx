@@ -58,13 +58,16 @@ export default function NewAccount() {
             <p className="up-ui-title">Choose a username</p>
             <p>Your username determines the URL your profile and public posts will be visible at.</p>
             <div className="flex items-center my-4 content">
-                <p>updately.us/@</p>
+                <p className="opacity-50">updately.us/@</p>
                 <input
                     type="text"
                     className="border-b border-black"
                     value={username}
                     onChange={e => {
                         setUsername(e.target.value);
+                        if (e.target.value !== encodeURIComponent(e.target.value)) {
+                            setError("URLs cannot contain spaces or special characters.")
+                        }
                         setError(null);
                     }}
                 />
@@ -73,8 +76,12 @@ export default function NewAccount() {
                 <p className="text-red-500">{error}</p>
             )}
             <hr className="my-8"/>
-            <div className="relative">
-                <button className="up-button primary" disabled={loading || isLoading || username.length === 0} onClick={onSubmit}>
+            <div className="relative inline-block">
+                <button
+                    className="up-button primary"
+                    disabled={loading || isLoading || username !== encodeURIComponent(username) || username.length === 0}
+                    onClick={onSubmit}
+                >
                     <span className={isLoading ? "invisible" : ""}>Let's get started!</span>
                 </button>
                 {isLoading && (

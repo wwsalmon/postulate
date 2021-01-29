@@ -3,6 +3,7 @@ import {SnippetObj} from "../utils/types";
 
 const SnippetSchema = new mongoose.Schema({
     projectId: mongoose.Schema.Types.ObjectId,
+    urlName: {type: String, required: true},
     type: {type: String, required: true},
     body: {type: String, required: true},
     date: {type: String, required: true},
