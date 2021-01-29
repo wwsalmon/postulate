@@ -30,7 +30,7 @@ export interface ProjectObj {
 export interface SnippetObj {
     urlName: string,
     projectId: string,
-    type: "general" | "update" | "resource",
+    type: "snippet" | "resource",
     body: string,
     date: string, // ISO datestring
     url: string,
@@ -49,6 +49,7 @@ export interface PostObj {
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
+    _id: string,
     createdAt: string, // ISO date
     updatedAt: string, // ISO date
 }

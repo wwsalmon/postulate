@@ -12,6 +12,7 @@ import Link from "next/link";
 import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";import "easymde/dist/easymde.min.css";
 import SpinnerButton from "../../../components/spinner-button";
+import axios from "axios";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [session, loading] = useSession();
@@ -19,13 +20,27 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [isResource, setIsResource] = useState<boolean>(false);
     const [body, setBody] = useState<string>("");
     const [url, setUrl] = useState<string>("");
-    const [isSnippetLoading, setIsSnippetLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const {userId, name, description, createdAt, stars} = props.projectData;
+    const {_id: projectId, userId, name, description, createdAt, stars} = props.projectData;
     const isOwner = session && session.userId === userId;
 
     function onSubmit() {
-        setIsSnippetLoading(true);
+        setIsLoading(true);
+
+        axios.post("/api/project/newsnippet", {
+            projectId: projectId,
+            type: isSnippet ? "snippet" : "resource",
+            body: body || "",
+            url: url || "",
+        }).then(res => {
+            setIsLoading(false);
+            console.log(res);
+            isSnippet ? onCancelSnippet() : onCancelResource();
+        }).catch(e => {
+            setIsLoading(false);
+            console.log(e);
+        });
     }
 
     function onCancelSnippet() {
@@ -110,7 +125,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                     </div>
                     <SpinnerButton
                         onClick={onSubmit}
-                        isLoading={isSnippetLoading}
+                        isLoading={isLoading}
                         isDisabled={(isSnippet && body.length === 0) || (isResource && url.length === 0)}
                         className="mr-2"
                     >
