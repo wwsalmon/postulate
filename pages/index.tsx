@@ -3,14 +3,15 @@ import {FiEdit2, FiBookOpen, FiHeart} from "react-icons/fi";
 import Head from "next/head";
 import HomeStep from "../components/home-step";
 import axios from "axios";
+import {WaitlistAPIRes} from "../utils/types";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
     const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0";
     const thirdContainerStyling = "md:flex -mx-4";
-    const [email, setEmail] = useState("");
-    const [submitted, setSubmitted] = useState(null);
-    const [error, setError] = useState(null);
+    const [email, setEmail] = useState<string>("");
+    const [submitted, setSubmitted] = useState<WaitlistAPIRes>(null);
+    const [error, setError] = useState<any>(null);
 
     function onWaitlistSubmit() {
         axios.post("/api/waitlist", {

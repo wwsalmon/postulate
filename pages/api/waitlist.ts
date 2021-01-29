@@ -1,6 +1,7 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 
-export default function handler(req, res) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!req.body.email || !req.body.url) return res.status(405).json({message: "Missing email or URL in request body"});
 
     axios.post("https://getwaitlist.com/waitlist", {
