@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!req.body.username) {
-        return res.status(405).json({message: "No username found in request."});
+        return res.status(406).json({message: "No username found in request."});
     }
 
     try {

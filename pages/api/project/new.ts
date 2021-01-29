@@ -13,15 +13,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!req.body.name) {
-        return res.status(405).json({message: "No project name found in request."});
+        return res.status(406).json({message: "No project name found in request."});
     }
 
     if (!req.body.urlName) {
-        return res.status(405).json({message: "No url name found in request."});
+        return res.status(406).json({message: "No url name found in request."});
     }
 
     if (req.body.urlName !== encodeURIComponent(req.body.urlName)) {
-        return res.status(405).json({message: "Invalid url name"});
+        return res.status(406).json({message: "Invalid url name"});
     }
 
     try {
