@@ -3,6 +3,7 @@ import Providers from "next-auth/providers";
 import {NextApiRequest, NextApiResponse} from "next";
 import mongoose from "mongoose";
 import {UserModel} from "../../../models/user";
+import {SessionObj} from "../../../utils/types";
 
 const options: InitOptions = {
     providers: [
@@ -12,23 +13,26 @@ const options: InitOptions = {
         }),
     ],
     callbacks: {
-        jwt: async (token, user, account, profile, isNewUser) => {
-            if (user) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+        session: async (session, user) => {
+            await mongoose.connect(process.env.MONGODB_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+            });
 
-                const foundUser = await UserModel.findOne({ email: user.email }).exec();
+            const foundUser = await UserModel.findOne({ email: user.email }).exec();
 
-                if (foundUser) {
-                    token.userId = foundUser._id;
-                }
+            let newSession: SessionObj = {
+                ...session,
+                userId: "",
             }
 
-            return token;
-        }
+            if (foundUser) {
+                newSession.userId = foundUser._id;
+            }
+
+            return newSession;
+        },
     }
 };
 

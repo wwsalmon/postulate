@@ -20,6 +20,7 @@ export default function Home() {
         }).then(res => {
             setSubmitted(res.data);
         }).catch(e => {
+            console.log(e);
             setError(e);
         });
     }
@@ -29,7 +30,7 @@ export default function Home() {
             <Head>
                 <title>Updately: Supercharge Your Creativity by Learning in public</title>
             </Head>
-            <div className="up-container flex h-16 items-center sticky top-0">
+            <div className="px-6 mx-auto max-w-5xl flex h-16 items-center sticky top-0">
                 <img src="/logo.svg" alt="Updately logo" className="h-12"/>
                 <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
             </div>

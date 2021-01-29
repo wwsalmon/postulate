@@ -1,3 +1,5 @@
+import {SessionBase} from "next-auth/_utils";
+
 export interface WaitlistAPIRes {
     data: {
         current_priority: number,
@@ -13,9 +15,8 @@ export interface UserObj {
     email: string,
     name: string,
     username: string,
+    image: string,
     bio: string,
-    createdAt: string, // ISO date
-    updatedAt: string, // ISO date
 }
 
 export interface ProjectObj {
@@ -41,4 +42,8 @@ export interface PostObj {
     body: string,
     tags: string[],
     likes: string[], // array of IDs
+}
+
+export interface SessionObj extends SessionBase {
+    userId: string,
 }
