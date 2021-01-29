@@ -4,6 +4,7 @@ import {getSession, useSession} from "next-auth/client";
 import axios from "axios";
 import {useRouter} from "next/router";
 import Skeleton from "react-loading-skeleton";
+import SpinnerButton from "../../components/spinner-button";
 
 export default function NewAccount() {
     const router = useRouter();
@@ -76,18 +77,13 @@ export default function NewAccount() {
                 <p className="text-red-500">{error}</p>
             )}
             <hr className="my-8"/>
-            <div className="relative inline-block">
-                <button
-                    className="up-button primary"
-                    disabled={loading || isLoading || username !== encodeURIComponent(username) || username.length === 0}
-                    onClick={onSubmit}
-                >
-                    <span className={isLoading ? "invisible" : ""}>Let's get started!</span>
-                </button>
-                {isLoading && (
-                    <div className="up-spinner"/>
-                )}
-            </div>
+            <SpinnerButton
+                onClick={onSubmit}
+                isLoading={isLoading}
+                isDisabled={loading || username !== encodeURIComponent(username) || username.length === 0}
+            >
+                Let's get started!
+            </SpinnerButton>
         </div>
     );
 }

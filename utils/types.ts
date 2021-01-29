@@ -47,6 +47,12 @@ export interface PostObj {
     likes: string[], // array of IDs
 }
 
+// generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
+export type DatedObj<T extends {}> = T & {
+    createdAt: string, // ISO date
+    updatedAt: string, // ISO date
+}
+
 export interface SessionObj extends SessionBase {
     userId: string,
     username: string,

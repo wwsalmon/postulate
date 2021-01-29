@@ -115,3 +115,30 @@ a.up-button.small:not(.primary):not(.text) {
 .up-hover-button:hover > .up-hover-dropdown, .up-hover-button:focus > .up-hover-dropdown {
     display: block;
 }
+
+/* SimpleMDE styling */
+
+.EasyMDEContainer .editor-toolbar {
+    font-size: 1rem;
+    border: 0;
+    padding-left: 0;
+    padding-right: 0;
+    position: sticky;
+    top: 4rem;
+    z-index: 5;
+    background-color: white;
+}
+
+.EasyMDEContainer div.CodeMirror {
+    border: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.snippet-editor .EasyMDEContainer div.CodeMirror-scroll {
+    min-height: 150px!important;
+}
+
+.prose .task-list-item:before {
+    display: none;
+}

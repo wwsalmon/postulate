@@ -5,6 +5,8 @@ import {useSession} from "next-auth/client";
 import Skeleton from "react-loading-skeleton";
 import axios from "axios";
 import {useRouter} from "next/router";
+import BackToProjects from "../../components/back-to-projects";
+import SpinnerButton from "../../components/spinner-button";
 
 export default function NewProject() {
     const router = useRouter();
@@ -37,12 +39,7 @@ export default function NewProject() {
 
     return (
         <div className="max-w-4xl mx-auto px-4">
-            <Link href="/projects">
-                <a className="flex items-center">
-                    <FiArrowLeft/>
-                    <span className="ml-2">Back to all projects</span>
-                </a>
-            </Link>
+            <BackToProjects/>
             <hr className="my-8"/>
             <h1 className="up-h1">New project</h1>
             <div className="my-12">
@@ -90,18 +87,13 @@ export default function NewProject() {
                     <p className="text-red-500">URLs cannot contain spaces or special characters.</p>
                 )}
             </div>
-            <div className="relative inline-block">
-                <button
-                    className="up-button primary"
-                    onClick={onSubmit}
-                    disabled={isLoading || !name || !urlName || urlName !== encodeURIComponent(urlName)}
-                >
-                    <span className={isLoading ? "invisible" : ""}>Create</span>
-                </button>
-                {isLoading && (
-                    <div className="up-spinner"/>
-                )}
-            </div>
+            <SpinnerButton
+                onClick={onSubmit}
+                isLoading={isLoading}
+                isDisabled={!name || !urlName || urlName !== encodeURIComponent(urlName)}
+            >
+                Create
+            </SpinnerButton>
         </div>
     );
 }
