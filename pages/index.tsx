@@ -49,7 +49,7 @@ export default function Home() {
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
-                                    You are in <strong>position {submitted && submitted.data.current_priority + 10}</strong>.
+                                    You are in <strong>position {submitted && submitted.data.current_priority}</strong>.
                                     Get your friends to sign up with this link to move up in the list: <code>{submitted && submitted.data.referral_link}</code>
                                 </p>
                             </div>
