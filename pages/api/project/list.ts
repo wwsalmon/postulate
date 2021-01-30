@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             useFindAndModify: false,
         });
 
-        const projects: Document<ProjectObj>[] = await ProjectModel.find({ userId: session.userId });
+        const projects = await ProjectModel.find({ userId: session.userId });
 
         res.status(200).json({projects: projects});
 

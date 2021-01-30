@@ -2,8 +2,8 @@ import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
-import {cleanForJSON} from "../../../utils/utils";
-import {DatedObj, ProjectObj} from "../../../utils/types";
+import {cleanForJSON, fetcher} from "../../../utils/utils";
+import {DatedObj, ProjectObj, SnippetObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
@@ -13,6 +13,12 @@ import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";import "easymde/dist/easymde.min.css";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
+import useSWR, {responseInterface} from "swr";
+import {format} from "date-fns";
+import Skeleton from "react-loading-skeleton";
+import showdown from "showdown";
+import showdownHtmlEscape from "showdown-htmlescape";
+import Parser from "html-react-parser";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [session, loading] = useSession();
@@ -21,14 +27,16 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [body, setBody] = useState<string>("");
     const [url, setUrl] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [iteration, setIteration] = useState<number>(0);
 
     const {_id: projectId, userId, name, description, createdAt, stars} = props.projectData;
     const isOwner = session && session.userId === userId;
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
 
     function onSubmit() {
         setIsLoading(true);
 
-        axios.post("/api/project/newsnippet", {
+        axios.post("/api/project/snippet/new", {
             projectId: projectId,
             type: isSnippet ? "snippet" : "resource",
             body: body || "",
@@ -37,6 +45,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
             setIsLoading(false);
             console.log(res);
             isSnippet ? onCancelSnippet() : onCancelResource();
+            setIteration(iteration + 1);
         }).catch(e => {
             setIsLoading(false);
             console.log(e);
@@ -53,6 +62,13 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
         setBody("");
         setUrl("");
     }
+
+    const markdownConverter = new showdown.Converter({
+        strikethrough: true,
+        tasklists: true,
+        tables: true,
+        extensions: [showdownHtmlEscape],
+    });
 
     return (
         <div className="max-w-4xl mx-auto px-4">
@@ -134,6 +150,31 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                     <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
                 </div>
             ))}
+            <hr className="my-4 invisible"/>
+            {snippets ? snippets.snippets.map((snippet, i, a) => (
+                <>
+                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                        <p className="up-ui-item-title mt-12 pb-8 border-b">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                    )}
+                    <div className="py-8 border-b hover:bg-gray-50 transition flex" key={snippet.urlName}>
+                        <div className="w-24 mt-1 opacity-25">
+                            {format(new Date(snippet.createdAt), "h:mm a")}
+                        </div>
+                        <div>
+                            {snippet.url && (
+                                <div className="p-4 rounded-md shadow-md content mb-8">
+                                    <span>{snippet.url}</span>
+                                </div>
+                            )}
+                            <div className="content prose">
+                                {Parser(markdownConverter.makeHtml(snippet.body))}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )) : (
+                <Skeleton count={10}/>
+            )}
         </div>
     );
 }

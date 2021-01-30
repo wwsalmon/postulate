@@ -1,11 +1,11 @@
 import type {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
 import * as mongoose from "mongoose";
-import {SnippetObj} from "../../../utils/types";
-import {ProjectModel} from "../../../models/project";
+import {SnippetObj} from "../../../../utils/types";
+import {ProjectModel} from "../../../../models/project";
 import short from "short-uuid";
 import {format} from "date-fns";
-import {SnippetModel} from "../../../models/snippet";
+import {SnippetModel} from "../../../../models/snippet";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405);
