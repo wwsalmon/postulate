@@ -109,18 +109,18 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
             </div>
             <hr className="my-8"/>
             {isOwner && (!(isSnippet || isResource) ? (
-                <div className="flex items-center">
-                    <button className="up-button primary mr-4" onClick={() => setIsSnippet(true)}>
+                <div className="md:flex items-center">
+                    <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
                         New snippet
                     </button>
-                    <button className="up-button text" onClick={() => setIsResource(true)}>
+                    <button className="up-button text mb-4 md:mb-0" onClick={() => setIsResource(true)}>
                         <div className="flex items-center">
                             <FiLink/>
                             <span className="ml-4">Add resource</span>
                         </div>
                     </button>
                     <Link href="/newpost">
-                        <a className="up-button ml-auto">
+                        <a className="up-button ml-auto mb-4 md:mb-0">
                             <div className="flex items-center">
                                 <FiEdit/>
                                 <span className="ml-4">New post</span>

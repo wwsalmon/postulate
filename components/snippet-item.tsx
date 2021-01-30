@@ -72,8 +72,30 @@ export default function SnippetItem({snippet, iteration, setIteration}: {
 
     return (
         <>
-            <div className={"py-8 border-b transition flex" + (isEdit ? "" : " hover:bg-gray-50")}>
-                <div className="w-24 mt-1 opacity-25">
+            <div className={"py-8 border-b transition md:flex" + (isEdit ? "" : " hover:bg-gray-50")}>
+                {!isEdit && (
+                    <div className="flex ml-auto mb-4 order-3">
+                        <div className="md:hidden opacity-25">
+                            {format(new Date(snippet.createdAt), "h:mm a")}
+                        </div>
+                        <div className="ml-auto">
+                            <MoreMenu>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
+                                <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                            </MoreMenu>
+                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                <p>Are you sure you want to delete this snippet? This cannot be undone.</p>
+                                <div className="flex mt-4">
+                                    <SpinnerButton isLoading={isLoading} onClick={onDelete}>
+                                        Delete
+                                    </SpinnerButton>
+                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                                </div>
+                            </UpModal>
+                        </div>
+                    </div>
+                )}
+                <div className="hidden md:block w-32 mt-1 opacity-25">
                     {format(new Date(snippet.createdAt), "h:mm a")}
                 </div>
                 <div className="w-full">
@@ -116,23 +138,6 @@ export default function SnippetItem({snippet, iteration, setIteration}: {
                             </div>
                         )}
                 </div>
-                {!isEdit && (
-                    <div className="ml-auto">
-                        <MoreMenu>
-                            <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
-                            <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                        </MoreMenu>
-                        <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                            <p>Are you sure you want to delete this snippet? This cannot be undone.</p>
-                            <div className="flex mt-4">
-                                <SpinnerButton isLoading={isLoading} onClick={onDelete}>
-                                    Delete
-                                </SpinnerButton>
-                                <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                            </div>
-                        </UpModal>
-                    </div>
-                )}
             </div>
         </>
     );

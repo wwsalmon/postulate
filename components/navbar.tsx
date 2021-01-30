@@ -12,7 +12,7 @@ export default function Navbar() {
                 <div className="ml-auto flex items-center h-full">
                     {session ? (
                         <>
-                            <p>Signed in as {session.user.email}</p>
+                            <p className="hidden md:block">Signed in as {session.user.name}</p>
                             <button className="up-button text small" onClick={() => signOut()}>Sign out</button>
                         </>
                     ) : loading ? (

@@ -34,7 +34,7 @@ export default function Projects({}: {  }) {
                     {projects.projects.map(project => (
                         <Link href={`/@${session.username}/${project.urlName}`}>
                             <a className="block p-4 shadow-md rounded-md md:w-1/3 mx-4 mb-8 md:mb-0">
-                                <h3 className="up-ui-item-title">{project.name}</h3>
+                                <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
                                 <p className="opacity-50">{project.description}</p>
                             </a>
                         </Link>
