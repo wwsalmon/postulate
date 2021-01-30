@@ -27,8 +27,8 @@ export default function Projects({}: {  }) {
             <hr className="my-8"/>
             {((!projects && !projectsError) || loading) ? ( // SWR projects loading
                 <Skeleton count={10}/>
-            ) : (!projects) ? ( // loaded, no projects
-                <p>loaded</p>
+            ) : (projects.projects.length === 0) ? ( // loaded, no projects
+                <p className="content opacity-50">Hit "New project" to create a new project!</p>
             ) : (
                 <div className="md:flex -mx-4">
                     {projects.projects.map(project => (
