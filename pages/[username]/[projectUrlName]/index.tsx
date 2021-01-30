@@ -19,6 +19,8 @@ import Skeleton from "react-loading-skeleton";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
+import MoreMenu from "../../../components/more-menu";
+import MoreMenuItem from "../../../components/more-menu-item";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [session, loading] = useSession();
@@ -80,7 +82,10 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                 </div>
                 {isOwner && (
                     <div className="ml-auto">
-                        <button className="p-2"><FiMoreVertical/></button>
+                        <MoreMenu>
+                            <MoreMenuItem text="Edit" icon={<FiEdit2/>}/>
+                            <MoreMenuItem text="Delete" icon={<FiTrash/>}/>
+                        </MoreMenu>
                     </div>
                 )}
             </div>
@@ -160,7 +165,10 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                             </div>
                         </div>
                         <div className="ml-auto">
-                            <button className="p-2"><FiMoreVertical/></button>
+                            <MoreMenu>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>}/>
+                                <MoreMenuItem text="Delete" icon={<FiTrash/>}/>
+                            </MoreMenu>
                         </div>
                     </div>
                 </>
