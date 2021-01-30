@@ -20,7 +20,6 @@ import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
 import SnippetItem from "../../../components/snippet-item";
 import {useRouter} from "next/router";
-import Modal from "react-modal";
 import UpModal from "../../../components/up-modal";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
