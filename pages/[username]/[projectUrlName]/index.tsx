@@ -7,7 +7,7 @@ import {DatedObj, ProjectObj, SnippetObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
-import {FiEdit, FiEdit2, FiLink, FiTrash} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiLink, FiMoreVertical, FiTrash} from "react-icons/fi";
 import Link from "next/link";
 import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";import "easymde/dist/easymde.min.css";
@@ -80,18 +80,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                 </div>
                 {isOwner && (
                     <div className="ml-auto">
-                        <button className="up-button text small mr-2">
-                            <div className="flex items-center">
-                                <FiEdit2/>
-                                <span className="ml-4">Edit</span>
-                            </div>
-                        </button>
-                        <button className="up-button text small">
-                            <div className="flex items-center">
-                                <FiTrash/>
-                                <span className="ml-4">Delete</span>
-                            </div>
-                        </button>
+                        <button className="p-2"><FiMoreVertical/></button>
                     </div>
                 )}
             </div>
@@ -169,6 +158,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                             <div className="content prose">
                                 {Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
+                        </div>
+                        <div className="ml-auto">
+                            <button className="p-2"><FiMoreVertical/></button>
                         </div>
                     </div>
                 </>
