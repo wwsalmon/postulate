@@ -1,9 +1,9 @@
 import React, {ReactNode} from 'react';
 
-export default function SpinnerButton({onClick, isLoading, isDisabled, className = "", children}: {
+export default function SpinnerButton({onClick, isLoading, isDisabled = false, className = "", children}: {
     onClick: () => any,
     isLoading: boolean,
-    isDisabled: boolean,
+    isDisabled?: boolean,
     className?: string,
     children: ReactNode,
 }) {

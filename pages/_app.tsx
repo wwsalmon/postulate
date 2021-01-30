@@ -3,6 +3,7 @@ import '../styles/globals.css'
 import Navbar from "../components/navbar";
 import {Provider} from "next-auth/client";
 import {useRouter} from "next/router";
+import Modal from "react-modal";
 
 export default function App({Component, pageProps}: AppProps) {
     const router = useRouter();
@@ -12,7 +13,11 @@ export default function App({Component, pageProps}: AppProps) {
             {router.route !== "/" && (
                 <Navbar/>
             )}
-            <Component {...pageProps} />
+            <div id="app-root">
+                <Component {...pageProps} />
+            </div>
         </Provider>
     )
 }
+
+Modal.setAppElement("#app-root");

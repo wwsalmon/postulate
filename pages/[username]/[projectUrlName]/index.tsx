@@ -7,22 +7,24 @@ import {DatedObj, ProjectObj, SnippetObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
-import {FiEdit, FiEdit2, FiLink, FiMoreVertical, FiTrash} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiLink, FiTrash} from "react-icons/fi";
 import Link from "next/link";
 import SimpleMDEEditor from "react-simplemde-editor";
-import "easymde/dist/easymde.min.css";import "easymde/dist/easymde.min.css";
+import "easymde/dist/easymde.min.css";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
 import useSWR, {responseInterface} from "swr";
 import {format} from "date-fns";
 import Skeleton from "react-loading-skeleton";
-import showdown from "showdown";
-import showdownHtmlEscape from "showdown-htmlescape";
-import Parser from "html-react-parser";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
+import SnippetItem from "../../../components/snippet-item";
+import {useRouter} from "next/router";
+import Modal from "react-modal";
+import UpModal from "../../../components/up-modal";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
+    const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
     const [isResource, setIsResource] = useState<boolean>(false);
@@ -30,6 +32,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [url, setUrl] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [iteration, setIteration] = useState<number>(0);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
     const {_id: projectId, userId, name, description, createdAt, stars} = props.projectData;
     const isOwner = session && session.userId === userId;
@@ -65,12 +69,18 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
         setUrl("");
     }
 
-    const markdownConverter = new showdown.Converter({
-        strikethrough: true,
-        tasklists: true,
-        tables: true,
-        extensions: [showdownHtmlEscape],
-    });
+    function onDelete() {
+        setIsDeleteLoading(true);
+
+        axios.post("/api/project/delete", {
+            id: projectId,
+        }).then(() => {
+            router.push("/projects");
+        }).catch(e => {
+            setIsDeleteLoading(false);
+            console.log(e);
+        });
+    }
 
     return (
         <div className="max-w-4xl mx-auto px-4">
@@ -84,8 +94,17 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                     <div className="ml-auto">
                         <MoreMenu>
                             <MoreMenuItem text="Edit" icon={<FiEdit2/>}/>
-                            <MoreMenuItem text="Delete" icon={<FiTrash/>}/>
+                            <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                         </MoreMenu>
+                        <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                            <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
+                            <div className="flex mt-4">
+                                <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                    Delete
+                                </SpinnerButton>
+                                <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                            </div>
+                        </UpModal>
                     </div>
                 )}
             </div>
@@ -150,27 +169,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                         <p className="up-ui-item-title mt-12 pb-8 border-b">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                     )}
-                    <div className="py-8 border-b hover:bg-gray-50 transition flex" key={snippet.urlName}>
-                        <div className="w-24 mt-1 opacity-25">
-                            {format(new Date(snippet.createdAt), "h:mm a")}
-                        </div>
-                        <div>
-                            {snippet.url && (
-                                <div className="p-4 rounded-md shadow-md content mb-8">
-                                    <span>{snippet.url}</span>
-                                </div>
-                            )}
-                            <div className="content prose">
-                                {Parser(markdownConverter.makeHtml(snippet.body))}
-                            </div>
-                        </div>
-                        <div className="ml-auto">
-                            <MoreMenu>
-                                <MoreMenuItem text="Edit" icon={<FiEdit2/>}/>
-                                <MoreMenuItem text="Delete" icon={<FiTrash/>}/>
-                            </MoreMenu>
-                        </div>
-                    </div>
+                    <SnippetItem snippet={snippet} iteration={iteration} setIteration={setIteration}/>
                 </>
             )) : (
                 <Skeleton count={10}/>
