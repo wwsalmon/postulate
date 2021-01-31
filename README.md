@@ -1,3 +1,5 @@
-# Updately Landing Page
+# Updately Pro
 
-For now, this repo hosts a simple Next.js app for Updately's landing page.
+Updately is an all-in-one tool for collecting and publishing your knowledge.
+
+Built on Next.js and MongoDB.
