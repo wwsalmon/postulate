@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, ProjectObj, SnippetObj} from "../../../utils/types";
+import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
@@ -22,7 +22,7 @@ import SnippetItem from "../../../components/snippet-item";
 import {useRouter} from "next/router";
 import UpModal from "../../../components/up-modal";
 
-export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
+export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
@@ -34,7 +34,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
-    const {_id: projectId, userId, name, description, createdAt, stars} = props.projectData;
+    const {_id: projectId, userId, name, description, urlName, createdAt, stars} = props.projectData;
     const isOwner = session && session.userId === userId;
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
 
@@ -92,7 +92,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                 {isOwner && (
                     <div className="ml-auto">
                         <MoreMenu>
-                            <MoreMenuItem text="Edit" icon={<FiEdit2/>}/>
+                            <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
                             <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                         </MoreMenu>
                         <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
@@ -162,7 +162,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>}) {
                     <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
                 </div>
             ))}
-            <hr className="my-4 invisible"/>
+            <hr className="my-8 invisible"/>
             {snippets ? snippets.snippets.map((snippet, i, a) => (
                 <>
                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
@@ -205,7 +205,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisProject = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });
 
-        return { props: { projectData: cleanForJSON(thisProject), key: projectUrlName }};
+        return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: projectUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };
