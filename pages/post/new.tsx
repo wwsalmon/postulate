@@ -74,7 +74,7 @@ export default function NewPost({}: {}) {
                 </div>
                 <div className="w-1/4 mx-4">
                     <h3 className="up-ui-title">Project</h3>
-                    {(snippets && snippets.snippets.length > 0) ? snippets.snippets.map((snippet, i, a) => (
+                    {snippets ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
                         <>
                             {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                 <p className="up-ui-title mt-12 pb-8 border-b">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
@@ -82,6 +82,8 @@ export default function NewPost({}: {}) {
                             <SnippetItemReduced snippet={snippet}/>
                         </>
                     )) : (
+                        <p>No snippets in this project</p>
+                    ) : (
                         <Skeleton count={10}/>
                     )}
                 </div>

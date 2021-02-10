@@ -55,6 +55,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             } catch (e) {
                 return res.status(500).json({message: e});
             }
+        case "GET":
+            if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request."});
+
+            try {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+
+                const thisProject = await ProjectModel.findOne({ _id: req.query.projectId });
+                if (!thisProject) return res.status(500).json({message: "No project exists for given project ID"});
+
+                const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId });
+
+                res.status(200).json({
+                    posts: thisProjectPosts,
+                });
+
+                return;
+            } catch (e) {
+                return res.status(500).json({message: e});
+            }
         default:
             return res.status(405);
     }
