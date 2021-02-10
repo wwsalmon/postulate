@@ -40,11 +40,12 @@ export interface SnippetObj {
 
 export interface PostObj {
     urlName: string,
-    projectId: string,
+    projectId: string, // ID
+    userId: string, // ID
     title: string,
     body: string,
-    tags: string[],
-    likes: string[], // array of IDs
+    tags?: string[],
+    likes?: string[], // array of IDs
 }
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript

@@ -119,7 +119,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             <span className="ml-4">Add resource</span>
                         </div>
                     </button>
-                    <Link href="/newpost">
+                    <Link href={`/post/new?projectId=${projectId}&back=/@${props.thisUser.username}/${urlName}`}>
                         <a className="up-button ml-auto mb-4 md:mb-0">
                             <div className="flex items-center">
                                 <FiEdit/>
@@ -163,7 +163,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 </div>
             ))}
             <hr className="my-8 invisible"/>
-            {snippets ? snippets.snippets.map((snippet, i, a) => (
+            {(snippets && snippets.snippets.length > 0) ? snippets.snippets.map((snippet, i, a) => (
                 <>
                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                         <p className="up-ui-item-title mt-12 pb-8 border-b">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
