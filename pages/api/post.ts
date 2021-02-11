@@ -6,6 +6,7 @@ import {PostObj} from "../../utils/types";
 import {PostModel} from "../../models/post";
 import {format} from "date-fns";
 import short from "short-uuid";
+import {UserModel} from "../../models/user";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -111,8 +112,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId });
 
+                const authorIds = thisProjectPosts.map(d => d.userId);
+                const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+                const thisProjectPostAuthors = await UserModel.find({ _id: {$in: uniqueAuthorIds}});
+
                 res.status(200).json({
                     posts: thisProjectPosts,
+                    authors: thisProjectPostAuthors,
                 });
 
                 return;

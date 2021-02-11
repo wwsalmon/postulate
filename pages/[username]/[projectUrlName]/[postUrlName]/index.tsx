@@ -18,6 +18,7 @@ import {FiEdit2, FiTrash} from "react-icons/fi";
 import UpModal from "../../../../components/up-modal";
 import SpinnerButton from "../../../../components/spinner-button";
 import axios from "axios";
+import {format} from "date-fns";
 
 export default function Project(props: {
     postData: DatedObj<PostObj>,
@@ -93,7 +94,7 @@ export default function Project(props: {
                         </a>
                     </Link>
                     <p className="opacity-50">
-                        <span>In project: </span>
+                        <span>{format(new Date(props.postData.createdAt), "MMMM d, yyyy")} in project: </span>
                         <Link href={`/@${props.thisUser.username}/${projectUrlName}`}>
                             <a className="underline">{projectName}</a>
                         </Link>
