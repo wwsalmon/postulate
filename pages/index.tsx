@@ -69,6 +69,39 @@ export default function Home() {
                     </div>
                 </div>
             </div>
+            <div className="px-4 mx-auto max-w-5xl py-8">
+                <h2 className="up-ui-item-title mb-8">Updately is...</h2>
+                <div className={thirdContainerStyling}>
+                    <div className={thirdStyling}>
+                        <div className={badgeStyling}>
+                            <FiBookOpen/>
+                        </div>
+                        <h3 className="content mb-2">Your go-to knowledge base</h3>
+                        <p className="up-ui-subtitle">All your thoughts, links, and work in one place</p>
+                    </div>
+                    <div className={thirdStyling}>
+                        <div className={badgeStyling}>
+                            <FiEdit2/>
+                        </div>
+                        <h3 className="content mb-2">A robust brainstorming and writing tool</h3>
+                        <p className="up-ui-subtitle">Connect your ideas together through snippets and write in a beautiful WYSIWYG markdown editor</p>
+                    </div>
+                    <div className={thirdStyling}>
+                        <div className={badgeStyling}>
+                            <FiHeart/>
+                        </div>
+                        <h3 className="content mb-2">An authentic public presence</h3>
+                        <p className="up-ui-subtitle">The best way to show off your projects and personal growth</p>
+                    </div>
+                </div>
+            </div>
+            <hr className="my-8"/>
+            <div className="px-4 mx-auto max-w-5xl py-8">
+                <h2 className="up-ui-item-title mb-8">The Updately manifesto</h2>
+                <p className="up-font-display text-3xl leading-normal my-8">"...among all notetaking strategies, the <b>only one that actually simplifies knowledge management</b> and makes it more effective is to <b>publish your learning, experiences, and insights in public.</b>"</p>
+                <p className="content">Read founder Samson Zhang's blog post <a href="https://www.samsonzhang.com/2021/01/27/how-i-use-learning-in-public-as-my-personal-knowledge-management-strategy.html" className="underline">How I Use Learning in Public as My Personal Knowledge Management Strategy</a></p>
+            </div>
+            <hr className="my-8"/>
             <div className="px-4 mx-auto max-w-5xl py-8 mt-8">
                 <h2 className="up-ui-item-title">Here's how it works:</h2>
                 <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}>
@@ -163,40 +196,32 @@ export default function Home() {
                     </div>
                 </HomeStep>
             </div>
-            <hr className="my-8"/>
-            <div className="px-4 mx-auto max-w-5xl py-8">
-                <h2 className="up-ui-item-title mb-8">Updately is...</h2>
-                <div className={thirdContainerStyling}>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiBookOpen/>
-                        </div>
-                        <h3 className="content mb-2">Your go-to knowledge base</h3>
-                        <p className="up-ui-subtitle">All your thoughts, links, and work in one place</p>
-                    </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiEdit2/>
-                        </div>
-                        <h3 className="content mb-2">A robust brainstorming and writing tool</h3>
-                        <p className="up-ui-subtitle">Connect your ideas together through snippets and write in a beautiful WYSIWYG markdown editor</p>
-                    </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiHeart/>
-                        </div>
-                        <h3 className="content mb-2">An authentic public presence</h3>
-                        <p className="up-ui-subtitle">The best way to show off your projects and personal growth</p>
+            <div className="w-full up-primary" id="waitlist">
+                <div className="px-4 mx-auto max-w-5xl py-8">
+                    <div className="sm:flex items-center">
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Sign up for the waitlist</h2>
+                        {submitted ? (
+                            <div className="ml-auto">
+                                <p>
+                                    You are in <strong>position {submitted && submitted.data.current_priority}</strong>.
+                                    Get your friends to sign up with this link to move up in the list: <code>{submitted && submitted.data.referral_link}</code>
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="ml-auto flex">
+                                <input
+                                    type="text"
+                                    className="p-2 rounded-md text-black"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                />
+                                <button className="up-button primary ml-4" onClick={onWaitlistSubmit}>Sign up</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-            <hr className="my-8"/>
-            <div className="px-4 mx-auto max-w-5xl py-8">
-                <h2 className="up-ui-item-title mb-8">The Updately manifesto</h2>
-                <p className="up-font-display text-3xl leading-normal my-8">"...among all notetaking strategies, the <b>only one that actually simplifies knowledge management</b> and makes it more effective is to <b>publish your learning, experiences, and insights in public.</b>"</p>
-                <p className="content">Read founder Samson Zhang's blog post <a href="https://www.samsonzhang.com/2021/01/27/how-i-use-learning-in-public-as-my-personal-knowledge-management-strategy.html" className="underline">How I Use Learning in Public as My Personal Knowledge Management Strategy</a></p>
-            </div>
-            <hr className="my-8"/>
             <div className="px-4 mx-auto max-w-5xl py-8">
                 <p>
                     Follow <a href="https://twitter.com/updatelyapp" className="underline">Updately on Twitter</a>.
