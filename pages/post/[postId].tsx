@@ -73,7 +73,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
                             value: projectId,
                             label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === projectId).name : ""}}
                         onChange={option => setProjectId(option.value)}
-                        className="mt-4"
+                        className="mt-4 content"
                     />
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Body</h3>
