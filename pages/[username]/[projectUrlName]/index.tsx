@@ -174,7 +174,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         </a>
                     </Link>
                 )) : (
-                    <p>No posts in this project</p>
+                    <p className="mx-4">No posts in this project</p>
                 ) : (
                     <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                 )}

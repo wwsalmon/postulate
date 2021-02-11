@@ -11,6 +11,13 @@ import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
 import Link from "next/link";
+import {useSession} from "next-auth/client";
+import MoreMenu from "../../../../components/more-menu";
+import MoreMenuItem from "../../../../components/more-menu-item";
+import {FiEdit2, FiTrash} from "react-icons/fi";
+import UpModal from "../../../../components/up-modal";
+import SpinnerButton from "../../../../components/spinner-button";
+import axios from "axios";
 
 export default function Project(props: {
     postData: DatedObj<PostObj>,
@@ -18,9 +25,12 @@ export default function Project(props: {
     thisUser: DatedObj<UserObj>
 }) {
     const router = useRouter();
+    const [session, loading] = useSession();
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = props.projectData;
     const [body, setBody] = useState<string>(props.postData.body);
     const [title, setTitle] = useState<string>(props.postData.title);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -29,9 +39,47 @@ export default function Project(props: {
         extensions: [showdownHtmlEscape],
     });
 
+    const isOwner = session && session.userId === userId;
+
+    function onDelete() {
+        setIsDeleteLoading(true);
+
+        axios.delete("/api/post", {
+            data: {
+                postId: props.postData._id,
+            }
+        }).then(() => {
+            router.push(`/@${props.thisUser.username}/${projectUrlName}`);
+        }).catch(e => {
+            setIsDeleteLoading(false);
+            console.log(e);
+        });
+    }
+
     return (
         <div className="max-w-4xl mx-auto px-4 pb-16">
-            <h1 className="up-h1">{title}</h1>
+            <div className="flex">
+                <h1 className="up-h1">{title}</h1>
+                <div className="ml-auto">
+                    {isOwner && (
+                        <div className="ml-auto">
+                            <MoreMenu>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/post/${props.postData._id}?back=${encodeURIComponent(document.location.href)}`}/>
+                                <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                            </MoreMenu>
+                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+                                <div className="flex mt-4">
+                                    <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                        Delete
+                                    </SpinnerButton>
+                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                                </div>
+                            </UpModal>
+                        </div>
+                    )}
+                </div>
+            </div>
             <div className="flex my-8 items-center">
                 <Link href={`/@${props.thisUser.username}`}>
                     <a>

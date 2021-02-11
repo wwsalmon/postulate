@@ -8,55 +8,95 @@ import {format} from "date-fns";
 import short from "short-uuid";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    switch (req.method) {
-        case "POST":
-            const session = await getSession({ req });
+    if (["POST", "DELETE"].includes(req.method)) {
+        const session = await getSession({ req });
 
-            if (!session || !session.userId) {
-                return res.status(403).json({message: "You must be logged in to make a post."});
-            }
+        if (!session || !session.userId) {
+            return res.status(403).json({message: "You must be logged in to make a post."});
+        }
 
-            // ensure necessary post params are present
-            if (!req.body.projectId) return res.status(406).json({message: "No project ID found in request."});
-            if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
-            if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
+        switch (req.method) {
+            case "POST":
+                // ensure necessary post params are present
+                if (!req.body.projectId && !req.body.postId) return res.status(406).json({message: "No project or post ID found in request."});
+                if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
+                if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
-            try {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+                try {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
 
-                const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
-                if (!thisProject) return res.status(500).json({message: "No project exists for given project ID"});
+                    const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
+                    if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
 
-                const urlName: string =
-                    format(new Date(), "yyyy-MM-dd") +
-                    "-" + encodeURIComponent(req.body.title.split(" ").slice(0, 5).join("-")) +
-                    "-" + short.generate();
+                    if (req.body.postId) {
+                        const thisPost = await PostModel.findOne({ _id: req.body.postId });
+                        if (!thisPost) return res.status(500).json({message: "No post exists for given ID"});
 
-                const newPost: PostObj = {
-                    urlName: urlName,
-                    projectId: req.body.projectId,
-                    userId: session.userId,
-                    title: req.body.title,
-                    body: req.body.body,
+                        thisPost.title = req.body.title;
+                        thisPost.body = req.body.body;
+
+                        await thisPost.save();
+
+                        res.status(200).json({
+                            message: "Post successfully updated.",
+                            url: `/@${session.username}/${thisProject.urlName}/${thisPost.urlName}`,
+                        });
+
+                        return;
+                    } else {
+                        const urlName: string =
+                            format(new Date(), "yyyy-MM-dd") +
+                            "-" + encodeURIComponent(req.body.title.split(" ").slice(0, 5).join("-")) +
+                            "-" + short.generate();
+
+                        const newPost: PostObj = {
+                            urlName: urlName,
+                            projectId: req.body.projectId,
+                            userId: session.userId,
+                            title: req.body.title,
+                            body: req.body.body,
+                        }
+
+                        await PostModel.create(newPost);
+
+                        res.status(200).json({
+                            message: "Post successfully created.",
+                            url: `/@${session.username}/${thisProject.urlName}/${urlName}`,
+                        });
+
+                        return;
+                    }
+                } catch (e) {
+                    return res.status(500).json({message: e});
                 }
+            case "DELETE":
+                if (!req.body.postId) return res.status(406).json({message: "No post ID found in request."});
 
-                await PostModel.create(newPost);
+                try {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
 
-                res.status(200).json({
-                    message: "Post successfully created.",
-                    url: `/@${session.username}/${thisProject.urlName}/${urlName}`,
-                });
+                    await PostModel.deleteOne({ _id: req.body.postId });
 
-                return;
-            } catch (e) {
-                return res.status(500).json({message: e});
-            }
+                    res.status(200).json({message: "Post successfully deleted."});
+
+                    return;
+                } catch (e) {
+                    return res.status(500).json({message: e});
+                }
+        }
+    }
+
+    switch (req.method) {
         case "GET":
-            if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request."});
+            if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No project ID found in request."});
 
             try {
                 await mongoose.connect(process.env.MONGODB_URL, {
