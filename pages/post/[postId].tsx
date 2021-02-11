@@ -95,33 +95,35 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         <button className="up-button text" onClick={onCancelEdit} disabled={isEditLoading}>Cancel</button>
                     </div>
                 </div>
-                <div className="w-1/3 pl-4">
-                    <h3 className="up-ui-title">View snippets from</h3>
-                    <Select
-                        options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
-                            value: project._id,
-                            label: project.name,
-                        })) : []}
-                        value={{
-                            value: snippetProjectId,
-                            label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === snippetProjectId).name : ""}}
-                        onChange={option => setSnippetProjectId(option.value)}
-                        className="mt-4"
-                    />
-                    <hr className="mt-8 -ml-4"/>
-                    <div className="overflow-y-auto overflow-x-hidden pl-4 -ml-4" style={{maxHeight: "calc(100vh - 360px)"}}>
-                        {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
-                            <>
-                                {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                    <p className="up-ui-title mt-6 pb-4 border-b opacity-50 pl-4 -mx-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                )}
-                                <SnippetItemReduced snippet={snippet}/>
-                            </>
-                        )) : (
-                            <p>No snippets in this project</p>
-                        ) : (
-                            <Skeleton count={10}/>
-                        )}
+                <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
+                    <div className="sticky" style={{top: 100}}>
+                        <h3 className="up-ui-title">View snippets from</h3>
+                        <Select
+                            options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                                value: project._id,
+                                label: project.name,
+                            })) : []}
+                            value={{
+                                value: snippetProjectId,
+                                label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === snippetProjectId).name : ""}}
+                            onChange={option => setSnippetProjectId(option.value)}
+                            className="mt-4"
+                        />
+                        <hr className="mt-8 -ml-4"/>
+                        <div className="overflow-y-auto overflow-x-hidden pl-4 -ml-4" style={{maxHeight: "calc(100vh - 320px)"}}>
+                            {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
+                                <>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="up-ui-title mt-6 pb-4 border-b opacity-50 pl-4 -mx-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItemReduced snippet={snippet}/>
+                                </>
+                            )) : (
+                                <p>No snippets in this project</p>
+                            ) : (
+                                <Skeleton count={10}/>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
