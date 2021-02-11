@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         switch (req.method) {
             case "POST":
                 // ensure necessary post params are present
-                if (!req.body.projectId && !req.body.postId) return res.status(406).json({message: "No project or post ID found in request."});
+                if (!req.body.projectId) return res.status(406).json({message: "No project ID found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
@@ -38,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         thisPost.title = req.body.title;
                         thisPost.body = req.body.body;
+                        thisPost.projectId = req.body.projectId;
 
                         await thisPost.save();
 

@@ -14,7 +14,7 @@ export default function SnippetItemReduced({snippet}: { snippet: DatedObj<Snippe
     });
 
     return (
-        <div className="py-8 border-b hover:bg-gray-50 transition">
+        <div className="py-8 border-b hover:bg-gray-50 transition px-4 -ml-4">
             <div className="opacity-25 mb-4">
                 {format(new Date(snippet.createdAt), "h:mm a")}
             </div>

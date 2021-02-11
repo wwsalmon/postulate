@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, SnippetObj} from "../../utils/types";
+import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
@@ -13,15 +13,20 @@ import axios from "axios";
 import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {PostModel} from "../../models/post";
+import Select from "react-select";
 
 export default function NewPost(props: {title: string, body: string, postId: string, projectId: string}) {
     const router = useRouter();
+    const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
+
     const [iteration, setIteration] = useState<number>(null);
     const [body, setBody] = useState<string>(props.body);
     const [title, setTitle] = useState<string>(props.title);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
-    const [projectId, setProjectId] = useState<string>(props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId));
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&iteration=${iteration}`, fetcher);
+    const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
+    const [projectId, setProjectId] = useState<string>(startProjectId);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
+    const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
 
     function onSaveEdit() {
         setIsEditLoading(true);
@@ -45,8 +50,8 @@ export default function NewPost(props: {title: string, body: string, postId: str
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-16">
-            <div className="flex -mx-4">
-                <div className="w-3/4 mx-4">
+            <div className="flex">
+                <div className="w-2/3 pr-4 border-r">
                     <h1 className="up-h1 mb-8">{props.postId ? "Edit" : "New"} post</h1>
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Title</h3>
@@ -56,6 +61,19 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         value={title}
                         onChange={e => setTitle(e.target.value)}
                         placeholder="Add a title"
+                    />
+                    <hr className="my-8"/>
+                    <h3 className="up-ui-title mb-4">Project</h3>
+                    <Select
+                        options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                            value: project._id,
+                            label: project.name,
+                        })) : []}
+                        value={{
+                            value: projectId,
+                            label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === projectId).name : ""}}
+                        onChange={option => setProjectId(option.value)}
+                        className="mt-4"
                     />
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Body</h3>
@@ -77,20 +95,34 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         <button className="up-button text" onClick={onCancelEdit} disabled={isEditLoading}>Cancel</button>
                     </div>
                 </div>
-                <div className="w-1/4 mx-4">
-                    <h3 className="up-ui-title">Project</h3>
-                    {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
-                        <>
-                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                <p className="up-ui-title mt-12 pb-8 border-b">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                            )}
-                            <SnippetItemReduced snippet={snippet}/>
-                        </>
-                    )) : (
-                        <p>No snippets in this project</p>
-                    ) : (
-                        <Skeleton count={10}/>
-                    )}
+                <div className="w-1/3 pl-4">
+                    <h3 className="up-ui-title">View snippets from</h3>
+                    <Select
+                        options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                            value: project._id,
+                            label: project.name,
+                        })) : []}
+                        value={{
+                            value: snippetProjectId,
+                            label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === snippetProjectId).name : ""}}
+                        onChange={option => setSnippetProjectId(option.value)}
+                        className="mt-4"
+                    />
+                    <hr className="mt-8 -ml-4"/>
+                    <div className="overflow-y-auto overflow-x-hidden pl-4 -ml-4" style={{maxHeight: "calc(100vh - 360px)"}}>
+                        {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
+                            <>
+                                {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                    <p className="up-ui-title mt-6 pb-4 border-b opacity-50 pl-4 -mx-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                )}
+                                <SnippetItemReduced snippet={snippet}/>
+                            </>
+                        )) : (
+                            <p>No snippets in this project</p>
+                        ) : (
+                            <Skeleton count={10}/>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
