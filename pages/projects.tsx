@@ -8,7 +8,7 @@ import {fetcher} from "../utils/utils";
 import {ProjectObj} from "../utils/types";
 
 export default function Projects({}: {  }) {
-    const {data: projects, error: projectsError}: responseInterface<{projects: ProjectObj[] }, any> = useSWR("/api/project/list", fetcher);
+    const {data: projects, error: projectsError}: responseInterface<{projects: ProjectObj[] }, any> = useSWR("/api/project", fetcher);
     const [session, loading] = useSession();
 
     return (

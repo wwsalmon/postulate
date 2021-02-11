@@ -72,8 +72,10 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     function onDelete() {
         setIsDeleteLoading(true);
 
-        axios.post("/api/project/delete", {
-            id: projectId,
+        axios.delete("/api/project", {
+            data: {
+                id: projectId,
+            },
         }).then(() => {
             router.push("/projects");
         }).catch(e => {
@@ -83,116 +85,120 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4">
-            <BackToProjects/>
-            <div className="flex items-center">
-                <div>
-                    <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                    <p className="content">{description}</p>
-                </div>
-                {isOwner && (
-                    <div className="ml-auto">
-                        <MoreMenu>
-                            <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
-                            <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                        </MoreMenu>
-                        <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                            <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
-                            <div className="flex mt-4">
-                                <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
-                                    Delete
-                                </SpinnerButton>
-                                <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                            </div>
-                        </UpModal>
+        <>
+            <div className="max-w-4xl mx-auto px-4">
+                <BackToProjects/>
+                <div className="flex items-center">
+                    <div>
+                        <h1 className="up-h1 mt-8 mb-2">{name}</h1>
+                        <p className="content">{description}</p>
                     </div>
-                )}
-            </div>
-            <hr className="my-8"/>
-            {isOwner && (!(isSnippet || isResource) ? (
-                <div className="md:flex items-center">
-                    <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
-                        New snippet
-                    </button>
-                    <button className="up-button text mb-4 md:mb-0" onClick={() => setIsResource(true)}>
-                        <div className="flex items-center">
-                            <FiLink/>
-                            <span className="ml-4">Add resource</span>
+                    {isOwner && (
+                        <div className="ml-auto">
+                            <MoreMenu>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
+                                <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                            </MoreMenu>
+                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
+                                <div className="flex mt-4">
+                                    <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                        Delete
+                                    </SpinnerButton>
+                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                                </div>
+                            </UpModal>
                         </div>
-                    </button>
-                    <Link href={`/post/new?projectId=${projectId}&back=/@${props.thisUser.username}/${urlName}`}>
-                        <a className="up-button ml-auto mb-4 md:mb-0">
-                            <div className="flex items-center">
-                                <FiEdit/>
-                                <span className="ml-4">New post</span>
-                            </div>
-                        </a>
-                    </Link>
-                </div>
-            ) : (
-                <div className="p-4 shadow-md rounded-md">
-                    <h3 className="up-ui-item-title mb-4">{isSnippet ? "New snippet" : "Add resource"}</h3>
-                    {isResource && (
-                        <input
-                            type="text"
-                            className="content px-4 py-2 border rounded-md w-full mb-8"
-                            value={url}
-                            onChange={e => setUrl(e.target.value)}
-                            placeholder="Resource URL"
-                        />
                     )}
-                    <div className="prose content snippet-editor">
-                        <SimpleMDEEditor
-                            value={body}
-                            onChange={setBody}
-                            options={{
-                                spellChecker: false,
-                                placeholder: isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
-                                toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
-                            }}
-                        />
-                    </div>
-                    <SpinnerButton
-                        onClick={onSubmit}
-                        isLoading={isLoading}
-                        isDisabled={(isSnippet && body.length === 0) || (isResource && url.length === 0)}
-                        className="mr-2"
-                    >
-                        Save
-                    </SpinnerButton>
-                    <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
                 </div>
-            ))}
-            <hr className="my-8 invisible"/>
-            <h3 className="up-ui-title">Public posts</h3>
-            <div className="md:flex -mx-4 mt-4">
-                {posts ? posts.posts.length > 0 ? posts.posts.map(post => (
-                    <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
-                        <a className="mx-4 md:w-1/3 sm:w-1/2 p-4 rounded-md shadow-md block" key={post._id}>
-                            <p className="up-ui-item-title">{post.title}</p>
-                            <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
-                        </a>
-                    </Link>
-                )) : (
-                    <p className="mx-4">No posts in this project</p>
+                <hr className="my-8"/>
+                {isOwner && (!(isSnippet || isResource) ? (
+                    <div className="md:flex items-center">
+                        <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
+                            New snippet
+                        </button>
+                        <button className="up-button text mb-4 md:mb-0" onClick={() => setIsResource(true)}>
+                            <div className="flex items-center">
+                                <FiLink/>
+                                <span className="ml-4">Add resource</span>
+                            </div>
+                        </button>
+                        <Link href={`/post/new?projectId=${projectId}&back=/@${props.thisUser.username}/${urlName}`}>
+                            <a className="up-button ml-auto mb-4 md:mb-0">
+                                <div className="flex items-center">
+                                    <FiEdit/>
+                                    <span className="ml-4">New post</span>
+                                </div>
+                            </a>
+                        </Link>
+                    </div>
                 ) : (
-                    <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
+                    <div className="p-4 shadow-md rounded-md">
+                        <h3 className="up-ui-item-title mb-4">{isSnippet ? "New snippet" : "Add resource"}</h3>
+                        {isResource && (
+                            <input
+                                type="text"
+                                className="content px-4 py-2 border rounded-md w-full mb-8"
+                                value={url}
+                                onChange={e => setUrl(e.target.value)}
+                                placeholder="Resource URL"
+                            />
+                        )}
+                        <div className="prose content snippet-editor">
+                            <SimpleMDEEditor
+                                value={body}
+                                onChange={setBody}
+                                options={{
+                                    spellChecker: false,
+                                    placeholder: isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
+                                    toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
+                                }}
+                            />
+                        </div>
+                        <SpinnerButton
+                            onClick={onSubmit}
+                            isLoading={isLoading}
+                            isDisabled={(isSnippet && body.length === 0) || (isResource && url.length === 0)}
+                            className="mr-2"
+                        >
+                            Save
+                        </SpinnerButton>
+                        <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
+                    </div>
+                ))}
+                <hr className="my-8 invisible"/>
+                <h3 className="up-ui-title">Public posts</h3>
+                <div className="md:flex -mx-4 mt-4">
+                    {posts ? posts.posts.length > 0 ? posts.posts.map(post => (
+                        <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                            <a className="mx-4 md:w-1/3 sm:w-1/2 p-4 rounded-md shadow-md block" key={post._id}>
+                                <p className="up-ui-item-title">{post.title}</p>
+                                <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                            </a>
+                        </Link>
+                    )) : (
+                        <p className="mx-4">No posts in this project</p>
+                    ) : (
+                        <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
+                    )}
+                </div>
+                <hr className="my-8"/>
+            </div>
+            <div className="max-w-5xl mx-auto px-4">
+                {snippets ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
+                    <>
+                        {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                            <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                        )}
+                        <SnippetItem snippet={snippet} iteration={iteration} setIteration={setIteration}/>
+                    </>
+                )) : (
+                    <p>No snippets in this project</p>
+                ) : (
+                    <Skeleton count={10}/>
                 )}
             </div>
-            <hr className="my-8"/>
-            {snippets ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
-                <>
-                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                        <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                    )}
-                    <SnippetItem snippet={snippet} iteration={iteration} setIteration={setIteration}/>
-                </>
-            )) : (
-                <p>No snippets in this project</p>
-            ) : (
-                <Skeleton count={10}/>
-            )}
-        </div>
+        </>
     );
 }
 
