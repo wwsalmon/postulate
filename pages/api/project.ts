@@ -3,6 +3,7 @@ import {getSession} from "next-auth/client";
 import mongoose from "mongoose";
 import {ProjectModel} from "../../models/project";
 import {SnippetModel} from "../../models/snippet";
+import {UserModel} from "../../models/user";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
@@ -20,9 +21,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     useFindAndModify: false,
                 });
 
-                const projects = await ProjectModel.find({ userId: session.userId });
-
-                res.status(200).json({projects: projects});
+                if (req.query.shared) {
+                    const projects = await ProjectModel.find({ collaborators: session.userId });
+                    const projectOwners = projects.map(d => d.userId.toString());
+                    const uniqueProjectOwners = projectOwners.filter((d, i, a) => a.findIndex(x => x === d) === i);
+                    const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
+                    res.status(200).json({projects: projects, owners: owners});
+                } else {
+                    const projects = await ProjectModel.find({ userId: session.userId });
+                    res.status(200).json({projects: projects});
+                }
 
                 return;
             } catch (e) {

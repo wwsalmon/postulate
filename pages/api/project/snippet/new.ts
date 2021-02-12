@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
 
-        if (thisProject.userId.toString() !== session.userId) return res.status(403).json({msesage: "You do not have permission to save snippets in this project."})
+        if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({msesage: "You do not have permission to save snippets in this project."})
 
         const newSnippet: SnippetObj = {
             urlName: format(new Date(), "yyyy-MM-dd-") + short.generate(),
@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             url: req.body.url || "",
             tags: null,
             likes: null,
+            userId: session.userId,
         }
 
         await SnippetModel.create(newSnippet);

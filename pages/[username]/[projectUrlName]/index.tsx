@@ -42,7 +42,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
 
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
+    const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -123,7 +124,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     return (
         <>
             <div className="max-w-4xl mx-auto px-4">
-                {isOwner && (
+                {(isOwner || isCollaborator) && (
                     <BackToProjects/>
                 )}
                 <div className="flex items-center">
@@ -174,7 +175,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                         axios.get(`/api/search/user?email=${input}`).then(res => {
                                             const filteredResults = res.data.results.filter(d => ![
                                                 userId,
-                                                ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(d => d._id.toString()) : [])
+                                                ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
                                             ].includes(d._id));
                                             console.log(filteredResults);
                                             callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
@@ -219,7 +220,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     )}
                 </div>
                 <hr className="my-8"/>
-                {isOwner && (!(isSnippet || isResource) ? (
+                {(isOwner || isCollaborator) && (!(isSnippet || isResource) ? (
                     <div className="md:flex items-center">
                         <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
                             New snippet
@@ -296,18 +297,18 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                     )}
                 </div>
-                {isOwner && (
+                {(isOwner || isCollaborator) && (
                     <hr className="my-8"/>
                 )}
             </div>
-            {isOwner && (
+            {(isOwner || isCollaborator) && (
                 <div className="max-w-5xl mx-auto px-4">
                     {snippets ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
                         <>
                             {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                 <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                             )}
-                            <SnippetItem snippet={snippet} iteration={iteration} setIteration={setIteration}/>
+                            <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
                         </>
                     )) : (
                         <p>No snippets in this project</p>

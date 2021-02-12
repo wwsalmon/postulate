@@ -31,6 +31,7 @@ export interface ProjectObj {
 export interface SnippetObj {
     urlName: string,
     projectId: string,
+    userId: string, // ID
     type: "snippet" | "resource",
     body: string,
     date: string, // ISO datestring

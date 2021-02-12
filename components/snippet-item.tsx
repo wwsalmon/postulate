@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, SnippetObj} from "../utils/types";
+import {DatedObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -12,12 +12,16 @@ import axios from "axios";
 import UpModal from "./up-modal";
 import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
+import {useSession} from "next-auth/client";
+import Link from "next/link";
 
-export default function SnippetItem({snippet, iteration, setIteration}: {
+export default function SnippetItem({snippet, authors, iteration, setIteration}: {
     snippet: DatedObj<SnippetObj>,
+    authors: DatedObj<UserObj>[],
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>
 }) {
+    const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -75,31 +79,59 @@ export default function SnippetItem({snippet, iteration, setIteration}: {
             <div className={"py-8 border-b transition md:flex" + (isEdit ? "" : " hover:bg-gray-50")}>
                 {!isEdit && (
                     <div className="flex ml-auto mb-4 order-3">
-                        <div className="md:hidden opacity-25">
-                            {format(new Date(snippet.createdAt), "h:mm a")}
+                        <div className="md:hidden flex items-center">
+                            {!(session && session.userId === snippet.userId) && (
+                                <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
+                                    <a>
+                                        <img
+                                            src={authors.find(d => d._id === snippet.userId).image}
+                                            alt={authors.find(d => d._id === snippet.userId).name}
+                                            className="w-6 h-6 rounded-full opacity-25 hover:opacity-100 transition mr-4"
+                                        />
+                                    </a>
+                                </Link>
+                            )}
+                            <p className="opacity-25">
+                                {format(new Date(snippet.createdAt), "h:mm a")}
+                            </p>
                         </div>
-                        <div className="ml-auto">
-                            <MoreMenu>
-                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
-                                <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                            </MoreMenu>
-                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                                <p>Are you sure you want to delete this snippet? This cannot be undone.</p>
-                                <div className="flex mt-4">
-                                    <SpinnerButton isLoading={isLoading} onClick={onDelete}>
-                                        Delete
-                                    </SpinnerButton>
-                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                                </div>
-                            </UpModal>
-                        </div>
+                        {session && (session.userId === snippet.userId) && (
+                            <div className="ml-auto">
+                                <MoreMenu>
+                                    <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
+                                    <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                </MoreMenu>
+                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                    <p>Are you sure you want to delete this snippet? This cannot be undone.</p>
+                                    <div className="flex mt-4">
+                                        <SpinnerButton isLoading={isLoading} onClick={onDelete}>
+                                            Delete
+                                        </SpinnerButton>
+                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                                    </div>
+                                </UpModal>
+                            </div>
+                        )}
                     </div>
                 )}
-                <div className="hidden md:block w-32 mt-1 opacity-25">
-                    {format(new Date(snippet.createdAt), "h:mm a")}
+                <div className="hidden md:block w-32 mt-1">
+                    {!(session && session.userId === snippet.userId) && (
+                        <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
+                            <a>
+                                <img
+                                    src={authors.find(d => d._id === snippet.userId).image}
+                                    alt={authors.find(d => d._id === snippet.userId).name}
+                                    className="w-6 h-6 rounded-full mb-4 opacity-25 hover:opacity-100 transition"
+                                />
+                            </a>
+                        </Link>
+                    )}
+                    <p className="opacity-25">
+                        {format(new Date(snippet.createdAt), "h:mm a")}
+                    </p>
                 </div>
                 <div className="w-full">
-                    {snippet.url && (isEdit ? (
+                    {snippet.url && ((isEdit && session && session.userId === snippet.userId) ? (
                         <input
                             type="text"
                             className="content px-4 py-2 border rounded-md w-full mb-8"
@@ -112,7 +144,7 @@ export default function SnippetItem({snippet, iteration, setIteration}: {
                             <span>{snippet.url}</span>
                         </div>
                     ))}
-                        {isEdit ? (
+                        {(isEdit && session && session.userId === snippet.userId) ? (
                             <>
                                 <div className="content prose w-full">
                                     <SimpleMDEEditor
