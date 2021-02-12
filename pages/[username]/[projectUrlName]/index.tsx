@@ -5,9 +5,9 @@ import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useSession} from "next-auth/client";
-import {FiEdit, FiEdit2, FiLink, FiTrash} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import Link from "next/link";
 import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
@@ -21,6 +21,8 @@ import MoreMenuItem from "../../../components/more-menu-item";
 import SnippetItem from "../../../components/snippet-item";
 import {useRouter} from "next/router";
 import UpModal from "../../../components/up-modal";
+import AsyncSelect from 'react-select/async';
+import collaborator from "../../api/project/collaborator";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -33,11 +35,16 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [iteration, setIteration] = useState<number>(0);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const [addCollaboratorOpen, setAddCollaboratorOpen] = useState<boolean>(false);
+    const [addCollaboratorList, setAddCollaboratorList] = useState<{ value: string, label: string }[]>(null);
+    const [addCollaboratorLoading, setAddCollaboratorLoading] = useState<boolean>(false);
+    const [collaboratorIteration, setCollaboratorIteration] = useState<number>(null);
 
-    const {_id: projectId, userId, name, description, urlName, createdAt, stars} = props.projectData;
+    const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
+    const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
     function onSubmit() {
         setIsLoading(true);
@@ -84,6 +91,35 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
         });
     }
 
+    function onAddCollaborators() {
+        setAddCollaboratorLoading(true);
+
+        axios.post("/api/project/collaborator", {
+            projectId: projectId,
+            emails: addCollaboratorList.map(d => d.value),
+        }).then(() => {
+            setAddCollaboratorLoading(false);
+            setAddCollaboratorList([]);
+            setCollaboratorIteration(collaboratorIteration + 1);
+        }).catch(e => {
+            setAddCollaboratorLoading(false);
+            console.log(e)
+        });
+    }
+
+    function deleteCollaborator(id: string) {
+        axios.delete("/api/project/collaborator", {
+            data: {
+                projectId: projectId,
+                userId: id,
+            }
+        }).then(() => {
+            setCollaboratorIteration(collaboratorIteration + 1);
+        }).catch(e => {
+            console.log(e);
+        });
+    }
+
     return (
         <>
             <div className="max-w-4xl mx-auto px-4">
@@ -117,6 +153,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             <MoreMenu>
                                 <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
                                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
                             </MoreMenu>
                             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
                                 <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
@@ -127,6 +164,57 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                     <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
                                 </div>
                             </UpModal>
+                            <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
+                            <h3 className="up-ui-title">Add collaborator</h3>
+                            <p>Collaborators are able to view and add snippets and posts in your project.</p>
+                            <AsyncSelect
+                                cacheOtions
+                                loadOptions={(input, callback) => {
+                                    if (input) {
+                                        axios.get(`/api/search/user?email=${input}`).then(res => {
+                                            const filteredResults = res.data.results.filter(d => ![
+                                                userId,
+                                                ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(d => d._id.toString()) : [])
+                                            ].includes(d._id));
+                                            console.log(filteredResults);
+                                            callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
+                                        }).catch(e => {
+                                            console.log(e);
+                                        });
+                                    } else {
+                                        callback([]);
+                                    }
+                                }}
+                                placeholder="Enter collaborator's email"
+                                styles={{dropdownIndicator: () => ({display: "none"})}}
+                                onChange={selected => setAddCollaboratorList(selected)}
+                                isMulti
+                                value={addCollaboratorList}
+                                className="my-4 min-w-64"
+                            />
+                            <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
+                                Add
+                            </SpinnerButton>
+                            <hr className="my-4"/>
+                            <h3 className="up-ui-title">Manage collaborators</h3>
+                            {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
+                                collaboratorObjs.collaborators.map(collaborator => (
+                                    <div className="flex items-center my-4">
+                                        <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
+                                        <p>{collaborator.name} ({collaborator.email})</p>
+                                        <div className="ml-auto">
+                                            <MoreMenu>
+                                                <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
+                                            </MoreMenu>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No collaborators found for this project.</p>
+                            ) : (
+                                <Skeleton count={2}/>
+                            )}
+                        </UpModal>
                         </div>
                     )}
                 </div>

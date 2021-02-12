@@ -15,7 +15,7 @@ export default function MoreMenuItem({href, onClick, disabled = false, icon = nu
         <Link href={href}>
             <a className={MoreMenuItemClasses + (disabled ? MoreMenuItemDisabledClasses : "")}>
                 {icon}
-                <span className={icon ? "ml-4" : ""}>{text}</span>
+                <span className={"whitespace-nowrap " + (icon ? "ml-4" : "")}>{text}</span>
             </a>
         </Link>
     ) : (
@@ -25,7 +25,7 @@ export default function MoreMenuItem({href, onClick, disabled = false, icon = nu
             onClick={onClick}
         >
             {icon}
-            <span className={icon ? "ml-4" : ""}>{text}</span>
+            <span className={"whitespace-nowrap " + (icon ? "ml-4" : "")}>{text}</span>
         </button>
     );
 }

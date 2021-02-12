@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             userId: session.userId,
             description: req.body.description || "",
             stars: null,
+            collaborators: [],
         }
 
         await ProjectModel.create(newProject);

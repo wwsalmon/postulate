@@ -25,6 +25,7 @@ export interface ProjectObj {
     name: string,
     description: string,
     stars: string[], // array of IDs
+    collaborators: string[],
 }
 
 export interface SnippetObj {
