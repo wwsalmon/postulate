@@ -6,6 +6,9 @@ import SignInButton from "../../components/sign-in-button";
 export default function SignIn() {
     return (
         <div className="max-w-sm mx-auto px-4">
+            <h1 className="up-h1">Welcome to Updately</h1>
+            <hr className="my-8"/>
+            <p className="my-8">Click the button below to sign in to or sign up for Updately with your Google account.</p>
             <SignInButton/>
         </div>
     );
