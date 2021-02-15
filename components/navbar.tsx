@@ -13,7 +13,7 @@ export default function Navbar() {
                     {session ? (
                         <>
                             <p className="hidden md:block">Signed in as {session.user.name}</p>
-                            <button className="up-button text small" onClick={() => signOut()}>Sign out</button>
+                            <button className="up-button text small ml-4" onClick={() => signOut()}>Sign out</button>
                         </>
                     ) : loading ? (
                         <p>Loading...</p>

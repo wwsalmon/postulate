@@ -1,7 +1,6 @@
 import type {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
 import * as mongoose from "mongoose";
-import {ProjectObj} from "../../../utils/types";
 import {ProjectModel} from "../../../models/project";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,7 +8,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await getSession({ req });
 
     if (!session || !session.userId) {
-        return res.status(403).json({message: "You must be logged in to create a project."});
+        return res.status(403).json({message: "You must be logged in to edit a project."});
+    }
+
+    if (!req.body.id) {
+        return res.status(406).json({message: "No project ID found in request."});
     }
 
     if (!req.body.name) {
@@ -31,22 +34,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             useFindAndModify: false,
         });
 
-        const sameUrlProject = await ProjectModel.findOne({ userId: session.userId, urlName: req.body.urlName });
+        const thisProject = await ProjectModel.findOne({_id: req.body.id});
 
-        if (sameUrlProject) return res.status(200).json({error: "You already have a project with this urlName"});
+        if (!thisProject) return res.status(404).json({message: "No project found for given ID"});
 
-        const newProject: ProjectObj = {
-            name: req.body.name,
-            urlName: req.body.urlName,
-            userId: session.userId,
-            description: req.body.description || "",
-            stars: null,
-            collaborators: [],
-        }
+        thisProject.name = req.body.name;
+        thisProject.description = req.body.description || "";
+        thisProject.urlName = req.body.urlName;
 
-        await ProjectModel.create(newProject);
+        await thisProject.save();
 
-        res.status(200).json({message: "Project successfully created."});
+        res.status(200).json({message: "Project successfully saved."});
 
         return;
     } catch (e) {

@@ -5,6 +5,7 @@ import axios from "axios";
 import {useRouter} from "next/router";
 import Skeleton from "react-loading-skeleton";
 import SpinnerButton from "../../components/spinner-button";
+import UpSEO from "../../components/up-seo";
 
 export default function NewAccount() {
     const router = useRouter();
@@ -35,6 +36,7 @@ export default function NewAccount() {
 
     return (
         <div className="max-w-sm mx-auto px-4">
+            <UpSEO title="New account"/>
             <h1 className="up-h1">Welcome to Updately</h1>
             <hr className="my-8"/>
             <p className="up-ui-title">Creating new account as:</p>

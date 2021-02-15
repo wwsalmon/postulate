@@ -3,6 +3,7 @@ import {PostObj, SnippetObj} from "../utils/types";
 
 const PostSchema = new mongoose.Schema({
     projectId: mongoose.Schema.Types.ObjectId,
+    userId: mongoose.Schema.Types.ObjectId,
     urlName: {type: String, required: true},
     title: {type: String, required: true},
     body: {type: String, required: true},

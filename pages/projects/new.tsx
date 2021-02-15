@@ -7,6 +7,7 @@ import axios from "axios";
 import {useRouter} from "next/router";
 import BackToProjects from "../../components/back-to-projects";
 import SpinnerButton from "../../components/spinner-button";
+import UpSEO from "../../components/up-seo";
 
 export default function NewProject() {
     const router = useRouter();
@@ -39,6 +40,7 @@ export default function NewProject() {
 
     return (
         <div className="max-w-4xl mx-auto px-4">
+            <UpSEO title="New project | Updately"/>
             <BackToProjects/>
             <hr className="my-8"/>
             <h1 className="up-h1">New project</h1>
