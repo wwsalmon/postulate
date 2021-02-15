@@ -29,6 +29,7 @@
     "react-icons": "^4.1.0",
     "react-loading-skeleton": "^2.1.1",
     "react-modal": "^3.12.1",
+    "react-robust-accordion": "^0.5.2",
     "react-select": "^4.1.0",
     "react-simplemde-editor": "^4.1.3",
     "short-uuid": "^4.1.0",
