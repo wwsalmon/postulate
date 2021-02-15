@@ -39,6 +39,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [addCollaboratorList, setAddCollaboratorList] = useState<{ value: string, label: string }[]>(null);
     const [addCollaboratorLoading, setAddCollaboratorLoading] = useState<boolean>(false);
     const [collaboratorIteration, setCollaboratorIteration] = useState<number>(null);
+    const [orderNew, setOrderNew] = useState<boolean>(true);
 
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
@@ -298,18 +299,24 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     )}
                 </div>
                 {(isOwner || isCollaborator) && (
-                    <hr className="my-8"/>
+                    <>
+                        <hr className="my-8"/>
+                        <div className="flex">
+                            <p className="up-ui-title">Snippets</p>
+                            <button className="ml-auto" onClick={() => setOrderNew(!orderNew)}>{orderNew ? "View oldest first" : "View newest first"}</button>
+                        </div>
+                    </>
                 )}
             </div>
             {(isOwner || isCollaborator) && (
                 <div className="max-w-5xl mx-auto px-4">
-                    {snippets ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
-                        <>
+                    {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
+                        <div key={snippet._id}>
                             {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                 <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                             )}
                             <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
-                        </>
+                        </div>
                     )) : (
                         <p>No snippets in this project</p>
                     ) : (
