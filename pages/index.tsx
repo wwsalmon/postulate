@@ -4,6 +4,7 @@ import Head from "next/head";
 import HomeStep from "../components/home-step";
 import axios from "axios";
 import {WaitlistAPIRes} from "../utils/types";
+import UpSEO from "../components/up-seo";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
@@ -27,9 +28,7 @@ export default function Home() {
 
     return (
         <>
-            <Head>
-                <title>Updately: Supercharge Your Creativity by Learning in public</title>
-            </Head>
+            <UpSEO/>
             <div className="px-4 mx-auto max-w-5xl flex h-16 items-center sticky top-0">
                 <img src="/logo.svg" alt="Updately logo" className="h-12"/>
                 <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>

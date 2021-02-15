@@ -6,6 +6,7 @@ import Skeleton from "react-loading-skeleton";
 import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
+import UpSEO from "../components/up-seo";
 
 export default function Projects({}: {  }) {
     const {data: projects, error: projectsError}: responseInterface<{projects: ProjectObj[] }, any> = useSWR("/api/project", fetcher);
@@ -16,6 +17,7 @@ export default function Projects({}: {  }) {
 
     return (
         <div className="max-w-4xl mx-auto px-4">
+            <UpSEO title="Projects | Updately"/>
             <div className="flex items-center">
                 <h1 className="up-h1">Projects</h1>
                 <Link href="/projects/new">

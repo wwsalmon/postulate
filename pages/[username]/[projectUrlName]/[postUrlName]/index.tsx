@@ -19,6 +19,7 @@ import UpModal from "../../../../components/up-modal";
 import SpinnerButton from "../../../../components/spinner-button";
 import axios from "axios";
 import {format} from "date-fns";
+import UpSEO from "../../../../components/up-seo";
 
 export default function Project(props: {
     postData: DatedObj<PostObj>,
@@ -60,6 +61,7 @@ export default function Project(props: {
 
     return (
         <div className="max-w-4xl mx-auto px-4 pb-16">
+            <UpSEO title={title}/>
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
                 <div className="ml-auto">

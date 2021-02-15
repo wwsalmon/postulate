@@ -23,6 +23,7 @@ import {useRouter} from "next/router";
 import UpModal from "../../../components/up-modal";
 import AsyncSelect from 'react-select/async';
 import Accordion from "react-robust-accordion";
+import UpSEO from "../../../components/up-seo";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -126,6 +127,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
 
     return (
         <>
+            <UpSEO title={props.projectData.name} description={props.projectData.description}/>
             <div className="max-w-4xl mx-auto px-4">
                 {(isOwner || isCollaborator) && (
                     <BackToProjects/>

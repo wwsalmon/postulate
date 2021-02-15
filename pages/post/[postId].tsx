@@ -14,6 +14,8 @@ import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {PostModel} from "../../models/post";
 import Select from "react-select";
+import UpSEO from "../../components/up-seo";
+import {getSession} from "next-auth/client";
 
 export default function NewPost(props: {title: string, body: string, postId: string, projectId: string}) {
     const router = useRouter();
@@ -59,6 +61,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-16">
+            <UpSEO title={(props.postId ? "Edit post" : "New post")}/>
             <div className="flex">
                 <div className="w-2/3 pr-4 border-r">
                     <h1 className="up-h1 mb-8">{props.postId ? "Edit" : "New"} post</h1>
@@ -149,6 +152,16 @@ export default function NewPost(props: {title: string, body: string, postId: str
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+    const session = await getSession(context);
+
+    if (!session) {
+        context.res.setHeader("location", session ? "/projects" : "/auth/signin");
+        context.res.statusCode = 302;
+        context.res.end();
+
+        return {props: {}};
+    }
+
     if (Array.isArray(context.params.postId)) return {notFound: true};
 
     const postId: any = context.params.postId;
