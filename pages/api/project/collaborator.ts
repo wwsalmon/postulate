@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (req.method) {
         case "GET":
-            if (!req.query.projectId) return res.status(406).json({message: "No projectId found in request"});
+            if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No projectId found in request"});
 
             try {
                 await mongoose.connect(process.env.MONGODB_URL, {
@@ -58,7 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     useFindAndModify: false,
                 });
 
-                const thisProject = await ProjectModel.findOne({ _id: req.query.projectId });
+                const queryProjectId: any = req.query.projectId;
+
+                const thisProject = await ProjectModel.findOne({ _id: queryProjectId });
 
                 let thisProjectCollaborators = await UserModel.find({ _id: {$in: thisProject.collaborators }});
 

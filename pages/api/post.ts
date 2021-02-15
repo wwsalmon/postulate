@@ -124,7 +124,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     useFindAndModify: false,
                 });
 
-                const thisProject = await ProjectModel.findOne({ _id: req.query.projectId });
+                const queryProjectId: any = req.query.projectId;
+
+                const thisProject = await ProjectModel.findOne({ _id: queryProjectId });
                 if (!thisProject) return res.status(500).json({message: "No project exists for given project ID"});
 
                 const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId });

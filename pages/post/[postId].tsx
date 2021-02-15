@@ -151,7 +151,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
 export const getServerSideProps: GetServerSideProps = async (context) => {
     if (Array.isArray(context.params.postId)) return {notFound: true};
 
-    const postId = context.params.postId;
+    const postId: any = context.params.postId;
 
     if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null}};
 
