@@ -23,7 +23,8 @@ import {format} from "date-fns";
 export default function Project(props: {
     postData: DatedObj<PostObj>,
     projectData: DatedObj<ProjectObj>,
-    thisUser: DatedObj<UserObj>
+    thisOwner: DatedObj<UserObj>,
+    thisAuthor: DatedObj<UserObj>,
 }) {
     const router = useRouter();
     const [session, loading] = useSession();
@@ -40,7 +41,7 @@ export default function Project(props: {
         extensions: [showdownHtmlEscape],
     });
 
-    const isOwner = session && session.userId === userId;
+    const isOwner = session && props.thisAuthor._id === session.userId;
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -50,7 +51,7 @@ export default function Project(props: {
                 postId: props.postData._id,
             }
         }).then(() => {
-            router.push(`/@${props.thisUser.username}/${projectUrlName}`);
+            router.push(`/@${props.thisOwner.username}/${projectUrlName}`);
         }).catch(e => {
             setIsDeleteLoading(false);
             console.log(e);
@@ -82,20 +83,20 @@ export default function Project(props: {
                 </div>
             </div>
             <div className="flex my-8 items-center">
-                <Link href={`/@${props.thisUser.username}`}>
+                <Link href={`/@${props.thisAuthor.username}`}>
                     <a>
-                        <img src={props.thisUser.image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
+                        <img src={props.thisAuthor.image} alt={`Profile picture of ${props.thisAuthor.name}`} className="w-10 h-10 rounded-full mr-4"/>
                     </a>
                 </Link>
                 <div>
-                    <Link href={`/@${props.thisUser.username}`}>
+                    <Link href={`/@${props.thisAuthor.username}`}>
                         <a className="font-bold">
-                            {props.thisUser.name}
+                            {props.thisAuthor.name}
                         </a>
                     </Link>
                     <p className="opacity-50">
                         <span>{format(new Date(props.postData.createdAt), "MMMM d, yyyy")} in project: </span>
-                        <Link href={`/@${props.thisUser.username}/${projectUrlName}`}>
+                        <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
                             <a className="underline">{projectName}</a>
                         </Link>
                     </p>
@@ -133,19 +134,26 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             useFindAndModify: false,
         });
 
-        const thisUser = await UserModel.findOne({ username: username });
+        const thisOwner = await UserModel.findOne({ username: username });
 
-        if (!thisUser) return { notFound: true };
+        if (!thisOwner) return { notFound: true };
 
-        const thisProject = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });
+        const thisProject = await ProjectModel.findOne({ userId: thisOwner._id, urlName: projectUrlName });
 
         if (!thisProject) return { notFound: true };
 
-        const thisPost = await PostModel.findOne({ userId: thisUser._id, projectId: thisProject._id, urlName: encodeURIComponent(postUrlName) });
+        const thisPost = await PostModel.findOne({ projectId: thisProject._id, urlName: encodeURIComponent(postUrlName) });
 
         if (!thisPost) return { notFound: true };
+
+        let thisAuthor = thisOwner;
+
+        // if collaborator, fetch collaborator object
+        if (thisPost.userId !== thisAuthor._id.toString()) {
+            thisAuthor = await UserModel.findOne({ _id: thisPost.userId });
+        }
         
-        return { props: { postData: cleanForJSON(thisPost), projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: postUrlName }};
+        return { props: { postData: cleanForJSON(thisPost), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), key: postUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

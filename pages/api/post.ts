@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
                     if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
+                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({msesage: "You do not have permission to add posts in this project."})
 
                     if (req.body.postId) {
                         const thisPost = await PostModel.findOne({ _id: req.body.postId });
@@ -43,9 +44,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         await thisPost.save();
 
+                        let projectUsername = session.username;
+
+                        // if collaborator, fetch owner username
+                        if (thisProject.userId.toString() !== session.userId) {
+                            const thisProjectOwner = await UserModel.findOne({ _id: thisProject.userId });
+                            projectUsername = thisProjectOwner.username;
+                        }
+
                         res.status(200).json({
                             message: "Post successfully updated.",
-                            url: `/@${session.username}/${thisProject.urlName}/${thisPost.urlName}`,
+                            url: `/@${projectUsername}/${thisProject.urlName}/${thisPost.urlName}`,
                         });
 
                         return;
@@ -65,9 +74,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         await PostModel.create(newPost);
 
+                        let projectUsername = session.username;
+
+                        // if collaborator, fetch owner username
+                        if (thisProject.userId.toString() !== session.userId) {
+                            const thisProjectOwner = await UserModel.findOne({ _id: thisProject.userId });
+                            projectUsername = thisProjectOwner.username;
+                        }
+
                         res.status(200).json({
                             message: "Post successfully created.",
-                            url: `/@${session.username}/${thisProject.urlName}/${urlName}`,
+                            url: `/@${projectUsername}/${thisProject.urlName}/${urlName}`,
                         });
 
                         return;

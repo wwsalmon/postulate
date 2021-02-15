@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
+import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
 import {fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
@@ -25,8 +25,17 @@ export default function NewPost(props: {title: string, body: string, postId: str
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
     const [projectId, setProjectId] = useState<string>(startProjectId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
+    const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
+
+    function getProjectLabel(projectId: string): string {
+        if (!(projects && sharedProjects)) return "";
+        const thisProject: DatedObj<ProjectObj> = [...projects.projects, ...sharedProjects.projects].find(d => d._id === projectId);
+        let label = thisProject.name;
+        if (sharedProjects.projects.map(d => d._id).includes(projectId)) label += ` (owned by ${sharedProjects.owners.find(d => d._id === thisProject.userId).name})`;
+        return label;
+    }
 
     function onSaveEdit() {
         setIsEditLoading(true);
@@ -65,13 +74,20 @@ export default function NewPost(props: {title: string, body: string, postId: str
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Project</h3>
                     <Select
-                        options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
-                            value: project._id,
-                            label: project.name,
-                        })) : []}
+                        options={[
+                            ...(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                                value: project._id,
+                                label: getProjectLabel(project._id),
+                            })) : [],
+                            ...(sharedProjects && sharedProjects.projects.length > 0) ? sharedProjects.projects.map(project => ({
+                                value: project._id,
+                                label: getProjectLabel(project._id),
+                            })) : [],
+                        ]}
                         value={{
                             value: projectId,
-                            label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === projectId).name : ""}}
+                            label: getProjectLabel(projectId)
+                        }}
                         onChange={option => setProjectId(option.value)}
                         className="mt-4 content"
                     />
@@ -90,7 +106,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
                     </div>
                     <div className="flex mt-4">
                         <SpinnerButton isLoading={isEditLoading} onClick={onSaveEdit} isDisabled={!body || !title}>
-                            Save
+                            {props.postId ? "Save" : "Post"}
                         </SpinnerButton>
                         <button className="up-button text" onClick={onCancelEdit} disabled={isEditLoading}>Cancel</button>
                     </div>
@@ -99,13 +115,14 @@ export default function NewPost(props: {title: string, body: string, postId: str
                     <div className="sticky" style={{top: 100}}>
                         <h3 className="up-ui-title">View snippets from</h3>
                         <Select
-                            options={(projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                            options={(projects && sharedProjects) ? [...projects.projects, ...sharedProjects.projects].map(project => ({
                                 value: project._id,
-                                label: project.name,
+                                label: getProjectLabel(project._id),
                             })) : []}
                             value={{
                                 value: snippetProjectId,
-                                label: (projects && projects.projects.length > 0) ? projects.projects.find(d => d._id === snippetProjectId).name : ""}}
+                                label: getProjectLabel(snippetProjectId)
+                            }}
                             onChange={option => setSnippetProjectId(option.value)}
                             className="mt-4"
                         />
@@ -116,7 +133,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
                                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                         <p className="up-ui-title mt-6 pb-4 border-b opacity-50 pl-4 -mx-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                                     )}
-                                    <SnippetItemReduced snippet={snippet}/>
+                                    <SnippetItemReduced snippet={snippet} authors={snippets.authors}/>
                                 </>
                             )) : (
                                 <p>No snippets in this project</p>
