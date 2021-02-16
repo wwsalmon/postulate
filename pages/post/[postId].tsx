@@ -16,6 +16,7 @@ import {PostModel} from "../../models/post";
 import Select from "react-select";
 import UpSEO from "../../components/up-seo";
 import {getSession} from "next-auth/client";
+import UpBackLink from "../../components/up-back-link";
 
 export default function NewPost(props: {title: string, body: string, postId: string, projectId: string}) {
     const router = useRouter();
@@ -27,7 +28,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
     const [projectId, setProjectId] = useState<string>(startProjectId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
@@ -60,8 +61,9 @@ export default function NewPost(props: {title: string, body: string, postId: str
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={(props.postId ? "Edit post" : "New post")}/>
+            <UpBackLink link={Array.isArray(router.query.back) ? "/projects" : router.query.back} text="project" className="mb-8"/>
             <div className="flex">
                 <div className="w-2/3 pr-4 border-r">
                     <h1 className="up-h1 mb-8">{props.postId ? "Edit" : "New"} post</h1>

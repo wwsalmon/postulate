@@ -47,21 +47,20 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${projectId}&?iter=${iteration}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&?iter=${iteration}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
     function onSubmit() {
         setIsLoading(true);
 
-        axios.post("/api/project/snippet/new", {
+        axios.post("/api/snippet", {
             projectId: projectId,
             type: isSnippet ? "snippet" : "resource",
             body: body || "",
             url: url || "",
-        }).then(res => {
+        }).then(() => {
             setIsLoading(false);
-            console.log(res);
             isSnippet ? onCancelSnippet() : onCancelResource();
             setIteration(iteration + 1);
         }).catch(e => {
