@@ -39,8 +39,10 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
     function onDelete() {
         setIsLoading(true);
 
-        axios.post("/api/project/snippet/delete", {
-            id: snippet._id.toString(),
+        axios.delete("/api/snippet", {
+            data: {
+                id: snippet._id.toString(),
+            }
         }).then(() => {
             setIsLoading(false);
             setIsDeleteOpen(false);
@@ -60,7 +62,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
     function onSaveEdit() {
         setIsEditLoading(true);
 
-        axios.post("/api/project/snippet/edit", {
+        axios.post("/api/snippet", {
             id: snippet._id,
             body: body || "",
             url: url || "",

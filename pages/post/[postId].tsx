@@ -27,7 +27,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
     const [projectId, setProjectId] = useState<string>(startProjectId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/snippet/list?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
