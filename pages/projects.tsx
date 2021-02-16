@@ -36,14 +36,16 @@ export default function Projects({}: {  }) {
             ) : (projects.projects.length === 0) ? ( // loaded, no projects
                 <p className="opacity-50">Hit "New project" to create a new project!</p>
             ) : (
-                <div className="md:flex -mx-4">
+                <div className="md:flex -mx-2 flex-wrap">
                     {projects.projects.map(project => (
-                        <Link href={`/@${session.username}/${project.urlName}`}>
-                            <a className="block p-4 shadow-md rounded-md md:w-1/3 mx-4 mb-8 md:mb-0">
-                                <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
-                                <p className="opacity-50">{project.description}</p>
-                            </a>
-                        </Link>
+                        <div className="p-2 md:w-1/3">
+                            <Link href={`/@${session.username}/${project.urlName}`}>
+                                <a className="block p-4 shadow-md rounded-md md:h-full">
+                                    <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
+                                    <p className="opacity-50">{project.description}</p>
+                                </a>
+                            </Link>
+                        </div>
                     ))}
                 </div>
             )}
