@@ -40,7 +40,7 @@ export default function NewProject() {
 
     return (
         <div className="max-w-4xl mx-auto px-4">
-            <UpSEO title="New project | Updately"/>
+            <UpSEO title="New project"/>
             <BackToProjects/>
             <hr className="my-8"/>
             <h1 className="up-h1">New project</h1>
@@ -68,7 +68,7 @@ export default function NewProject() {
                 <h3 className="up-ui-title">URL name</h3>
                 <p>This is the URL your project will be publicly accessible at.</p>
                 <div className="flex items-center my-4 content">
-                    <span className="opacity-50">updately.us/@</span>
+                    <span className="opacity-50">postulate.us/@</span>
                     {session ? (
                         <span className="opacity-50">{session.username}</span>
                     ) : (

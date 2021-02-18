@@ -37,7 +37,7 @@ export default function NewAccount() {
     return (
         <div className="max-w-sm mx-auto px-4">
             <UpSEO title="New account"/>
-            <h1 className="up-h1">Welcome to Updately</h1>
+            <h1 className="up-h1">Welcome to Postulate</h1>
             <hr className="my-8"/>
             <p className="up-ui-title">Creating new account as:</p>
             {loading ? (
@@ -61,7 +61,7 @@ export default function NewAccount() {
             <p className="up-ui-title">Choose a username</p>
             <p>Your username determines the URL your profile and public posts will be visible at.</p>
             <div className="flex items-center my-4 content">
-                <p className="opacity-50">updately.us/@</p>
+                <p className="opacity-50">postulate.us/@</p>
                 <input
                     type="text"
                     className="border-b border-black"
