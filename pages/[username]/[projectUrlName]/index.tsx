@@ -7,7 +7,7 @@ import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useEffect, useState} from "react";
 import {useSession} from "next-auth/client";
-import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import Link from "next/link";
 import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
@@ -24,6 +24,7 @@ import UpModal from "../../../components/up-modal";
 import AsyncSelect from 'react-select/async';
 import Accordion from "react-robust-accordion";
 import UpSEO from "../../../components/up-seo";
+import UpBanner from "../../../components/UpBanner";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -43,6 +44,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [orderNew, setOrderNew] = useState<boolean>(true);
     const [snippetsOpen, setSnippetsOpen] = useState<boolean>(true);
     const [postsOpen, setPostsOpen] = useState<boolean>(false);
+    const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
 
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
@@ -128,8 +130,16 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
             <div className="max-w-4xl mx-auto px-4">
-                {(isOwner || isCollaborator) && (
+                {(isOwner || isCollaborator) && !viewAsPublic && (
                     <BackToProjects/>
+                )}
+                {viewAsPublic && (
+                    <UpBanner>
+                        <div className="md:flex items-center w-full">
+                            <p>You're viewing this project as a public visitor would see it.</p>
+                            <button className="up-button text small ml-auto" onClick={() => setViewAsPublic(false)}>Back</button>
+                        </div>
+                    </UpBanner>
                 )}
                 <div className="flex items-center">
                     <div>
@@ -153,12 +163,13 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             </div>
                         )}
                     </div>
-                    {isOwner && (
+                    {isOwner && !viewAsPublic && (
                         <div className="ml-auto">
                             <MoreMenu>
                                 <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
                                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                                 <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                <MoreMenuItem text="View as public" icon={<FiEye/>} onClick={() => setViewAsPublic(true)}/>
                             </MoreMenu>
                             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
                                 <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
@@ -224,7 +235,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     )}
                 </div>
                 <hr className="my-8"/>
-                {(isOwner || isCollaborator) && (!(isSnippet || isResource) ? (
+                {(isOwner || isCollaborator) && !viewAsPublic && (!(isSnippet || isResource) ? (
                     <div className="md:flex items-center">
                         <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
                             New snippet
@@ -322,7 +333,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 <div className="px-4 max-w-4xl mx-auto">
                     <hr className="mt-8"/>
                 </div>
-                {(isOwner || isCollaborator) && (
+                {(isOwner || isCollaborator) && !viewAsPublic && (
                     <Accordion openState={snippetsOpen} setOpenState={setSnippetsOpen} label={(
                         <div className="max-w-4xl mx-auto my-4 px-4">
                             <div className="flex items-center py-4">
