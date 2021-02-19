@@ -26,6 +26,7 @@ import Accordion from "react-robust-accordion";
 import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
 import short from "short-uuid";
+import readingTime from "reading-time";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -150,7 +151,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     <div>
                         <h1 className="up-h1 mt-8 mb-2">{name}</h1>
                         <p className="up-h2">{description}</p>
-                        {!isOwner && (
+                        {(!isOwner || viewAsPublic) && (
                             <div className="flex items-center my-8">
                                 <Link href={`/@${props.thisUser.username}`}>
                                     <a>
@@ -297,85 +298,121 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
                     </div>
                 ))}
-                <hr className="mt-8"/>
-                <Accordion
-                    openState={postsOpen}
-                    setOpenState={setPostsOpen}
-                    label={
-                        <div className="flex items-center my-4 py-4">
-                            <p className="up-ui-title">Public posts ({posts ? posts.posts.length : "Loading..."})</p>
-                            <div className="ml-auto">
-                                {postsOpen ? (
-                                    <FiChevronUp/>
+                {((isOwner || isCollaborator) && !viewAsPublic) ? (
+                    <>
+                        <hr className="mt-8"/>
+                        <Accordion
+                            openState={postsOpen}
+                            setOpenState={setPostsOpen}
+                            label={
+                                <div className="flex items-center my-4 py-4">
+                                    <p className="up-ui-title">Public posts ({posts ? posts.posts.length : "Loading..."})</p>
+                                    <div className="ml-auto">
+                                        {postsOpen ? (
+                                            <FiChevronUp/>
+                                        ) : (
+                                            <FiChevronDown/>
+                                        )}
+                                    </div>
+                                </div>
+                            }
+                        >
+                            <div className="md:flex -mx-4 mt-4">
+                                {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.map(post => (
+                                    <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                                        <a className="mx-4 md:w-1/3 sm:w-1/2 p-4 rounded-md shadow-md block" key={post._id}>
+                                            <p className="up-ui-item-title">{post.title}</p>
+                                            <hr className="my-4"/>
+                                            <div className="mt-4 flex items-center">
+                                                <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
+                                                <div>
+                                                    <p className="font-bold">{posts.authors.find(d => d._id === post.userId).name}</p>
+                                                    <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </Link>
+                                )) : (
+                                    <p className="mx-4">No posts in this project</p>
                                 ) : (
-                                    <FiChevronDown/>
+                                    <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                                 )}
                             </div>
-                        </div>
-                    }
-                >
-                    <div className="md:flex -mx-4 mt-4">
-                        {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.map(post => (
-                            <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
-                                <a className="mx-4 md:w-1/3 sm:w-1/2 p-4 rounded-md shadow-md block" key={post._id}>
-                                    <p className="up-ui-item-title">{post.title}</p>
-                                    <hr className="my-4"/>
-                                    <div className="mt-4 flex items-center">
-                                        <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
-                                        <div>
-                                            <p className="font-bold">{posts.authors.find(d => d._id === post.userId).name}</p>
-                                            <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                        </Accordion>
+                    </>
+                ) : (
+                    <>
+                        <p className="up-ui-title mb-12">Public posts ({posts ? posts.posts.length : "Loading..."})</p>
+                        {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
+                            <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
+                                <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                                    <a>
+                                        <p className="up-ui-item-title">{post.title}</p>
+                                        <p>
+                                            <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
+                                            <span className="opacity-50"> | {readingTime(post.body).text}</span>
+                                        </p>
+                                    </a>
+                                </Link>
+                                <Link href={`/@${props.thisUser.username}`}>
+                                    <a>
+                                        <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
+                                            <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
+                                            <div>
+                                                <p className="font-bold">{posts.authors.find(d => d._id === post.userId).name}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </a>
-                            </Link>
+                                    </a>
+                                </Link>
+                                <hr className="my-10"/>
+                            </div>
                         )) : (
-                            <p className="mx-4">No posts in this project</p>
+                            <p>No public posts have been published in this project yet.</p>
                         ) : (
                             <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                         )}
-                    </div>
-                </Accordion>
-            </div>
-            <div className="max-w-5xl mx-auto">
-                <div className="px-4 max-w-4xl mx-auto">
-                    <hr className="mt-8"/>
-                </div>
-                {(isOwner || isCollaborator) && !viewAsPublic && (
-                    <Accordion openState={snippetsOpen} setOpenState={setSnippetsOpen} label={(
-                        <div className="max-w-4xl mx-auto my-4 px-4">
-                            <div className="flex items-center py-4">
-                                <p className="up-ui-title">Snippets ({snippets ? snippets.snippets.length : "Loading..."})</p>
-                                <div className="ml-auto">
-                                    {snippetsOpen ? (
-                                        <FiChevronUp/>
-                                    ) : (
-                                        <FiChevronDown/>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}>
-                        <div className="max-w-4xl mx-auto px-4">
-                            <button className="underline opacity-50 hover:opacity-100 transition" onClick={() => setOrderNew(!orderNew)}>{orderNew ? "View oldest first" : "View newest first"}</button>
-                        </div>
-                        <div className="px-4">
-                            {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
-                                <div key={snippet._id}>
-                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                    )}
-                                    <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
-                                </div>
-                            )) : (
-                                <p>No snippets in this project</p>
-                            ) : (
-                                <Skeleton count={10}/>
-                            )}
-                        </div>
-                    </Accordion>
+                    </>
                 )}
             </div>
+            {(isOwner || isCollaborator) && !viewAsPublic && (
+                <div className="max-w-5xl mx-auto">
+                    <div className="px-4 max-w-4xl mx-auto">
+                        <hr className="mt-8"/>
+                    </div>
+                        <Accordion openState={snippetsOpen} setOpenState={setSnippetsOpen} label={(
+                            <div className="max-w-4xl mx-auto my-4 px-4">
+                                <div className="flex items-center py-4">
+                                    <p className="up-ui-title">Snippets ({snippets ? snippets.snippets.length : "Loading..."})</p>
+                                    <div className="ml-auto">
+                                        {snippetsOpen ? (
+                                            <FiChevronUp/>
+                                        ) : (
+                                            <FiChevronDown/>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}>
+                            <div className="max-w-4xl mx-auto px-4">
+                                <button className="underline opacity-50 hover:opacity-100 transition" onClick={() => setOrderNew(!orderNew)}>{orderNew ? "View oldest first" : "View newest first"}</button>
+                            </div>
+                            <div className="px-4">
+                                {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
+                                    <div key={snippet._id}>
+                                        {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                            <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                        )}
+                                        <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
+                                    </div>
+                                )) : (
+                                    <p>No snippets in this project</p>
+                                ) : (
+                                    <Skeleton count={10}/>
+                                )}
+                            </div>
+                        </Accordion>
+                </div>
+            )}
         </>
     );
 }
