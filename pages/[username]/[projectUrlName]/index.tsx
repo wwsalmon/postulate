@@ -48,11 +48,12 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [postsOpen, setPostsOpen] = useState<boolean>(false);
     const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
     const [snippetUrlName, setSnippetUrlName] = useState<string>(format(new Date(), "yyyy-MM-dd-") + short.generate());
+    const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
 
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&?iter=${iteration}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -382,7 +383,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <Accordion openState={snippetsOpen} setOpenState={setSnippetsOpen} label={(
                             <div className="max-w-4xl mx-auto my-4 px-4">
                                 <div className="flex items-center py-4">
-                                    <p className="up-ui-title">Snippets ({snippets ? snippets.snippets.length : "Loading..."})</p>
+                                    <p className="up-ui-title">Snippets ({snippets ? snippets.snippets.length : "Loading..."}{snippetSearchQuery ? " matches" : ""})</p>
                                     <div className="ml-auto">
                                         {snippetsOpen ? (
                                             <FiChevronUp/>
@@ -394,7 +395,19 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             </div>
                         )}>
                             <div className="max-w-4xl mx-auto px-4">
-                                <button className="underline opacity-50 hover:opacity-100 transition" onClick={() => setOrderNew(!orderNew)}>{orderNew ? "View oldest first" : "View newest first"}</button>
+                                <div className="flex items-center">
+                                    <input
+                                        type="text"
+                                        className="border-b w-full my-2 py-2 mr-4"
+                                        placeholder="Search"
+                                        value={snippetSearchQuery}
+                                        onChange={e => setSnippetSearchQuery(e.target.value)}
+                                    />
+                                    <button
+                                        className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
+                                        onClick={() => setOrderNew(!orderNew)}
+                                    >{orderNew ? "View oldest first" : "View newest first"}</button>
+                                </div>
                             </div>
                             <div className="px-4">
                                 {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
@@ -405,7 +418,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                         <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
                                     </div>
                                 )) : (
-                                    <p>No snippets in this project</p>
+                                    <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
                                 ) : (
                                     <Skeleton count={10}/>
                                 )}

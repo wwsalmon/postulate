@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 useFindAndModify: false,
             });
 
-            const snippets = await SnippetModel.find({ projectId: req.query.projectId });
+            const snippets = await (req.query.search ? SnippetModel.find({"$text": {"$search": req.query.search }}) : SnippetModel.find({ projectId: req.query.projectId }));
 
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
