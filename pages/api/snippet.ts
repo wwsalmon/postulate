@@ -4,8 +4,6 @@ import mongoose from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
 import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
-import {format} from "date-fns";
-import short from "short-uuid";
 import {UserModel} from "../../models/user";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -57,11 +55,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return;
                 } else {
                     // ensure necessary post params are present
+                    if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
                     if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
                     if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
 
                     const newSnippet: SnippetObj = {
-                        urlName: format(new Date(), "yyyy-MM-dd-") + short.generate(),
+                        urlName: req.body.urlName,
                         projectId: req.body.projectId,
                         type: req.body.type,
                         body: req.body.body || "",

@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.5.0",
     "@tailwindcss/typography": "^0.4.0",
     "@types/mongodb": "^3.6.3",
     "@types/mongoose": "^5.10.3",
@@ -21,6 +22,7 @@
     "html-react-parser": "^1.2.3",
     "migrate-mongo": "^8.1.4",
     "mongoose": "^5.11.14",
+    "multiparty": "^4.2.2",
     "next": "10.0.5",
     "next-auth": "^3.1.0",
     "next-seo": "^4.19.0",

@@ -5,7 +5,7 @@ import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useSession} from "next-auth/client";
 import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import Link from "next/link";
@@ -25,6 +25,7 @@ import AsyncSelect from 'react-select/async';
 import Accordion from "react-robust-accordion";
 import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
+import short from "short-uuid";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -45,6 +46,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [snippetsOpen, setSnippetsOpen] = useState<boolean>(true);
     const [postsOpen, setPostsOpen] = useState<boolean>(false);
     const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
+    const [snippetUrlName, setSnippetUrlName] = useState<string>(format(new Date(), "yyyy-MM-dd-") + short.generate());
 
     const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
@@ -58,6 +60,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
 
         axios.post("/api/snippet", {
             projectId: projectId,
+            urlName: snippetUrlName,
             type: isSnippet ? "snippet" : "resource",
             body: body || "",
             url: url || "",
@@ -74,12 +77,14 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     function onCancelSnippet() {
         setIsSnippet(false);
         setBody("");
+        setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
     }
 
     function onCancelResource() {
         setIsResource(false);
         setBody("");
         setUrl("");
+        setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
     }
 
     function onDelete() {
@@ -275,6 +280,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                     spellChecker: false,
                                     placeholder: isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
                                     toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
+                                    uploadImage: true,
+                                    imageUploadEndpoint: `/api/upload/snippet/${snippetUrlName}`,
+                                    previewImagesInEditor: true,
                                 }}
                             />
                         </div>

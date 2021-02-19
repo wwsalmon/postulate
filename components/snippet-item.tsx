@@ -156,6 +156,8 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                                             spellChecker: false,
                                             placeholder: snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
                                             toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
+                                            uploadImage: true,
+                                            imageUploadEndpoint: `/api/upload/snippet/${snippet.urlName}`
                                         }}
                                     />
                                 </div>
