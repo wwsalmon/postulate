@@ -3,10 +3,10 @@ import {getSession} from "next-auth/client";
 import mongoose from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
-import {DatedObj, ImageObj, ProjectObj, SnippetObj} from "../../utils/types";
+import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
-import {DeleteObjectsCommand, DeleteObjectsRequest, S3Client} from "@aws-sdk/client-s3";
+import {deleteImages} from "../../utils/deleteImages";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -135,24 +135,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
         return res.status(405);
     }
-}
-
-async function deleteImages(imageArray: DatedObj<ImageObj>[]) {
-    if (imageArray.length) {
-        const s3Client = new S3Client({region: "us-west-1"});
-
-        const deleteCommand = new DeleteObjectsCommand({
-            Bucket: "postulate",
-            Delete: {
-                Objects: imageArray.map(d => ({Key: d.key})),
-            }
-        });
-
-        await s3Client.send(deleteCommand);
-
-        // delete MongoDB image objects
-        await ImageModel.deleteMany({_id: {$in: imageArray.map(d => d._id.toString())}});
-    }
-
-    return true;
 }

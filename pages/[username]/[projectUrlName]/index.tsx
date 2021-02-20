@@ -68,24 +68,18 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
             url: url || "",
         }).then(() => {
             setIsLoading(false);
-            isSnippet ? onCancelSnippet() : onCancelResource();
             setIteration(iteration + 1);
+            onCancelSnippetOrResource();
         }).catch(e => {
             setIsLoading(false);
             console.log(e);
         });
     }
 
-    function onCancelSnippet() {
-        setIsSnippet(false);
+    function onCancelSnippetOrResource() {
+        isSnippet ? setIsSnippet(false) : setIsResource(false);
         setBody("");
-        setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
-    }
-
-    function onCancelResource() {
-        setIsResource(false);
-        setBody("");
-        setUrl("");
+        axios.post("/api/snippet-cancel", {urlName: snippetUrlName}).catch(e => console.log(e));
         setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
     }
 
@@ -295,7 +289,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         >
                             Save
                         </SpinnerButton>
-                        <button className="up-button text" onClick={isSnippet ? onCancelSnippet : onCancelResource}>Cancel</button>
+                        <button className="up-button text" onClick={onCancelSnippetOrResource}>Cancel</button>
                     </div>
                 ))}
                 {((isOwner || isCollaborator) && !viewAsPublic) ? (
