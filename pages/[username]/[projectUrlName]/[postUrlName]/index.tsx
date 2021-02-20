@@ -50,6 +50,7 @@ export default function Project(props: {
         axios.delete("/api/post", {
             data: {
                 postId: props.postData._id,
+                tempId: props.postData.urlName,
             }
         }).then(() => {
             router.push(`/@${props.thisOwner.username}/${projectUrlName}`);
