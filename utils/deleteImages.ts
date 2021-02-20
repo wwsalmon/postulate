@@ -6,7 +6,10 @@ export async function deleteImages(imageArray: DatedObj<ImageObj>[]) {
     let deleteRes = null;
 
     if (imageArray.length) {
-        const s3Client = new S3Client({region: "us-west-1"})
+        const s3Client = new S3Client({region: "us-west-1", credentials: {
+            accessKeyId: process.env.AWS_ACCESS,
+            secretAccessKey: process.env.AWS_SECRET,
+        }});
 
         const deleteCommand = new DeleteObjectsCommand({
             Bucket: "postulate",

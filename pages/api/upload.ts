@@ -29,7 +29,10 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
         const newFilename = short.generate() + "-" + thisFile.originalFilename;
         const fileKey = `${session.userId}/${projectId}/${newFilename}`;
 
-        const s3Client = new S3Client({region: "us-west-1"});
+        const s3Client = new S3Client({region: "us-west-1", credentials: {
+            accessKeyId: process.env.AWS_ACCESS,
+            secretAccessKey: process.env.AWS_SECRET,
+        }});
 
         const putCommand = new PutObjectCommand({
             Bucket: "postulate",
