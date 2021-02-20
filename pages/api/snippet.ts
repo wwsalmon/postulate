@@ -116,6 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     } else if (req.method === "GET") {
         if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
+        if (Array.isArray(req.query.search)) return res.status(406).json({message: "Invalid search query found in request"});
 
         try {
             await mongoose.connect(process.env.MONGODB_URL, {
