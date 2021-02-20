@@ -57,6 +57,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
         setIsEdit(false);
         setBody(snippet.body);
         setUrl(snippet.url);
+        axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
     function onSaveEdit() {

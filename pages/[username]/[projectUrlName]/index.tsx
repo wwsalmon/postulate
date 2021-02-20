@@ -79,7 +79,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     function onCancelSnippetOrResource() {
         isSnippet ? setIsSnippet(false) : setIsResource(false);
         setBody("");
-        axios.post("/api/snippet-cancel", {urlName: snippetUrlName}).catch(e => console.log(e));
+        axios.post("/api/cancel-delete-images", {urlName: snippetUrlName}).catch(e => console.log(e));
         setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
     }
 
