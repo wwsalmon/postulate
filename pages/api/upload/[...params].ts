@@ -46,7 +46,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
         try {
             await s3Client.send(putCommand);
-            res.status(200).json({data: {filePath: process.env.S3_URL + `/${session.userId}/${newFilename}`}});
+            res.status(200).json({data: {filePath: process.env.CLOUDFRONT_URL + `/${session.userId}/${newFilename}`}});
         } catch (e) {
             console.log(e);
             res.status(500).json({message: e});
