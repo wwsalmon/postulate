@@ -99,6 +99,9 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         }}
                         onChange={option => setProjectId(option.value)}
                         className="mt-4 content"
+                        styles={{
+                            menu: provided => ({...provided, zIndex: 6}),
+                        }}
                     />
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Body</h3>
