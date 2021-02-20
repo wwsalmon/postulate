@@ -28,6 +28,7 @@ import UpBanner from "../../../components/UpBanner";
 import short from "short-uuid";
 import readingTime from "reading-time";
 import MDEditor from "../../../components/md-editor";
+import PublicPostItem from "../../../components/public-post-item";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -334,28 +335,11 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     <>
                         <p className="up-ui-title mb-12">Public posts ({posts ? posts.posts.length : "Loading..."})</p>
                         {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
-                            <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
-                                <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
-                                    <a>
-                                        <p className="up-ui-item-title">{post.title}</p>
-                                        <p>
-                                            <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
-                                            <span className="opacity-50"> | {readingTime(post.body).text}</span>
-                                        </p>
-                                    </a>
-                                </Link>
-                                <Link href={`/@${props.thisUser.username}`}>
-                                    <a>
-                                        <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
-                                            <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
-                                            <div>
-                                                <p className="font-bold">{posts.authors.find(d => d._id === post.userId).name}</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </Link>
-                                <hr className="my-10"/>
-                            </div>
+                            <PublicPostItem
+                                post={post}
+                                author={posts.authors.find(d => d._id === post.userId)}
+                                urlPrefix={`/@${props.thisUser.username}/${urlName}`}
+                            />
                         )) : (
                             <p>No public posts have been published in this project yet.</p>
                         ) : (
