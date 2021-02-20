@@ -283,8 +283,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                     placeholder: isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
                                     toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
                                     uploadImage: true,
-                                    imageUploadEndpoint: `/api/upload/snippet/${snippetUrlName}`,
-                                    previewImagesInEditor: true,
+                                    imageUploadEndpoint: `/api/upload?projectId=${projectId}&attachedType=snippet&attachedUrlName=${snippetUrlName}`,
                                 }}
                             />
                         </div>

@@ -5,6 +5,8 @@ import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
 import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
+import {ImageModel} from "../../models/image";
+import {DeleteObjectsCommand, DeleteObjectsRequest, S3Client} from "@aws-sdk/client-s3";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -43,6 +45,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // if update or create, else delete
             if (req.method === "POST") {
+                // ensure necessary post params are present
+                if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
+                if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
+                if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
+
+                // delete any images that have been removed
+                const attachedImages = await ImageModel.find({attachedUrlName: req.body.urlName});
+
+                if (attachedImages.length) {
+                    const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+
+                    if (unusedImages.length) {
+                        const s3Client = new S3Client({region: "us-west-1"});
+
+                        const deleteCommand = new DeleteObjectsCommand({
+                            Bucket: "postulate",
+                            Delete: {
+                                Objects: unusedImages.map(d => ({Key: d.key})),
+                            }
+                        });
+
+                        await s3Client.send(deleteCommand);
+
+                        // delete MongoDB image objects
+                        await ImageModel.deleteMany({_id: {$in: unusedImages.map(d => d._id.toString())}});
+                    }
+                }
+
                 // if update, else new
                 if (req.body.id) {
                     thisSnippet.body = req.body.body || "";
@@ -54,11 +84,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     return;
                 } else {
-                    // ensure necessary post params are present
-                    if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
-                    if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
-                    if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
-
                     const newSnippet: SnippetObj = {
                         urlName: req.body.urlName,
                         projectId: req.body.projectId,

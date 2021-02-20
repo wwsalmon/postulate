@@ -66,6 +66,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
             id: snippet._id,
             body: body || "",
             url: url || "",
+            urlName: snippet.urlName,
         }).then(() => {
             setIteration(iteration + 1);
             setIsEditLoading(false);
@@ -157,7 +158,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                                             placeholder: snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
                                             toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
                                             uploadImage: true,
-                                            imageUploadEndpoint: `/api/upload/snippet/${snippet.urlName}`
+                                            imageUploadEndpoint: `/api/upload?projectId=${snippet.projectId}&attachedType=snippet&attachedUrlName=${snippet.urlName}`
                                         }}
                                     />
                                 </div>

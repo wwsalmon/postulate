@@ -50,6 +50,15 @@ export interface PostObj {
     likes?: string[], // array of IDs
 }
 
+export interface ImageObj {
+    key: string, // key of S3 object
+    userId: string, // ID of user who uploaded the object
+    projectId: string, // ID of project that the image belongs to
+    attachedUrlName: string, // urlName of associated snippet or post
+    attachedType: "post" | "snippet",
+    size: number, // size of image in bytes
+}
+
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
     _id: string,
