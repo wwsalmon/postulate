@@ -3,7 +3,7 @@ import {getSession} from "next-auth/client";
 import mongoose from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
-import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
+import {DatedObj, ImageObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {DeleteObjectsCommand, DeleteObjectsRequest, S3Client} from "@aws-sdk/client-s3";
@@ -55,22 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 if (attachedImages.length) {
                     const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
-
-                    if (unusedImages.length) {
-                        const s3Client = new S3Client({region: "us-west-1"});
-
-                        const deleteCommand = new DeleteObjectsCommand({
-                            Bucket: "postulate",
-                            Delete: {
-                                Objects: unusedImages.map(d => ({Key: d.key})),
-                            }
-                        });
-
-                        await s3Client.send(deleteCommand);
-
-                        // delete MongoDB image objects
-                        await ImageModel.deleteMany({_id: {$in: unusedImages.map(d => d._id.toString())}});
-                    }
+                    await deleteImages(unusedImages);
                 }
 
                 // if update, else new
@@ -103,6 +88,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return;
                 }
             } else {
+                // get snippet to use urlName
+                const thisSnippet = await SnippetModel.findOne({ _id: req.body.id });
+                if (!thisSnippet) return res.status(404).json({message: "No snippet found at given ID"});
+
+                // delete any attached images
+                const attachedImages = await ImageModel.find({ attachedUrlName: thisSnippet.urlName });
+
+                await deleteImages(attachedImages);
+
+                // delete snippet
                 await SnippetModel.deleteOne({ _id: req.body.id });
 
                 res.status(200).json({message: "Snippet successfully deleted."});
@@ -140,4 +135,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
         return res.status(405);
     }
+}
+
+async function deleteImages(imageArray: DatedObj<ImageObj>[]) {
+    if (imageArray.length) {
+        const s3Client = new S3Client({region: "us-west-1"});
+
+        const deleteCommand = new DeleteObjectsCommand({
+            Bucket: "postulate",
+            Delete: {
+                Objects: imageArray.map(d => ({Key: d.key})),
+            }
+        });
+
+        await s3Client.send(deleteCommand);
+
+        // delete MongoDB image objects
+        await ImageModel.deleteMany({_id: {$in: imageArray.map(d => d._id.toString())}});
+    }
+
+    return true;
 }
