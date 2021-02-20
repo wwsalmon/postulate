@@ -128,9 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     // `req.body.tempId` is the same as `urlName` when sent from an existing post
                     const attachedImages = await ImageModel.find({attachedUrlName: req.body.tempId});
-
-                    console.log(req.body.tempId, attachedImages);
-
                     await deleteImages(attachedImages);
 
                     res.status(200).json({message: "Post successfully deleted."});
