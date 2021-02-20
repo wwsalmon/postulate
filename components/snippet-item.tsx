@@ -14,6 +14,8 @@ import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
+import {simpleMDEToolbar} from "../utils/utils";
+import MDEditor from "./md-editor";
 
 export default function SnippetItem({snippet, authors, iteration, setIteration}: {
     snippet: DatedObj<SnippetObj>,
@@ -57,6 +59,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
         setIsEdit(false);
         setBody(snippet.body);
         setUrl(snippet.url);
+        axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
     function onSaveEdit() {
@@ -66,6 +69,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
             id: snippet._id,
             body: body || "",
             url: url || "",
+            urlName: snippet.urlName,
         }).then(() => {
             setIteration(iteration + 1);
             setIsEditLoading(false);
@@ -149,14 +153,11 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                         {(isEdit && session && session.userId === snippet.userId) ? (
                             <>
                                 <div className="content prose w-full">
-                                    <SimpleMDEEditor
-                                        value={body}
-                                        onChange={setBody}
-                                        options={{
-                                            spellChecker: false,
-                                            placeholder: snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
-                                            toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
-                                        }}
+                                    <MDEditor
+                                        body={body}
+                                        setBody={setBody}
+                                        imageUploadEndpoint={`/api/upload?projectId=${snippet.projectId}&attachedType=snippet&attachedUrlName=${snippet.urlName}`}
+                                        placeholder={snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
                                     />
                                 </div>
                                 <div className="flex mt-4">

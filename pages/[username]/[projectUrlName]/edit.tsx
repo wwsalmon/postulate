@@ -69,7 +69,7 @@ export default function EditProject({projectData, thisUser}: {projectData: Dated
                 <h3 className="up-ui-title">URL name</h3>
                 <p>This is the URL your project will be publicly accessible at. Changing the URL name will break any links you shared with the old URL name.</p>
                 <div className="flex items-center my-4 content">
-                    <span className="opacity-50">updately.us/@{thisUser.username}/</span>
+                    <span className="opacity-50">postulate.us/@{thisUser.username}/</span>
                     <input
                         type="text"
                         className="border-b p-2"

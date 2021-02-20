@@ -4,9 +4,9 @@ import mongoose from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
 import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
-import {format} from "date-fns";
-import short from "short-uuid";
 import {UserModel} from "../../models/user";
+import {ImageModel} from "../../models/image";
+import {deleteImages} from "../../utils/deleteImages";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -45,6 +45,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // if update or create, else delete
             if (req.method === "POST") {
+                // ensure necessary post params are present
+                if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
+                if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
+                if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
+
+                // delete any images that have been removed
+                const attachedImages = await ImageModel.find({attachedUrlName: req.body.urlName});
+
+                if (attachedImages.length) {
+                    const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                    await deleteImages(unusedImages);
+                }
+
                 // if update, else new
                 if (req.body.id) {
                     thisSnippet.body = req.body.body || "";
@@ -56,12 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     return;
                 } else {
-                    // ensure necessary post params are present
-                    if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
-                    if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
-
                     const newSnippet: SnippetObj = {
-                        urlName: format(new Date(), "yyyy-MM-dd-") + short.generate(),
+                        urlName: req.body.urlName,
                         projectId: req.body.projectId,
                         type: req.body.type,
                         body: req.body.body || "",
@@ -79,6 +88,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return;
                 }
             } else {
+                // get snippet to use urlName
+                const thisSnippet = await SnippetModel.findOne({ _id: req.body.id });
+                if (!thisSnippet) return res.status(404).json({message: "No snippet found at given ID"});
+
+                // delete any attached images
+                const attachedImages = await ImageModel.find({ attachedUrlName: thisSnippet.urlName });
+
+                await deleteImages(attachedImages);
+
+                // delete snippet
                 await SnippetModel.deleteOne({ _id: req.body.id });
 
                 res.status(200).json({message: "Snippet successfully deleted."});
@@ -92,6 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     } else if (req.method === "GET") {
         if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
+        if (Array.isArray(req.query.search)) return res.status(406).json({message: "Invalid search query found in request"});
 
         try {
             await mongoose.connect(process.env.MONGODB_URL, {
@@ -100,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 useFindAndModify: false,
             });
 
-            const snippets = await SnippetModel.find({ projectId: req.query.projectId });
+            const snippets = await (req.query.search ? SnippetModel.find({"$text": {"$search": req.query.search }}) : SnippetModel.find({ projectId: req.query.projectId }));
 
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);

@@ -7,6 +7,8 @@ import {PostModel} from "../../models/post";
 import {format} from "date-fns";
 import short from "short-uuid";
 import {UserModel} from "../../models/user";
+import {ImageModel} from "../../models/image";
+import {deleteImages} from "../../utils/deleteImages";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -20,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             case "POST":
                 // ensure necessary post params are present
                 if (!req.body.projectId) return res.status(406).json({message: "No project ID found in request."});
+                if (!req.body.tempId) return res.status(406).json({message: "No post urlName found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
@@ -52,6 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             projectUsername = thisProjectOwner.username;
                         }
 
+                        const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
+
+                        if (attachedImages.length) {
+                            const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                            await deleteImages(unusedImages);
+                        }
+
                         res.status(200).json({
                             message: "Post successfully updated.",
                             url: `/@${projectUsername}/${thisProject.urlName}/${thisPost.urlName}`,
@@ -82,6 +92,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             projectUsername = thisProjectOwner.username;
                         }
 
+                        const attachedImages = await ImageModel.find({ attachedUrlName: req.body.tempId });
+
+                        if (attachedImages.length) {
+                            const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                            await deleteImages(unusedImages);
+
+                            const usedImageIds = attachedImages.filter(d => req.body.body.includes(d.key)).map(d => d._id.toString());
+                            await ImageModel.updateMany({_id: {$in: usedImageIds}}, {
+                                attachedUrlName: urlName,
+                            });
+                        }
+
                         res.status(200).json({
                             message: "Post successfully created.",
                             url: `/@${projectUsername}/${thisProject.urlName}/${urlName}`,
@@ -103,6 +125,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     });
 
                     await PostModel.deleteOne({ _id: req.body.postId });
+
+                    // `req.body.tempId` is the same as `urlName` when sent from an existing post
+                    const attachedImages = await ImageModel.find({attachedUrlName: req.body.tempId});
+                    await deleteImages(attachedImages);
 
                     res.status(200).json({message: "Post successfully deleted."});
 

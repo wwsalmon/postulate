@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {UserModel} from "../../../../models/user";
 import {ProjectModel} from "../../../../models/project";
-import {cleanForJSON} from "../../../../utils/utils";
+import {cleanForJSON, fetcher} from "../../../../utils/utils";
 import {PostModel} from "../../../../models/post";
 import {DatedObj, PostObj, ProjectObj, UserObj} from "../../../../utils/types";
 import {useRouter} from "next/router";
@@ -20,8 +20,12 @@ import SpinnerButton from "../../../../components/spinner-button";
 import axios from "axios";
 import {format} from "date-fns";
 import UpSEO from "../../../../components/up-seo";
+import useSWR, {responseInterface} from "swr";
+import Skeleton from "react-loading-skeleton";
+import PublicPostItem from "../../../../components/public-post-item";
+import post from "../../../api/post";
 
-export default function Project(props: {
+export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
     projectData: DatedObj<ProjectObj>,
     thisOwner: DatedObj<UserObj>,
@@ -34,6 +38,7 @@ export default function Project(props: {
     const [title, setTitle] = useState<string>(props.postData.title);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
 
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -50,6 +55,7 @@ export default function Project(props: {
         axios.delete("/api/post", {
             data: {
                 postId: props.postData._id,
+                tempId: props.postData.urlName,
             }
         }).then(() => {
             router.push(`/@${props.thisOwner.username}/${projectUrlName}`);
@@ -108,6 +114,25 @@ export default function Project(props: {
             <div className="content prose">
                 {Parser(markdownConverter.makeHtml(body))}
             </div>
+            <hr className="my-8"/>
+            <p className="up-ui-title mb-10">
+                Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
+                    <a className="underline">{projectName}</a>
+                </Link>
+            </p>
+            {latestPosts ? latestPosts.posts.filter(d => d._id !== props.postData._id).length ? (
+                latestPosts.posts.filter(d => d._id !== props.postData._id).slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
+                    <PublicPostItem
+                        post={post}
+                        author={latestPosts.authors.find(d => d._id === post.userId)}
+                        urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
+                    />
+                ))
+            ) : (
+                <p className="my-4">No other posts in this project</p>
+            ) : (
+                <Skeleton className="h-24"/>
+            )}
         </div>
     )
 }

@@ -17,7 +17,7 @@ export default function Projects({}: {  }) {
 
     return (
         <div className="max-w-4xl mx-auto px-4">
-            <UpSEO title="Projects | Updately"/>
+            <UpSEO title="Projects"/>
             <div className="flex items-center">
                 <h1 className="up-h1">Projects</h1>
                 <Link href="/projects/new">

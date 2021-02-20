@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
-import {fetcher} from "../../utils/utils";
+import {fetcher, simpleMDEToolbar} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
 import Skeleton from "react-loading-skeleton";
@@ -17,8 +17,10 @@ import Select from "react-select";
 import UpSEO from "../../components/up-seo";
 import {getSession} from "next-auth/client";
 import UpBackLink from "../../components/up-back-link";
+import short from "short-uuid";
+import MDEditor from "../../components/md-editor";
 
-export default function NewPost(props: {title: string, body: string, postId: string, projectId: string}) {
+export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string}) {
     const router = useRouter();
     const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
 
@@ -28,6 +30,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
     const [projectId, setProjectId] = useState<string>(startProjectId);
+    const [tempId, setTempId] = useState<string>(props.urlName || short.generate());
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
@@ -48,6 +51,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
             postId: props.postId || "",
             title: title,
             body: body,
+            tempId: tempId,
         }).then(res => {
             router.push(res.data.url);
         }).catch(e => {
@@ -56,7 +60,8 @@ export default function NewPost(props: {title: string, body: string, postId: str
         })
     }
 
-    function onCancelEdit() {
+    async function onCancelEdit() {
+        await axios.post("/api/cancel-delete-images", props.postId ? {id: props.postId, type: "post"} : {urlName: tempId});
         router.push((Array.isArray(router.query.back) || !router.query.back) ? "/projects" : router.query.back);
     }
 
@@ -95,18 +100,18 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         }}
                         onChange={option => setProjectId(option.value)}
                         className="mt-4 content"
+                        styles={{
+                            menu: provided => ({...provided, zIndex: 6}),
+                        }}
                     />
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Body</h3>
                     <div className="content prose w-full">
-                        <SimpleMDEEditor
-                            value={body}
-                            onChange={setBody}
-                            options={{
-                                spellChecker: false,
-                                placeholder: "Turn your snippets into a shareable post!",
-                                toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
-                            }}
+                        <MDEditor
+                            body={body}
+                            setBody={setBody}
+                            imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${tempId}`}
+                            placeholder="Turn your snippets into a shareable post!"
                         />
                     </div>
                     <div className="flex mt-4">
@@ -168,7 +173,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const postId: any = context.params.postId;
 
-    if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null}};
+    if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null}};
 
     try {
         await mongoose.connect(process.env.MONGODB_URL, {
@@ -181,7 +186,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!thisPost) return {notFound: true};
 
-        return {props: {title: thisPost.title, body: thisPost.body, postId: postId, projectId: thisPost.projectId.toString()}};
+        return {props: {title: thisPost.title, body: thisPost.body, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName}};
     } catch (e) {
         return {notFound: true};
     }
