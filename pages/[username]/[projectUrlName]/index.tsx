@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
-import {cleanForJSON, fetcher} from "../../../utils/utils";
+import {cleanForJSON, fetcher, simpleMDEToolbar} from "../../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
@@ -27,6 +27,7 @@ import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
 import short from "short-uuid";
 import readingTime from "reading-time";
+import MDEditor from "../../../components/md-editor";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -269,16 +270,11 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             />
                         )}
                         <div className="prose content snippet-editor">
-                            <SimpleMDEEditor
-                                value={body}
-                                onChange={setBody}
-                                options={{
-                                    spellChecker: false,
-                                    placeholder: isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource",
-                                    toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
-                                    uploadImage: true,
-                                    imageUploadEndpoint: `/api/upload?projectId=${projectId}&attachedType=snippet&attachedUrlName=${snippetUrlName}`,
-                                }}
+                            <MDEditor
+                                body={body}
+                                setBody={setBody}
+                                imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=snippet&attachedUrlName=${snippetUrlName}`}
+                                placeholder={isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
                             />
                         </div>
                         <SpinnerButton

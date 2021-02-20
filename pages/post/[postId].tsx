@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
-import {fetcher} from "../../utils/utils";
+import {fetcher, simpleMDEToolbar} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
 import Skeleton from "react-loading-skeleton";
@@ -18,6 +18,7 @@ import UpSEO from "../../components/up-seo";
 import {getSession} from "next-auth/client";
 import UpBackLink from "../../components/up-back-link";
 import short from "short-uuid";
+import MDEditor from "../../components/md-editor";
 
 export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string}) {
     const router = useRouter();
@@ -106,16 +107,11 @@ export default function NewPost(props: {title: string, body: string, postId: str
                     <hr className="my-8"/>
                     <h3 className="up-ui-title mb-4">Body</h3>
                     <div className="content prose w-full">
-                        <SimpleMDEEditor
-                            value={body}
-                            onChange={setBody}
-                            options={{
-                                spellChecker: false,
-                                placeholder: "Turn your snippets into a shareable post!",
-                                toolbar: ["bold", "italic", "strikethrough", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "guide"],
-                                uploadImage: true,
-                                imageUploadEndpoint: `/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${tempId}`,
-                            }}
+                        <MDEditor
+                            body={body}
+                            setBody={setBody}
+                            imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${tempId}`}
+                            placeholder="Turn your snippets into a shareable post!"
                         />
                     </div>
                     <div className="flex mt-4">
