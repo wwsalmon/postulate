@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -10,19 +10,21 @@ import showdownHtmlEscape from "showdown-htmlescape";
 import SpinnerButton from "./spinner-button";
 import axios from "axios";
 import UpModal from "./up-modal";
-import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
-import {fetcher, simpleMDEToolbar} from "../utils/utils";
+import {fetcher} from "../utils/utils";
 import MDEditor from "./md-editor";
 import useSWR from "swr";
+import Creatable from "react-select/creatable";
 
-export default function SnippetItem({snippet, authors, iteration, setIteration}: {
+export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
     iteration: number,
-    setIteration: Dispatch<SetStateAction<number>>
+    setIteration: Dispatch<SetStateAction<number>>,
+    availableTags: string[],
+    addNewTags: (newTags: string[]) => void,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -30,6 +32,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [body, setBody] = useState<string>(snippet.body);
     const [url, setUrl] = useState<string>(snippet.url);
+    const [tags, setTags] = useState<string[]>(snippet.tags);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
 
@@ -61,6 +64,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
         setIsEdit(false);
         setBody(snippet.body);
         setUrl(snippet.url);
+        setTags(snippet.tags);
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
@@ -71,8 +75,10 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
             id: snippet._id,
             body: body || "",
             url: url || "",
+            tags: tags || [],
             urlName: snippet.urlName,
-        }).then(() => {
+        }).then(res => {
+            if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIteration(iteration + 1);
             setIsEditLoading(false);
             setIsEdit(false);
@@ -177,7 +183,16 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                                         placeholder={snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
                                     />
                                 </div>
-                                <div className="flex mt-4">
+                                <hr className="my-6"/>
+                                <p className="up-ui-title mb-4">Tags</p>
+                                <Creatable
+                                    options={availableTags.map(d => ({label: d, value: d}))}
+                                    value={tags.map(d => ({label: d, value: d}))}
+                                    onChange={(newValue) => setTags(newValue.map(d => d.value))}
+                                    isMulti
+                                />
+                                <hr className="my-6"/>
+                                <div className="flex">
                                     <SpinnerButton isLoading={isEditLoading} onClick={onSaveEdit}>
                                         Save
                                     </SpinnerButton>
@@ -185,9 +200,14 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                                 </div>
                             </>
                         ) : (
-                            <div className="content prose">
-                                {Parser(markdownConverter.makeHtml(snippet.body))}
-                            </div>
+                            <>
+                                <div className="content prose">
+                                    {Parser(markdownConverter.makeHtml(snippet.body))}
+                                </div>
+                                {tags && (
+                                    <p className="mt-4 font-bold opacity-50">{tags.map(tag => `#${tag} `)}</p>
+                                )}
+                            </>
                         )}
                 </div>
             </div>
