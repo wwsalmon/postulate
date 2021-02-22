@@ -14,8 +14,9 @@ import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
-import {simpleMDEToolbar} from "../utils/utils";
+import {fetcher, simpleMDEToolbar} from "../utils/utils";
 import MDEditor from "./md-editor";
+import useSWR from "swr";
 
 export default function SnippetItem({snippet, authors, iteration, setIteration}: {
     snippet: DatedObj<SnippetObj>,
@@ -30,6 +31,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
     const [body, setBody] = useState<string>(snippet.body);
     const [url, setUrl] = useState<string>(snippet.url);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
+    const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
 
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -120,7 +122,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                         )}
                     </div>
                 )}
-                <div className="hidden md:block w-32 mt-1">
+                <div className="hidden md:block w-32 mt-1 flex-shrink-0">
                     {!(session && session.userId === snippet.userId) && (
                         <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
                             <a>
@@ -146,9 +148,24 @@ export default function SnippetItem({snippet, authors, iteration, setIteration}:
                             placeholder="Resource URL"
                         />
                     ) : (
-                        <div className="p-4 rounded-md shadow-md content mb-8 inline-block">
-                            <span>{snippet.url}</span>
-                        </div>
+                        <Link href={snippet.url}>
+                            <a className="p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition">
+                                <div>
+                                    <p className="underline opacity-50 break-all">{snippet.url}</p>
+                                    {linkPreview && (
+                                        <div className="mt-4">
+                                            <p className="up-ui-item-title">{linkPreview.title}</p>
+                                            <p>{linkPreview.description}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                {linkPreview && linkPreview.images && linkPreview.images.length && (
+                                    <div className="w-32 ml-auto pl-4 flex-shrink-0">
+                                        <img src={linkPreview.images[0]} className="w-full"/>
+                                    </div>
+                                )}
+                            </a>
+                        </Link>
                     ))}
                         {(isEdit && session && session.userId === snippet.userId) ? (
                             <>
