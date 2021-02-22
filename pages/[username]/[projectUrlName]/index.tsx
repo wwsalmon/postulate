@@ -293,8 +293,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <hr className="my-6"/>
                         <p className="up-ui-title mb-4">Tags</p>
                         <Creatable
-                            options={availableTags.map(d => ({label: d, value: d}))}
-                            value={tags.map(d => ({label: d, value: d}))}
+                            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
+                            value={tags ? tags.map(d => ({label: d, value: d})) : []}
                             onChange={(newValue) => setTags(newValue.map(d => d.value))}
                             isMulti
                         />
