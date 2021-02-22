@@ -116,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     } else if (req.method === "GET") {
         if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
-        if (Array.isArray(req.query.search)) return res.status(406).json({message: "Invalid search query found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             await mongoose.connect(process.env.MONGODB_URL, {
@@ -125,10 +125,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 useFindAndModify: false,
             });
 
-            const snippets = await (req.query.search ? SnippetModel.find({
-                "$text": {"$search": req.query.search },
-                projectId: req.query.projectId
-            }) : SnippetModel.find({ projectId: req.query.projectId }));
+            let conditions = { projectId: req.query.projectId };
+            if (req.query.search) conditions["$text"] = {"$search": req.query.search};
+            if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
+            if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+
+            const snippets = await SnippetModel.find(conditions);
 
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);

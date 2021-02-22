@@ -18,13 +18,14 @@ import MDEditor from "./md-editor";
 import useSWR from "swr";
 import Creatable from "react-select/creatable";
 
-export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags}: {
+export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags, setTagsQuery}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
     availableTags: string[],
     addNewTags: (newTags: string[]) => void,
+    setTagsQuery: (tagsQuery: string[]) => void,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -204,9 +205,14 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                 <div className="content prose">
                                     {Parser(markdownConverter.makeHtml(snippet.body))}
                                 </div>
-                                {tags && (
-                                    <p className="mt-4 font-bold opacity-50">{tags.map(tag => `#${tag} `)}</p>
-                                )}
+                                <div className="flex mt-4">
+                                    {tags && tags.map(tag => (
+                                        <button
+                                            className="font-bold opacity-50 mr-2"
+                                            onClick={() => setTagsQuery([tag])}
+                                        >#{tag}</button>
+                                    ))}
+                                </div>
                             </>
                         )}
                 </div>

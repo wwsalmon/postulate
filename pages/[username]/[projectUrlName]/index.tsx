@@ -28,6 +28,7 @@ import short from "short-uuid";
 import MDEditor from "../../../components/md-editor";
 import PublicPostItem from "../../../components/public-post-item";
 import Creatable from "react-select/creatable";
+import Select from "react-select";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -51,11 +52,13 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
     const [snippetUrlName, setSnippetUrlName] = useState<string>(format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
+    const [tagsQuery, setTagsQuery] = useState<string[]>([]);
+    const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -386,13 +389,21 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             </div>
                         )}>
                             <div className="max-w-4xl mx-auto px-4">
-                                <div className="flex items-center">
+                                <div className="md:flex items-center">
                                     <input
                                         type="text"
-                                        className="border-b w-full my-2 py-2 mr-4"
+                                        className="border-b my-2 py-2 mr-4 flex-grow"
                                         placeholder="Search"
                                         value={snippetSearchQuery}
                                         onChange={e => setSnippetSearchQuery(e.target.value)}
+                                    />
+                                    <Select
+                                        className="flex-grow mr-4"
+                                        options={availableTags.map(d => ({label: d, value: d}))}
+                                        value={tagsQuery.map(d => ({label: d, value: d}))}
+                                        onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
+                                        placeholder="Filter by tag"
+                                        isMulti
                                     />
                                     <button
                                         className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
@@ -413,6 +424,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                             setIteration={setIteration}
                                             availableTags={availableTags}
                                             addNewTags={addNewTags}
+                                            setTagsQuery={setTagsQuery}
                                         />
                                     </div>
                                 )) : (
