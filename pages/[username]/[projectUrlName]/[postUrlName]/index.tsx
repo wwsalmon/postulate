@@ -23,7 +23,6 @@ import UpSEO from "../../../../components/up-seo";
 import useSWR, {responseInterface} from "swr";
 import Skeleton from "react-loading-skeleton";
 import PublicPostItem from "../../../../components/public-post-item";
-import post from "../../../api/post";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -67,7 +66,12 @@ export default function PublicPost(props: {
 
     return (
         <div className="max-w-4xl mx-auto px-4 pb-16">
-            <UpSEO title={title}/>
+            <UpSEO
+                title={title}
+                description={body.substr(0, 200)}
+                projectName={props.projectData.name}
+                imgUrl={props.postData.body.match(/!\[.*?\]\((.*?)\)/) ? props.postData.body.match(/!\[.*?\]\((.*?)\)/)[1] : null}
+            />
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
                 <div className="ml-auto">
@@ -179,7 +183,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         if (thisPost.userId !== thisAuthor._id.toString()) {
             thisAuthor = await UserModel.findOne({ _id: thisPost.userId });
         }
-        
+
         return { props: { postData: cleanForJSON(thisPost), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), key: postUrlName }};
     } catch (e) {
         console.log(e);
