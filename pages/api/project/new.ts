@@ -42,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             description: req.body.description || "",
             stars: null,
             collaborators: [],
+            availableTags: [],
         }
 
         await ProjectModel.create(newProject);
