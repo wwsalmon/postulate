@@ -1,6 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import mongoose from "mongoose";
+import mongoose, {Document} from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
 import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 useFindAndModify: false,
             });
 
-            let thisProject: DatedObj<ProjectObj> = null;
+            let thisProject: any = null;
             let thisSnippet: any = null; // any typing for mongoose condition type thing
 
             if (!req.body.projectId && !req.body.id) return res.status(406).json({message: "No project or snippet ID found in request."});
@@ -58,16 +58,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     await deleteImages(unusedImages);
                 }
 
+                // create new availableTags in project
+                const newTags = req.body.tags.filter(d => !thisProject.availableTags.includes(d));
+                if (newTags.length) {
+                    thisProject.availableTags = [...thisProject.availableTags, ...newTags];
+                    thisProject.markModified("availableTags");
+                    await thisProject.save();
+                }
+
                 // if update, else new
                 if (req.body.id) {
                     thisSnippet.body = req.body.body || "";
                     thisSnippet.url = req.body.url || "";
+                    thisSnippet.tags = req.body.tags || [];
 
                     await thisSnippet.save();
-
-                    res.status(200).json({message: "Snippet successfully created."});
-
-                    return;
                 } else {
                     const newSnippet: SnippetObj = {
                         urlName: req.body.urlName,
@@ -76,17 +81,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         body: req.body.body || "",
                         date: new Date().toISOString(),
                         url: req.body.url || "",
-                        tags: null,
+                        tags: req.body.tags,
                         likes: null,
                         userId: session.userId,
                     }
 
                     await SnippetModel.create(newSnippet);
-
-                    res.status(200).json({message: "Snippet successfully created."});
-
-                    return;
                 }
+
+                res.status(200).json({message: "Snippet successfully saved.", newTags: newTags});
+
+                return;
             } else {
                 // get snippet to use urlName
                 const thisSnippet = await SnippetModel.findOne({ _id: req.body.id });
@@ -111,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     } else if (req.method === "GET") {
         if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
-        if (Array.isArray(req.query.search)) return res.status(406).json({message: "Invalid search query found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             await mongoose.connect(process.env.MONGODB_URL, {
@@ -120,7 +125,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 useFindAndModify: false,
             });
 
-            const snippets = await (req.query.search ? SnippetModel.find({"$text": {"$search": req.query.search }}) : SnippetModel.find({ projectId: req.query.projectId }));
+            let conditions = { projectId: req.query.projectId };
+            if (req.query.search) conditions["$text"] = {"$search": req.query.search};
+            if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
+            if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+
+            const snippets = await SnippetModel.find(conditions);
 
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);

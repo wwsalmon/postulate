@@ -2,14 +2,13 @@ import {GetServerSideProps} from "next";
 import mongoose from "mongoose";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
-import {cleanForJSON, fetcher, simpleMDEToolbar} from "../../../utils/utils";
+import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import BackToProjects from "../../../components/back-to-projects";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
 import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import Link from "next/link";
-import SimpleMDEEditor from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
@@ -26,9 +25,10 @@ import Accordion from "react-robust-accordion";
 import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
 import short from "short-uuid";
-import readingTime from "reading-time";
 import MDEditor from "../../../components/md-editor";
 import PublicPostItem from "../../../components/public-post-item";
+import Creatable from "react-select/creatable";
+import Select from "react-select";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -37,6 +37,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [isResource, setIsResource] = useState<boolean>(false);
     const [body, setBody] = useState<string>("");
     const [url, setUrl] = useState<string>("");
+    const [tags, setTags] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [iteration, setIteration] = useState<number>(0);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -51,11 +52,13 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
     const [snippetUrlName, setSnippetUrlName] = useState<string>(format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
+    const [tagsQuery, setTagsQuery] = useState<string[]>([]);
+    const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
+    const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
-    const {_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators } = props.projectData;
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -68,7 +71,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
             type: isSnippet ? "snippet" : "resource",
             body: body || "",
             url: url || "",
-        }).then(() => {
+            tags: tags || [],
+        }).then(res => {
+            if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIsLoading(false);
             setIteration(iteration + 1);
             onCancelSnippetOrResource();
@@ -81,6 +86,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     function onCancelSnippetOrResource() {
         isSnippet ? setIsSnippet(false) : setIsResource(false);
         setBody("");
+        setTags([]);
         axios.post("/api/cancel-delete-images", {urlName: snippetUrlName}).catch(e => console.log(e));
         setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
     }
@@ -127,6 +133,12 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
         }).catch(e => {
             console.log(e);
         });
+    }
+
+    function addNewTags(newTags: string[]) {
+        let newProjectData = {...props.projectData};
+        newProjectData.availableTags = [...availableTags, ...newTags];
+        setProjectData(newProjectData);
     }
 
     return (
@@ -278,6 +290,15 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                 placeholder={isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
                             />
                         </div>
+                        <hr className="my-6"/>
+                        <p className="up-ui-title mb-4">Tags</p>
+                        <Creatable
+                            options={availableTags.map(d => ({label: d, value: d}))}
+                            value={tags.map(d => ({label: d, value: d}))}
+                            onChange={(newValue) => setTags(newValue.map(d => d.value))}
+                            isMulti
+                        />
+                        <hr className="my-6"/>
                         <SpinnerButton
                             onClick={onSubmit}
                             isLoading={isLoading}
@@ -368,13 +389,21 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             </div>
                         )}>
                             <div className="max-w-4xl mx-auto px-4">
-                                <div className="flex items-center">
+                                <div className="md:flex items-center">
                                     <input
                                         type="text"
-                                        className="border-b w-full my-2 py-2 mr-4"
+                                        className="border-b my-2 py-2 mr-4 flex-grow"
                                         placeholder="Search"
                                         value={snippetSearchQuery}
                                         onChange={e => setSnippetSearchQuery(e.target.value)}
+                                    />
+                                    <Select
+                                        className="flex-grow mr-4"
+                                        options={availableTags.map(d => ({label: d, value: d}))}
+                                        value={tagsQuery.map(d => ({label: d, value: d}))}
+                                        onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
+                                        placeholder="Filter by tag"
+                                        isMulti
                                     />
                                     <button
                                         className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
@@ -388,7 +417,15 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                         {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                             <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                                         )}
-                                        <SnippetItem snippet={snippet} authors={snippets.authors} iteration={iteration} setIteration={setIteration}/>
+                                        <SnippetItem
+                                            snippet={snippet}
+                                            authors={snippets.authors}
+                                            iteration={iteration}
+                                            setIteration={setIteration}
+                                            availableTags={availableTags}
+                                            addNewTags={addNewTags}
+                                            setTagsQuery={setTagsQuery}
+                                        />
                                     </div>
                                 )) : (
                                     <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>

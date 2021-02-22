@@ -20,6 +20,7 @@
     "date-fns": "^2.16.1",
     "dotenv": "^8.2.0",
     "html-react-parser": "^1.2.3",
+    "link-preview-js": "^2.1.6",
     "migrate-mongo": "^8.1.4",
     "mongoose": "^5.11.14",
     "multiparty": "^4.2.2",

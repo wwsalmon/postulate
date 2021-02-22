@@ -8,6 +8,7 @@ const ProjectSchema = new mongoose.Schema({
     description: {type: String, required: true, unique: true},
     stars: [mongoose.Schema.Types.ObjectId],
     collaborators: [mongoose.Schema.Types.ObjectId],
+    availableTags: [{type: String, required: true}],
 }, {
     timestamps: true,
 });
