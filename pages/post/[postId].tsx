@@ -176,11 +176,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null}};
 
     try {
-        await mongoose.connect(process.env.MONGODB_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useFindAndModify: false,
-        });
+        if (!mongoose.connection) {
+            await mongoose.connect(process.env.MONGODB_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+            });
+        }
 
         const thisPost = await PostModel.findOne({ _id: postId });
 

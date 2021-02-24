@@ -27,11 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
                 try {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
+                    if (!mongoose.connection) {
+                        await mongoose.connect(process.env.MONGODB_URL, {
+                            useNewUrlParser: true,
+                            useUnifiedTopology: true,
+                            useFindAndModify: false,
+                        });
+                    }
 
                     const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
                     if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
@@ -118,11 +120,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.postId) return res.status(406).json({message: "No post ID found in request."});
 
                 try {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
+                    if (!mongoose.connection) {
+                        await mongoose.connect(process.env.MONGODB_URL, {
+                            useNewUrlParser: true,
+                            useUnifiedTopology: true,
+                            useFindAndModify: false,
+                        });
+                    }
 
                     await PostModel.deleteOne({ _id: req.body.postId });
 
@@ -144,11 +148,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No project ID found in request."});
 
             try {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+                if (!mongoose.connection) {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
+                }
 
                 const queryProjectId: any = req.query.projectId;
 

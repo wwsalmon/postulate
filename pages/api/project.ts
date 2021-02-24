@@ -15,11 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case "GET":
             try {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+                if (!mongoose.connection) {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
+                }
 
                 if (req.query.shared) {
                     const projects = await ProjectModel.find({ collaborators: session.userId });
@@ -41,11 +43,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
 
             try {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+                if (!mongoose.connection) {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
+                }
 
                 const thisProject = await ProjectModel.findOne({ _id: req.body.id });
 
@@ -58,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await ProjectModel.deleteOne({ _id: req.body.id });
 
                 res.status(200).json({message: "Project successfully deleted."});
-
+                
                 return;
             } catch (e) {
                 return res.status(500).json({message: e});
