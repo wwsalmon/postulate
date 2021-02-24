@@ -24,20 +24,15 @@ import AsyncSelect from 'react-select/async';
 import Accordion from "react-robust-accordion";
 import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
-import short from "short-uuid";
-import MDEditor from "../../../components/md-editor";
 import PublicPostItem from "../../../components/public-post-item";
-import Creatable from "react-select/creatable";
 import Select from "react-select";
+import SnippetEditor from "../../../components/snippet-editor";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
     const [isResource, setIsResource] = useState<boolean>(false);
-    const [body, setBody] = useState<string>("");
-    const [url, setUrl] = useState<string>("");
-    const [tags, setTags] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [iteration, setIteration] = useState<number>(0);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -50,7 +45,6 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [snippetsOpen, setSnippetsOpen] = useState<boolean>(true);
     const [postsOpen, setPostsOpen] = useState<boolean>(false);
     const [viewAsPublic, setViewAsPublic] = useState<boolean>(false);
-    const [snippetUrlName, setSnippetUrlName] = useState<string>(format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
@@ -62,12 +56,12 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
-    function onSubmit() {
+    function onSubmit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
         setIsLoading(true);
 
         axios.post("/api/snippet", {
             projectId: projectId,
-            urlName: snippetUrlName,
+            urlName: urlName,
             type: isSnippet ? "snippet" : "resource",
             body: body || "",
             url: url || "",
@@ -76,19 +70,18 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIsLoading(false);
             setIteration(iteration + 1);
-            onCancelSnippetOrResource();
+            setIsSnippet(false);
+            setIsResource(false);
         }).catch(e => {
             setIsLoading(false);
             console.log(e);
         });
     }
 
-    function onCancelSnippetOrResource() {
-        isSnippet ? setIsSnippet(false) : setIsResource(false);
-        setBody("");
-        setTags([]);
-        axios.post("/api/cancel-delete-images", {urlName: snippetUrlName}).catch(e => console.log(e));
-        setSnippetUrlName(format(new Date(), "yyyy-MM-dd-") + short.generate());
+    function onCancelSnippetOrResource(urlName: string) {
+        setIsSnippet(false);
+        setIsResource(false);
+        axios.post("/api/cancel-delete-images", {urlName: urlName}).catch(e => console.log(e));
     }
 
     function onDelete() {
@@ -273,41 +266,14 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 ) : (
                     <div className="p-4 shadow-md rounded-md">
                         <h3 className="up-ui-item-title mb-4">{isSnippet ? "New snippet" : "Add resource"}</h3>
-                        {isResource && (
-                            <input
-                                type="text"
-                                className="content px-4 py-2 border rounded-md w-full mb-8"
-                                value={url}
-                                onChange={e => setUrl(e.target.value)}
-                                placeholder="Resource URL"
-                            />
-                        )}
-                        <div className="prose content snippet-editor">
-                            <MDEditor
-                                body={body}
-                                setBody={setBody}
-                                imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=snippet&attachedUrlName=${snippetUrlName}`}
-                                placeholder={isSnippet ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
-                            />
-                        </div>
-                        <hr className="my-6"/>
-                        <p className="up-ui-title mb-4">Tags</p>
-                        <Creatable
-                            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-                            value={tags ? tags.map(d => ({label: d, value: d})) : []}
-                            onChange={(newValue) => setTags(newValue.map(d => d.value))}
-                            isMulti
-                        />
-                        <hr className="my-6"/>
-                        <SpinnerButton
-                            onClick={onSubmit}
+                        <SnippetEditor
+                            isSnippet={isSnippet}
+                            projectId={projectId}
+                            availableTags={availableTags}
                             isLoading={isLoading}
-                            isDisabled={(isSnippet && body.length === 0) || (isResource && url.length === 0)}
-                            className="mr-2"
-                        >
-                            Save
-                        </SpinnerButton>
-                        <button className="up-button text" onClick={onCancelSnippetOrResource}>Cancel</button>
+                            onSaveEdit={onSubmit}
+                            onCancelEdit={onCancelSnippetOrResource}
+                        />
                     </div>
                 ))}
                 {((isOwner || isCollaborator) && !viewAsPublic) ? (
