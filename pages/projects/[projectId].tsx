@@ -22,8 +22,9 @@ import Link from "next/link";
 import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
+import {UserModel} from "../../models/user";
 
-export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>}) {
+export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
@@ -129,19 +130,20 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="md:flex">
-                <div className="md:w-2/3 md:pr-8 md:border-r">
+            <div className="lg:flex">
+                <div className="lg:w-2/3 lg:pr-8 lg:border-r">
                     <BackToProjects/>
                     <div className="flex items-center">
                         <div>
                             <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                            <p className="up-h2">{description}</p>
+                            <p className="opacity-50">{description}</p>
                         </div>
                         <div className="ml-auto">
                             <MoreMenu>
-                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${session ? session.username : ""}/${urlName}/edit`}/>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
                                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                                 <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                <MoreMenuItem text="View as public" icon={<FiEye/>} href={`/@${props.thisUser.username}/${urlName}`}/>
                             </MoreMenu>
                             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
                                 <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
@@ -205,26 +207,39 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </UpModal>
                         </div>
                     </div>
-                    <hr className="my-8"/>
+                    <div className="sm:flex items-center mt-6">
+                        <input
+                            type="text"
+                            className="border-b my-2 py-2 mr-4 flex-grow"
+                            placeholder="Search"
+                            value={snippetSearchQuery}
+                            onChange={e => setSnippetSearchQuery(e.target.value)}
+                        />
+                        <Select
+                            className="flex-grow"
+                            options={availableTags.map(d => ({label: d, value: d}))}
+                            value={tagsQuery.map(d => ({label: d, value: d}))}
+                            onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
+                            placeholder="Filter by tag"
+                            isMulti
+                        />
+                    </div>
+                    <hr className="my-8 lg:-mr-8 lg:pr-8"/>
                     {!(isSnippet || isResource) ? (
-                        <div className="md:flex items-center">
-                            <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
+                        <div className="md:flex items-center mt-6">
+                            <button className="up-button primary small mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
                                 New snippet
                             </button>
-                            <button className="up-button text mb-4 md:mb-0" onClick={() => setIsResource(true)}>
+                            <button className="up-button text small mb-4 md:mb-0" onClick={() => setIsResource(true)}>
                                 <div className="flex items-center">
                                     <FiLink/>
                                     <span className="ml-4">Add resource</span>
                                 </div>
                             </button>
-                            <Link href={`/post/new?projectId=${projectId}&back=/@${session ? session.username : ""}/${urlName}`}>
-                                <a className="up-button ml-auto mb-4 md:mb-0">
-                                    <div className="flex items-center">
-                                        <FiEdit/>
-                                        <span className="ml-4">New post</span>
-                                    </div>
-                                </a>
-                            </Link>
+                            <button
+                                className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
+                                onClick={() => setOrderNew(!orderNew)}
+                            >{orderNew ? "View oldest first" : "View newest first"}</button>
                         </div>
                     ) : (
                         <div className="p-4 shadow-md rounded-md">
@@ -239,28 +254,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         </div>
                     )}
-                    <hr className="my-8"/>
-                    <div className="md:flex items-center">
-                        <input
-                            type="text"
-                            className="border-b my-2 py-2 mr-4 flex-grow"
-                            placeholder="Search"
-                            value={snippetSearchQuery}
-                            onChange={e => setSnippetSearchQuery(e.target.value)}
-                        />
-                        <Select
-                            className="flex-grow mr-4"
-                            options={availableTags.map(d => ({label: d, value: d}))}
-                            value={tagsQuery.map(d => ({label: d, value: d}))}
-                            onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
-                            placeholder="Filter by tag"
-                            isMulti
-                        />
-                        <button
-                            className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
-                            onClick={() => setOrderNew(!orderNew)}
-                        >{orderNew ? "View oldest first" : "View newest first"}</button>
-                    </div>
                     {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
                         <div key={snippet._id}>
                             {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
@@ -282,8 +275,35 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         <Skeleton count={10}/>
                     )}
                 </div>
-                <div className="md:w-1/3 md:pl-8">
-                    <p>Posts</p>
+                <div className="lg:w-1/3 lg:pl-8">
+                    <div className="flex items-center">
+                        <p className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</p>
+                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
+                            <a className="up-button ml-auto mb-4 md:mb-0 small">
+                                <div className="flex items-center">
+                                    <FiEdit/>
+                                    <span className="ml-4">New post</span>
+                                </div>
+                            </a>
+                        </Link>
+                    </div>
+                    {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.map(post => (
+                        <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                            <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
+                                <p className="">{post.title}</p>
+                                <div className="flex items-center mt-2">
+                                    {!!collaborators.length && (
+                                        <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
+                                    )}
+                                    <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                                </div>
+                            </a>
+                        </Link>
+                    )) : (
+                        <p className="my-4">No posts in this project</p>
+                    ) : (
+                        <Skeleton count={4}/>
+                    )}
                 </div>
             </div>
 
@@ -327,7 +347,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             return {notFound: true};
         }
 
-        return { props: { projectData: cleanForJSON(thisProject), key: context.params.projectId }};
+        const thisUser = await UserModel.findOne({ _id: thisProject.userId });
+
+        return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: context.params.projectId }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

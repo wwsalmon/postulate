@@ -39,7 +39,7 @@ export default function Projects({}: {  }) {
                 <div className="md:flex -mx-2 flex-wrap">
                     {projects.projects.map(project => (
                         <div className="p-2 md:w-1/3">
-                            <Link href={`/@${session.username}/${project.urlName}`}>
+                            <Link href={`/projects/${project._id}`}>
                                 <a className="block p-4 shadow-md rounded-md md:h-full">
                                     <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
                                     <p className="opacity-50">{project.description}</p>
@@ -58,7 +58,7 @@ export default function Projects({}: {  }) {
             ) : (
                 <div className="md:flex -mx-4">
                     {sharedProjects.projects.map(project => (
-                        <Link href={`/@${sharedProjects.owners.find(d => d._id === project.userId).username}/${project.urlName}`}>
+                        <Link href={`/projects/${project._id}`}>
                             <a className="block p-4 shadow-md rounded-md md:w-1/3 mx-4 mb-8 md:mb-0">
                                 <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
                                 <div className="flex items-center my-4">

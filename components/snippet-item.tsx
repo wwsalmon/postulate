@@ -83,7 +83,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
 
     return (
         <>
-            <div className={"py-8 border-b transition md:flex" + (isEdit ? "" : " hover:bg-gray-50")}>
+            <div className={"py-8 border-b transition md:pr-8 md:-mr-8 md:flex" + (isEdit ? "" : " hover:bg-gray-50")}>
                 {!isEdit && (
                     <div className="flex ml-auto mb-4 order-3">
                         <div className="md:hidden flex items-center">
@@ -168,7 +168,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                     </a>
                                 </Link>
                             )}
-                            <div className="content prose">
+                            <div className="prose">
                                 {Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
                             <div className="flex mt-4">
