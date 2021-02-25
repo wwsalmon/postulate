@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -14,9 +14,8 @@ import "easymde/dist/easymde.min.css";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
 import {fetcher} from "../utils/utils";
-import MDEditor from "./md-editor";
 import useSWR from "swr";
-import Creatable from "react-select/creatable";
+import SnippetEditor from "./snippet-editor";
 
 export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags, setTagsQuery}: {
     snippet: DatedObj<SnippetObj>,
@@ -31,9 +30,6 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
-    const [body, setBody] = useState<string>(snippet.body);
-    const [url, setUrl] = useState<string>(snippet.url);
-    const [tags, setTags] = useState<string[]>(snippet.tags);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
 
@@ -61,15 +57,12 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
         });
     }
 
-    function onCancelEdit() {
+    function onCancelEdit(urlName: string) {
         setIsEdit(false);
-        setBody(snippet.body);
-        setUrl(snippet.url);
-        setTags(snippet.tags);
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
-    function onSaveEdit() {
+    function onSaveEdit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
         setIsEditLoading(true);
 
         axios.post("/api/snippet", {
@@ -81,7 +74,6 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIteration(iteration + 1);
-            setIsEditLoading(false);
             setIsEdit(false);
         }).catch(e => {
             console.log(e);
@@ -146,75 +138,49 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                     </p>
                 </div>
                 <div className="w-full">
-                    {snippet.url && ((isEdit && session && session.userId === snippet.userId) ? (
-                        <input
-                            type="text"
-                            className="content px-4 py-2 border rounded-md w-full mb-8"
-                            value={url}
-                            onChange={e => setUrl(e.target.value)}
-                            placeholder="Resource URL"
+                    {(isEdit && session && session.userId === snippet.userId) ? (
+                        <SnippetEditor
+                            snippet={snippet}
+                            availableTags={availableTags}
+                            isLoading={isEditLoading}
+                            onSaveEdit={onSaveEdit}
+                            onCancelEdit={onCancelEdit}
                         />
                     ) : (
-                        <Link href={snippet.url}>
-                            <a className="p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition">
-                                <div>
-                                    <p className="underline opacity-50 break-all">{snippet.url}</p>
-                                    {linkPreview && (
-                                        <div className="mt-4">
-                                            <p className="up-ui-item-title">{linkPreview.title}</p>
-                                            <p>{linkPreview.description}</p>
+                        <>
+                            {snippet.url && (
+                                <Link href={snippet.url}>
+                                    <a className="p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition">
+                                        <div>
+                                            <p className="underline opacity-50 break-all">{snippet.url}</p>
+                                            {linkPreview && (
+                                                <div className="mt-4">
+                                                    <p className="up-ui-item-title">{linkPreview.title}</p>
+                                                    <p>{linkPreview.description}</p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                {linkPreview && linkPreview.images && linkPreview.images.length && (
-                                    <div className="w-32 ml-auto pl-4 flex-shrink-0">
-                                        <img src={linkPreview.images[0]} className="w-full"/>
-                                    </div>
-                                )}
-                            </a>
-                        </Link>
-                    ))}
-                        {(isEdit && session && session.userId === snippet.userId) ? (
-                            <>
-                                <div className="content prose w-full">
-                                    <MDEditor
-                                        body={body}
-                                        setBody={setBody}
-                                        imageUploadEndpoint={`/api/upload?projectId=${snippet.projectId}&attachedType=snippet&attachedUrlName=${snippet.urlName}`}
-                                        placeholder={snippet.type === "snippet" ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
-                                    />
-                                </div>
-                                <hr className="my-6"/>
-                                <p className="up-ui-title mb-4">Tags</p>
-                                <Creatable
-                                    options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-                                    value={tags ? tags.map(d => ({label: d, value: d})) : []}
-                                    onChange={(newValue) => setTags(newValue.map(d => d.value))}
-                                    isMulti
-                                />
-                                <hr className="my-6"/>
-                                <div className="flex">
-                                    <SpinnerButton isLoading={isEditLoading} onClick={onSaveEdit}>
-                                        Save
-                                    </SpinnerButton>
-                                    <button className="up-button text" onClick={onCancelEdit}>Cancel</button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="content prose">
-                                    {Parser(markdownConverter.makeHtml(snippet.body))}
-                                </div>
-                                <div className="flex mt-4">
-                                    {tags && tags.map(tag => (
-                                        <button
-                                            className="font-bold opacity-50 mr-2"
-                                            onClick={() => setTagsQuery([tag])}
-                                        >#{tag}</button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
+                                        {linkPreview && linkPreview.images && linkPreview.images.length && (
+                                            <div className="w-32 ml-auto pl-4 flex-shrink-0">
+                                                <img src={linkPreview.images[0]} className="w-full"/>
+                                            </div>
+                                        )}
+                                    </a>
+                                </Link>
+                            )}
+                            <div className="content prose">
+                                {Parser(markdownConverter.makeHtml(snippet.body))}
+                            </div>
+                            <div className="flex mt-4">
+                                {snippet.tags && snippet.tags.map(tag => (
+                                    <button
+                                        className="font-bold opacity-50 mr-2"
+                                        onClick={() => setTagsQuery([tag])}
+                                    >#{tag}</button>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </>

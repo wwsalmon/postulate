@@ -28,11 +28,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        await mongoose.connect(process.env.MONGODB_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useFindAndModify: false,
-        });
+        if (!mongoose.connection) {
+            await mongoose.connect(process.env.MONGODB_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+            });
+        }
 
         const thisProject = await ProjectModel.findOne({_id: req.body.id});
 

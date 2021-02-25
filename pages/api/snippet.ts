@@ -17,11 +17,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         try {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
+            if (!mongoose.connection) {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+            }
 
             let thisProject: any = null;
             let thisSnippet: any = null; // any typing for mongoose condition type thing
@@ -119,11 +121,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
+            if (!mongoose.connection) {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+            }
 
             let conditions = { projectId: req.query.projectId };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};

@@ -11,11 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const session = await getSession({req});
 
         try {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
+            if (!mongoose.connection) {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+            }
 
             const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
 
@@ -52,11 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No projectId found in request"});
 
             try {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
+                if (!mongoose.connection) {
+                    await mongoose.connect(process.env.MONGODB_URL, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                        useFindAndModify: false,
+                    });
+                }
 
                 const queryProjectId: any = req.query.projectId;
 

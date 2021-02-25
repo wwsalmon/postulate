@@ -45,11 +45,13 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
             fs.unlink(thisFile.path, () => null);
 
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
+            if (!mongoose.connection) {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+            }
 
             const imageObj: ImageObj = {
                 key: fileKey,

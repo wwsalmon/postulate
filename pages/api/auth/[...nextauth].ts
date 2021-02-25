@@ -14,11 +14,13 @@ const options: InitOptions = {
     ],
     callbacks: {
         session: async (session, user) => {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
+            if (!mongoose.connection) {
+                await mongoose.connect(process.env.MONGODB_URL, {
+                    useNewUrlParser: true,
+                    useUnifiedTopology: true,
+                    useFindAndModify: false,
+                });
+            }
 
             const foundUser = await UserModel.findOne({ email: user.email }).exec();
 

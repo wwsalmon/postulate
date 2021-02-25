@@ -25,11 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        await mongoose.connect(process.env.MONGODB_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useFindAndModify: false,
-        });
+        if (!mongoose.connection) {
+            await mongoose.connect(process.env.MONGODB_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                useFindAndModify: false,
+            });
+        }
 
         const sameUrlProject = await ProjectModel.findOne({ userId: session.userId, urlName: req.body.urlName });
 
