@@ -23,6 +23,7 @@ import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
+import {SnippetModel} from "../../models/snippet";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -41,11 +42,12 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
+    const [snippetPage, setSnippetPage] = useState<number>(1);
 
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -238,7 +240,10 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </button>
                             <button
                                 className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
-                                onClick={() => setOrderNew(!orderNew)}
+                                onClick={() => {
+                                    setOrderNew(!orderNew);
+                                    setSnippetPage(1);
+                                }}
                             >{orderNew ? "View oldest first" : "View newest first"}</button>
                         </div>
                     ) : (
@@ -254,22 +259,45 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         </div>
                     )}
-                    {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
-                        <div key={snippet._id}>
-                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                    {snippets ? snippets.snippets.length > 0 ? (
+                        <>
+                            <p className="opacity-25 mt-8">
+                                Showing snippets {(snippetPage - 1) * 10 + 1}
+                                -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
+                            </p>
+                            {snippets.snippets.map((snippet, i, a) => (
+                                <div key={snippet._id}>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItem
+                                        snippet={snippet}
+                                        authors={snippets.authors}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        setTagsQuery={setTagsQuery}
+                                    />
+                                </div>
+                            ))}
+                            <p className="opacity-25 mt-8">
+                                Showing snippets {(snippetPage - 1) * 10 + 1}
+                                -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
+                            </p>
+                            {snippets.count > 10 && (
+                                <div className="mt-4">
+                                    {Array.from({length: Math.ceil(snippets.count / 10)}, (x, i) => i + 1).map(d => (
+                                        <button
+                                            className={"py-2 px-4 rounded-md mr-2 " + (d === snippetPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
+                                            onClick={() => setSnippetPage(d)}
+                                            disabled={+d === +snippetPage}
+                                        >{d}</button>
+                                    ))}
+                                </div>
                             )}
-                            <SnippetItem
-                                snippet={snippet}
-                                authors={snippets.authors}
-                                iteration={iteration}
-                                setIteration={setIteration}
-                                availableTags={availableTags}
-                                addNewTags={addNewTags}
-                                setTagsQuery={setTagsQuery}
-                            />
-                        </div>
-                    )) : (
+                        </>
+                    ) : (
                         <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
                     ) : (
                         <Skeleton count={10}/>
@@ -287,26 +315,29 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </a>
                         </Link>
                     </div>
-                    {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.map(post => (
-                        <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
-                            <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
-                                <p className="">{post.title}</p>
-                                <div className="flex items-center mt-2">
-                                    {!!collaborators.length && (
-                                        <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
-                                    )}
-                                    <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
-                                </div>
-                            </a>
-                        </Link>
-                    )) : (
+                    {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? (
+                        <>
+                            {posts.posts.map(post => (
+                                <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                                    <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
+                                        <p className="">{post.title}</p>
+                                        <div className="flex items-center mt-2">
+                                            {!!collaborators.length && (
+                                                <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
+                                            )}
+                                            <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                                        </div>
+                                    </a>
+                                </Link>
+                            ))}
+                        </>
+                    ) : (
                         <p className="my-4">No posts in this project</p>
                     ) : (
                         <Skeleton count={4}/>
                     )}
                 </div>
             </div>
-
         </div>
     )
 }
@@ -348,6 +379,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         }
 
         const thisUser = await UserModel.findOne({ _id: thisProject.userId });
+
 
         return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: context.params.projectId }};
     } catch (e) {

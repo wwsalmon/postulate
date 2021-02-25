@@ -9,7 +9,7 @@ import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import UpSEO from "../components/up-seo";
 
 export default function Projects({}: {  }) {
-    const {data: projects, error: projectsError}: responseInterface<{projects: ProjectObj[] }, any> = useSWR("/api/project", fetcher);
+    const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR("/api/project", fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
     const [session, loading] = useSession();
 

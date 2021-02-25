@@ -135,13 +135,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
             if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
 
-            const snippets = await SnippetModel.find(conditions);
+            const cursor = SnippetModel
+                .find(conditions)
+                .sort({"createdAt": req.query.sort ? +req.query.sort : - 1});
+
+            const snippets = await (req.query.page ?
+                cursor
+                    .skip((+req.query.page - 1) * 10)
+                    .limit(10) :
+                cursor
+            );
+
+            const count = await SnippetModel
+                .find(conditions)
+                .sort({"createdAt": req.query.sort ? +req.query.sort : - 1})
+                .count();
 
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
             const authors = await UserModel.find({ _id: {$in: uniqueAuthorIds }});
 
-            res.status(200).json({snippets: snippets, authors: authors});
+            res.status(200).json({snippets: snippets, authors: authors, count: count });
 
             return;
         } catch (e) {
