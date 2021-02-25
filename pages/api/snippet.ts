@@ -84,8 +84,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         date: new Date().toISOString(),
                         url: req.body.url || "",
                         tags: req.body.tags,
-                        likes: null,
+                        likes: [],
                         userId: session.userId,
+                        linkedPosts: [],
                     }
 
                     await SnippetModel.create(newSnippet);

@@ -39,6 +39,7 @@ export interface SnippetObj {
     url: string,
     tags: string[],
     likes: string[], // array of IDs
+    linkedPosts: string[], // array of IDs
 }
 
 export interface PostObj {
