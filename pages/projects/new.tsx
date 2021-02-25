@@ -30,7 +30,7 @@ export default function NewProject() {
                 setIsLoading(false);
                 console.log(res.data.error);
             } else {
-                router.push(`/@${session.username}/${urlName}`);
+                router.push(`/projects/${res.data.id}`);
             }
         }).catch(e => {
             setIsLoading(false);

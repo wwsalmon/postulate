@@ -47,9 +47,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             availableTags: [],
         }
 
-        await ProjectModel.create(newProject);
+        const newProjectObj = await ProjectModel.create(newProject);
 
-        res.status(200).json({message: "Project successfully created."});
+        res.status(200).json({message: "Project successfully created.", id: newProjectObj._id.toString()});
 
         return;
     } catch (e) {

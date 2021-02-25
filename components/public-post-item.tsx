@@ -13,7 +13,7 @@ export default function PublicPostItem({post, author, urlPrefix}: {
         <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
             <Link href={`${urlPrefix}/${post.urlName}`}>
                 <a>
-                    <p className="up-ui-item-title">{post.title}</p>
+                    <p className="up-ui-item-title mb-2">{post.title}</p>
                     <p>
                         <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
                         <span className="opacity-50"> | {readingTime(post.body).text}</span>
@@ -23,7 +23,7 @@ export default function PublicPostItem({post, author, urlPrefix}: {
             <Link href={`/@${author.username}`}>
                 <a>
                     <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
-                        <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-10 h-10 rounded-full mr-4"/>
+                        <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-8 h-8 rounded-full mr-4"/>
                         <div>
                             <p className="font-bold">{author.name}</p>
                         </div>
