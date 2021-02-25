@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const session = await getSession({req});
 
         try {
-            if (!mongoose.connection) {
+            if (mongoose.connection.readyState !== 1) {
                 await mongoose.connect(process.env.MONGODB_URL, {
                     useNewUrlParser: true,
                     useUnifiedTopology: true,
@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No projectId found in request"});
 
             try {
-                if (!mongoose.connection) {
+                if (mongoose.connection.readyState !== 1) {
                     await mongoose.connect(process.env.MONGODB_URL, {
                         useNewUrlParser: true,
                         useUnifiedTopology: true,

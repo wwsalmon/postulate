@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
                 try {
-                    if (!mongoose.connection) {
+                    if (mongoose.connection.readyState !== 1) {
                         await mongoose.connect(process.env.MONGODB_URL, {
                             useNewUrlParser: true,
                             useUnifiedTopology: true,
@@ -120,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.postId) return res.status(406).json({message: "No post ID found in request."});
 
                 try {
-                    if (!mongoose.connection) {
+                    if (mongoose.connection.readyState !== 1) {
                         await mongoose.connect(process.env.MONGODB_URL, {
                             useNewUrlParser: true,
                             useUnifiedTopology: true,
@@ -148,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No project ID found in request."});
 
             try {
-                if (!mongoose.connection) {
+                if (mongoose.connection.readyState !== 1) {
                     await mongoose.connect(process.env.MONGODB_URL, {
                         useNewUrlParser: true,
                         useUnifiedTopology: true,
