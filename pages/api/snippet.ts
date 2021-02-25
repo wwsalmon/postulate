@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         try {
-            if (!mongoose.connection) {
+            if (mongoose.connection.readyState !== 1) {
                 await mongoose.connect(process.env.MONGODB_URL, {
                     useNewUrlParser: true,
                     useUnifiedTopology: true,
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
-            if (!mongoose.connection) {
+            if (mongoose.connection.readyState !== 1) {
                 await mongoose.connect(process.env.MONGODB_URL, {
                     useNewUrlParser: true,
                     useUnifiedTopology: true,

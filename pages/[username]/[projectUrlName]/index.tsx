@@ -189,56 +189,56 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                                 </div>
                             </UpModal>
                             <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
-                            <h3 className="up-ui-title">Add collaborator</h3>
-                            <p>Collaborators are able to view and add snippets and posts in your project.</p>
-                            <AsyncSelect
-                                cacheOtions
-                                loadOptions={(input, callback) => {
-                                    if (input) {
-                                        axios.get(`/api/search/user?email=${input}`).then(res => {
-                                            const filteredResults = res.data.results.filter(d => ![
-                                                userId,
-                                                ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
-                                            ].includes(d._id));
-                                            console.log(filteredResults);
-                                            callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
-                                        }).catch(e => {
-                                            console.log(e);
-                                        });
-                                    } else {
-                                        callback([]);
-                                    }
-                                }}
-                                placeholder="Enter collaborator's email"
-                                styles={{dropdownIndicator: () => ({display: "none"})}}
-                                onChange={selected => setAddCollaboratorList(selected)}
-                                isMulti
-                                value={addCollaboratorList}
-                                className="my-4 min-w-64"
-                            />
-                            <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
-                                Add
-                            </SpinnerButton>
-                            <hr className="my-4"/>
-                            <h3 className="up-ui-title">Manage collaborators</h3>
-                            {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
-                                collaboratorObjs.collaborators.map(collaborator => (
-                                    <div className="flex items-center my-4">
-                                        <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
-                                        <p>{collaborator.name} ({collaborator.email})</p>
-                                        <div className="ml-auto">
-                                            <MoreMenu>
-                                                <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
-                                            </MoreMenu>
+                                <h3 className="up-ui-title">Add collaborator</h3>
+                                <p>Collaborators are able to view and add snippets and posts in your project.</p>
+                                <AsyncSelect
+                                    cacheOtions
+                                    loadOptions={(input, callback) => {
+                                        if (input) {
+                                            axios.get(`/api/search/user?email=${input}`).then(res => {
+                                                const filteredResults = res.data.results.filter(d => ![
+                                                    userId,
+                                                    ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
+                                                ].includes(d._id));
+                                                console.log(filteredResults);
+                                                callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
+                                            }).catch(e => {
+                                                console.log(e);
+                                            });
+                                        } else {
+                                            callback([]);
+                                        }
+                                    }}
+                                    placeholder="Enter collaborator's email"
+                                    styles={{dropdownIndicator: () => ({display: "none"})}}
+                                    onChange={selected => setAddCollaboratorList(selected)}
+                                    isMulti
+                                    value={addCollaboratorList}
+                                    className="my-4 min-w-64"
+                                />
+                                <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
+                                    Add
+                                </SpinnerButton>
+                                <hr className="my-4"/>
+                                <h3 className="up-ui-title">Manage collaborators</h3>
+                                {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
+                                    collaboratorObjs.collaborators.map(collaborator => (
+                                        <div className="flex items-center my-4">
+                                            <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
+                                            <p>{collaborator.name} ({collaborator.email})</p>
+                                            <div className="ml-auto">
+                                                <MoreMenu>
+                                                    <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
+                                                </MoreMenu>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No collaborators found for this project.</p>
-                            ) : (
-                                <Skeleton count={2}/>
-                            )}
-                        </UpModal>
+                                    ))
+                                ) : (
+                                    <p>No collaborators found for this project.</p>
+                                ) : (
+                                    <Skeleton count={2}/>
+                                )}
+                            </UpModal>
                         </div>
                     )}
                 </div>
@@ -422,7 +422,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // fetch project info from MongoDB
     try {
-        if (!mongoose.connection) {
+        if (mongoose.connection.readyState !== 1) {
             await mongoose.connect(process.env.MONGODB_URL, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
