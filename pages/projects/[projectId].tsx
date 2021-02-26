@@ -290,7 +290,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 </div>
                             ))}
                             <div className="flex items-center mt-4">
-                                <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
+                                <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
                                     <a className="up-button ml-auto mb-4 md:mb-0 small">
                                         <div className="flex items-center">
                                             <FiEdit/>
