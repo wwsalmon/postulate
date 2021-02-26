@@ -7,6 +7,7 @@ import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
+import {PostModel} from "../../models/post";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -155,11 +156,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .find(conditions)
                 .count();
 
+            // get associated authors
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
             const authors = await UserModel.find({ _id: {$in: uniqueAuthorIds }});
 
-            res.status(200).json({snippets: snippets, authors: authors, count: count });
+            // get associated posts
+            const postIds = snippets.reduce((a, b) => a = [...a, ...b.linkedPosts], []);
+            const uniquePostIds = postIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+            const posts = await PostModel.find({ _id: {$in: uniquePostIds }});
+
+            res.status(200).json({snippets: snippets, authors: authors, count: count, posts: posts });
 
             return;
         } catch (e) {

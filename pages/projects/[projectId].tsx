@@ -49,8 +49,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
-    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -279,6 +279,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     <SnippetItem
                                         snippet={snippet}
                                         authors={selectedSnippets.authors}
+                                        posts={selectedSnippets.posts}
+                                        projectData={props.projectData}
+                                        thisUser={props.thisUser}
                                         iteration={iteration}
                                         setIteration={setIteration}
                                         availableTags={availableTags}
@@ -315,6 +318,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     <SnippetItem
                                         snippet={snippet}
                                         authors={snippets.authors}
+                                        posts={snippets.posts}
+                                        projectData={props.projectData}
+                                        thisUser={props.thisUser}
                                         iteration={iteration}
                                         setIteration={setIteration}
                                         availableTags={availableTags}

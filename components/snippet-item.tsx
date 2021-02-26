@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -16,10 +16,14 @@ import Link from "next/link";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
+import project from "../pages/api/project";
 
-export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
+export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
+    posts: DatedObj<PostObj>[],
+    projectData: DatedObj<ProjectObj>,
+    thisUser: DatedObj<UserObj>,
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
     availableTags: string[],
@@ -214,6 +218,19 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                     >#{tag}</button>
                                 ))}
                             </div>
+                            {!!snippet.linkedPosts.length && (
+                                <div className="opacity-50 hover:opacity-100 transition">
+                                    <hr className="mb-8 mt-4"/>
+                                    <p className="up-ui-title">Linked posts ({snippet.linkedPosts.length}):</p>
+                                    {snippet.linkedPosts.map(d => (
+                                        <Link href={`/@${thisUser.username}/${projectData.urlName}/${posts.find(x => x._id === d).urlName}`}>
+                                            <a className="underline my-2 block">
+                                                {posts.find(x => x._id === d).title}
+                                            </a>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                             {isSelected && (
                                 <div className="w-full absolute top-0 left-0" style={{height: 90, boxShadow: "rgb(255, 255, 255) 0px -40px 20px -20px inset"}}/>
                             )}
