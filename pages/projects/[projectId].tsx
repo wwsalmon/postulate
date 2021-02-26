@@ -12,7 +12,7 @@ import UpSEO from "../../components/up-seo";
 import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import UpModal from "../../components/up-modal";
 import SpinnerButton from "../../components/spinner-button";
 import Skeleton from "react-loading-skeleton";
@@ -23,7 +23,7 @@ import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
-import {SnippetModel} from "../../models/snippet";
+import Accordion from "react-robust-accordion";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -43,11 +43,14 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
     const [snippetPage, setSnippetPage] = useState<number>(1);
+    const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
+    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
 
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -259,13 +262,46 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         </div>
                     )}
+                    {selectedSnippets && !!selectedSnippets.snippets.length && (
+                        <div className="p-4 shadow-md my-8">
+                            <p className="up-ui-title">Selected ({selectedSnippetIds.length})</p>
+                            {selectedSnippets.snippets.map((snippet, i, a) => (
+                                <div key={snippet._id}>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="mt-12 pb-4 opacity-50">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItem
+                                        snippet={snippet}
+                                        authors={selectedSnippets.authors}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        setTagsQuery={setTagsQuery}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                    />
+                                </div>
+                            ))}
+                            <div className="flex items-center mt-4">
+                                <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
+                                    <a className="up-button ml-auto mb-4 md:mb-0 small">
+                                        <div className="flex items-center">
+                                            <FiEdit/>
+                                            <span className="ml-4">New post from selected</span>
+                                        </div>
+                                    </a>
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                     {snippets ? snippets.snippets.length > 0 ? (
                         <>
                             <p className="opacity-25 mt-8">
                                 Showing snippets {(snippetPage - 1) * 10 + 1}
                                 -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
                             </p>
-                            {snippets.snippets.map((snippet, i, a) => (
+                            {snippets.snippets.filter(d => !selectedSnippetIds.includes(d._id)).map((snippet, i, a) => (
                                 <div key={snippet._id}>
                                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                         <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
@@ -278,6 +314,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                         availableTags={availableTags}
                                         addNewTags={addNewTags}
                                         setTagsQuery={setTagsQuery}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
                                     />
                                 </div>
                             ))}

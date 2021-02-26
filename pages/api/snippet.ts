@@ -118,8 +118,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
-        if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+
+        if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             if (mongoose.connection.readyState !== 1) {
@@ -130,10 +131,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
             }
 
-            let conditions = { projectId: req.query.projectId };
+            let conditions: any = { projectId: req.query.projectId };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
             if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+            if (req.query.ids && JSON.parse(req.query.ids).length) {
+                const ids: any = JSON.parse(req.query.ids);
+                conditions = { "_id": {"$in": ids}};
+            }
 
             const cursor = SnippetModel
                 .find(conditions)

@@ -116,6 +116,14 @@ a.up-button.small:not(.primary):not(.text) {
     display: block;
 }
 
+.up-hover-child {
+    display: none;
+}
+
+.up-hover-parent:hover .up-hover-child {
+    display: block;
+}
+
 /* SimpleMDE styling */
 
 .EasyMDEContainer .editor-toolbar {
