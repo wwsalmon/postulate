@@ -218,13 +218,19 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             className="border-b my-2 py-2 mr-4 flex-grow"
                             placeholder="Search"
                             value={snippetSearchQuery}
-                            onChange={e => setSnippetSearchQuery(e.target.value)}
+                            onChange={e => {
+                                setSnippetPage(1);
+                                setSnippetSearchQuery(e.target.value);
+                            }}
                         />
                         <Select
                             className="flex-grow"
                             options={availableTags.map(d => ({label: d, value: d}))}
                             value={tagsQuery.map(d => ({label: d, value: d}))}
-                            onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
+                            onChange={(newValue) => {
+                                setSnippetPage(1);
+                                setTagsQuery(newValue.map(d => d.value));
+                            }}
                             placeholder="Filter by tag"
                             isMulti
                         />
