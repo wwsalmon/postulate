@@ -148,7 +148,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const count = await SnippetModel
                 .find(conditions)
-                .sort({"createdAt": req.query.sort ? +req.query.sort : - 1})
                 .count();
 
             const authorIds = snippets.map(d => d.userId);
