@@ -9,6 +9,7 @@ import short from "short-uuid";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
+import {SnippetModel} from "../../models/snippet";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
                     if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
-                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({msesage: "You do not have permission to add posts in this project."})
+                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "You do not have permission to add posts in this project."})
 
                     if (req.body.postId) {
                         const thisPost = await PostModel.findOne({ _id: req.body.postId });
@@ -57,11 +58,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             projectUsername = thisProjectOwner.username;
                         }
 
+                        // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
 
                         if (attachedImages.length) {
                             const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
                             await deleteImages(unusedImages);
+                        }
+
+                        // update linked snippets
+                        const linkedSnippets = await SnippetModel.find({ linkedPosts: thisPost._id });
+                        const unlinkedSnippetIds = linkedSnippets.map(d => d._id.toString()).filter(d => (req.body.selectedSnippetIds && req.body.selectedSnippetIds.length) ? !req.body.selectedSnippetIds.includes(d) : true);
+                        const newLinkedSnippetIds = (req.body.selectedSnippetIds && req.body.selectedSnippetIds.length) ? req.body.selectedSnippetIds.filter(d => !linkedSnippets.map(d => d._id.toString()).includes(d)) : [];
+
+                        if (newLinkedSnippetIds.length) {
+                            await SnippetModel.updateMany({ _id: { $in: newLinkedSnippetIds } }, {
+                                $push: { linkedPosts: thisPost._id }
+                            });
+                        }
+
+                        if (unlinkedSnippetIds.length) {
+                            await SnippetModel.updateMany({ _id: { $in: unlinkedSnippetIds } }, {
+                                $pull: { linkedPosts: thisPost._id }
+                            });
                         }
 
                         res.status(200).json({
@@ -84,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             body: req.body.body,
                         }
 
-                        await PostModel.create(newPost);
+                        const newPostObj = await PostModel.create(newPost);
 
                         let projectUsername = session.username;
 
@@ -94,6 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             projectUsername = thisProjectOwner.username;
                         }
 
+                        // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: req.body.tempId });
 
                         if (attachedImages.length) {
@@ -103,6 +123,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             const usedImageIds = attachedImages.filter(d => req.body.body.includes(d.key)).map(d => d._id.toString());
                             await ImageModel.updateMany({_id: {$in: usedImageIds}}, {
                                 attachedUrlName: urlName,
+                            });
+                        }
+
+                        // update linked snippets
+                        if (req.body.linkedPosts && req.body.linkedPosts) {
+                            await SnippetModel.updateMany({ _id: { $in: req.body.linkedPosts } }, {
+                                $push: { linkedPosts: newPostObj._id }
                             });
                         }
 
@@ -133,6 +160,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     // `req.body.tempId` is the same as `urlName` when sent from an existing post
                     const attachedImages = await ImageModel.find({attachedUrlName: req.body.tempId});
                     await deleteImages(attachedImages);
+
+                    // update linked snippets
+                    await SnippetModel.updateMany({ linkedPosts: req.body.postId }, {
+                        $pull: { linkedPosts: req.body.postId }
+                    });
 
                     res.status(200).json({message: "Post successfully deleted."});
 
