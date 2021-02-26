@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -16,15 +16,21 @@ import Link from "next/link";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
+import project from "../pages/api/project";
 
-export default function SnippetItem({snippet, authors, iteration, setIteration, availableTags, addNewTags, setTagsQuery}: {
+export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
+    posts: DatedObj<PostObj>[],
+    projectData: DatedObj<ProjectObj>,
+    thisUser: DatedObj<UserObj>,
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
     availableTags: string[],
     addNewTags: (newTags: string[]) => void,
     setTagsQuery: (tagsQuery: string[]) => void,
+    selectedSnippetIds: string[],
+    setSelectedSnippetIds: Dispatch<SetStateAction<string[]>>,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -32,6 +38,8 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
+
+    const isSelected = selectedSnippetIds.includes(snippet._id);
 
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -83,10 +91,23 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
 
     return (
         <>
-            <div className={"py-8 border-b transition md:flex" + (isEdit ? "" : " hover:bg-gray-50")}>
+            <div className={"py-8 border-b transition md:flex up-hover-parent " + ((isEdit || isSelected) ? "" : " hover:bg-gray-50 ") + (isSelected ? "" : "md:pr-8 md:-mr-8")}>
                 {!isEdit && (
                     <div className="flex ml-auto mb-4 order-3">
                         <div className="md:hidden flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={e => {
+                                    if (e.target.checked) {
+                                        setSelectedSnippetIds([...selectedSnippetIds, snippet._id]);
+                                    } else {
+                                        setSelectedSnippetIds(selectedSnippetIds.filter(d => d !== snippet._id));
+                                    }
+                                }}
+                                disabled={isEdit}
+                                className="mr-4 opacity-50 hover:opacity-100 w-4 h-4"
+                            />
                             {!(session && session.userId === snippet.userId) && (
                                 <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
                                     <a>
@@ -102,7 +123,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                 {format(new Date(snippet.createdAt), "h:mm a")}
                             </p>
                         </div>
-                        {session && (session.userId === snippet.userId) && (
+                        {session && (session.userId === snippet.userId) && !isSelected && (
                             <div className="ml-auto">
                                 <MoreMenu>
                                     <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
@@ -121,7 +142,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                         )}
                     </div>
                 )}
-                <div className="hidden md:block w-32 mt-1 flex-shrink-0">
+                <div className="hidden md:block w-28 pr-4 mt-1 flex-shrink-0">
                     {!(session && session.userId === snippet.userId) && (
                         <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
                             <a>
@@ -136,8 +157,26 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                     <p className="opacity-25">
                         {format(new Date(snippet.createdAt), "h:mm a")}
                     </p>
+                    <div>
+                        <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={e => {
+                                if (e.target.checked) {
+                                    setSelectedSnippetIds([...selectedSnippetIds, snippet._id]);
+                                } else {
+                                    setSelectedSnippetIds(selectedSnippetIds.filter(d => d !== snippet._id));
+                                }
+                            }}
+                            disabled={isEdit}
+                            className={`mt-4 w-5 h-5 opacity-25 hover:opacity-100 transition ` + (isSelected ? "" : "up-hover-child")}
+                        />
+                    </div>
                 </div>
-                <div className="w-full">
+                <div className={`w-full relative ` + (isSelected ? "overflow-hidden" : "")} style={isSelected ? {
+                    maxHeight: 90,
+                    boxShadow: "rgb(255, 255, 255) 0px -40px 10px -10px inset",
+                } : {}}>
                     {(isEdit && session && session.userId === snippet.userId) ? (
                         <SnippetEditor
                             snippet={snippet}
@@ -168,7 +207,7 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                     </a>
                                 </Link>
                             )}
-                            <div className="content prose">
+                            <div className="prose">
                                 {Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
                             <div className="flex mt-4">
@@ -179,6 +218,22 @@ export default function SnippetItem({snippet, authors, iteration, setIteration, 
                                     >#{tag}</button>
                                 ))}
                             </div>
+                            {!!snippet.linkedPosts.length && (
+                                <div className="opacity-50 hover:opacity-100 transition">
+                                    <hr className="mb-8 mt-4"/>
+                                    <p className="up-ui-title">Linked posts ({snippet.linkedPosts.length}):</p>
+                                    {snippet.linkedPosts.map(d => (
+                                        <Link href={`/@${thisUser.username}/${projectData.urlName}/${posts.find(x => x._id === d).urlName}`}>
+                                            <a className="underline my-2 block">
+                                                {posts.find(x => x._id === d).title}
+                                            </a>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                            {isSelected && (
+                                <div className="w-full absolute top-0 left-0" style={{height: 90, boxShadow: "rgb(255, 255, 255) 0px -40px 20px -20px inset"}}/>
+                            )}
                         </>
                     )}
                 </div>

@@ -17,16 +17,20 @@ import {getSession} from "next-auth/client";
 import UpBackLink from "../../components/up-back-link";
 import short from "short-uuid";
 import NewPostEditor from "../../components/new-post-editor";
+import UpModal from "../../components/up-modal";
+import SnippetBrowser from "../../components/snippet-browser";
+import {SnippetModel} from "../../models/snippet";
 
-export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string}) {
+export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
     const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
 
-    const [iteration, setIteration] = useState<number>(null);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
-    const [snippetProjectId, setSnippetProjectId] = useState<string>(startProjectId);
     const [tempId, setTempId] = useState<string>(props.urlName || short.generate());
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&iteration=${iteration}`, fetcher);
+    const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>(props.selectedSnippetIds || ((router.query.snippets && !Array.isArray(router.query.snippets)) ? JSON.parse(router.query.snippets) : []));
+    const [isBrowseOpen, setIsBrowseOpen] = useState<boolean>(false);
+
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
@@ -47,6 +51,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
             title: title,
             body: body,
             tempId: tempId,
+            selectedSnippetIds: selectedSnippetIds,
         }).then(res => {
             router.push(res.data.url);
         }).catch(e => {
@@ -63,7 +68,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={(props.postId ? "Edit post" : "New post")}/>
-            <UpBackLink link={Array.isArray(router.query.back) ? "/projects" : router.query.back} text="project" className="mb-8"/>
+            <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8"/>
             <div className="flex">
                 <div className="w-2/3 pr-4 border-r">
                     <h1 className="up-h1 mb-8">{props.postId ? "Edit" : "New"} post</h1>
@@ -83,34 +88,39 @@ export default function NewPost(props: {title: string, body: string, postId: str
                 </div>
                 <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
                     <div className="sticky" style={{top: 100}}>
-                        <h3 className="up-ui-title">View snippets from</h3>
-                        <Select
-                            options={(projects && sharedProjects) ? [...projects.projects, ...sharedProjects.projects].map(project => ({
-                                value: project._id,
-                                label: getProjectLabel(project._id),
-                            })) : []}
-                            value={{
-                                value: snippetProjectId,
-                                label: getProjectLabel(snippetProjectId)
-                            }}
-                            onChange={option => setSnippetProjectId(option.value)}
-                            className="mt-4"
-                        />
-                        <hr className="mt-8 -ml-4"/>
-                        <div className="overflow-y-auto overflow-x-hidden pl-4 -ml-4" style={{maxHeight: "calc(100vh - 320px)"}}>
-                            {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? snippets.snippets.map((snippet, i, a) => (
+                        <h3 className="up-ui-title pb-4">Linked snippets ({selectedSnippetIds.length})</h3>
+                        <div className="overflow-y-auto overflow-x-hidden px-4 -ml-4" style={{maxHeight: "calc(100vh - 340px)"}}>
+                            {selectedSnippets ? selectedSnippets.snippets.length ? (
                                 <>
-                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="up-ui-title mt-6 pb-4 border-b opacity-50 pl-4 -mx-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                    )}
-                                    <SnippetItemReduced snippet={snippet} authors={snippets.authors}/>
+                                    {selectedSnippets.snippets.map((snippet, i, a) => (
+                                        <div key={snippet._id}>
+                                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                                <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                            )}
+                                            <SnippetItemReduced snippet={snippet} authors={selectedSnippets.authors} selectedSnippetIds={selectedSnippetIds} setSelectedSnippetIds={setSelectedSnippetIds}/>
+                                        </div>
+                                    ))}
                                 </>
-                            )) : (
-                                <p>No snippets in this project</p>
                             ) : (
-                                <Skeleton count={10}/>
+                                <p className="opacity-50 my-4">No linked snippets. Click "Browse snippets" to select some</p>
+                            ) : (
+                                <Skeleton count={4}/>
                             )}
                         </div>
+                        <button onClick={() => setIsBrowseOpen(true)} className="up-button small mt-4">Browse snippets</button>
+                        <UpModal isOpen={isBrowseOpen} setIsOpen={setIsBrowseOpen} wide={true}>
+                            <SnippetBrowser
+                                startProjectId={startProjectId}
+                                selectedSnippetIds={selectedSnippetIds}
+                                setSelectedSnippetIds={setSelectedSnippetIds}
+                                onClose={() => setIsBrowseOpen(false)}
+                                className="relative"
+                                style={{
+                                    left: "-1rem",
+                                    width: "calc(100% + 2rem)"
+                                }}
+                            />
+                        </UpModal>
                     </div>
                 </div>
             </div>
@@ -133,7 +143,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const postId: any = context.params.postId;
 
-    if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null}};
+    if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null, linkedPosts: null}};
 
     try {
         if (mongoose.connection.readyState !== 1) {
@@ -148,7 +158,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!thisPost) return {notFound: true};
 
-        return {props: {title: thisPost.title, body: thisPost.body, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName}};
+        const selectedSnippets = await SnippetModel.find({ linkedPosts: postId });
+
+        return {props: {title: thisPost.title, body: thisPost.body, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
     } catch (e) {
         return {notFound: true};
     }

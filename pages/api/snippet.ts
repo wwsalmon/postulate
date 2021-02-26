@@ -7,6 +7,7 @@ import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
+import {PostModel} from "../../models/post";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -84,8 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         date: new Date().toISOString(),
                         url: req.body.url || "",
                         tags: req.body.tags,
-                        likes: null,
+                        likes: [],
                         userId: session.userId,
+                        linkedPosts: [],
                     }
 
                     await SnippetModel.create(newSnippet);
@@ -117,8 +119,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
-        if (!req.query.projectId) return res.status(406).json({message: "No project ID found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+
+        if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             if (mongoose.connection.readyState !== 1) {
@@ -129,18 +132,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 });
             }
 
-            let conditions = { projectId: req.query.projectId };
+            let conditions: any = { projectId: req.query.projectId };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
             if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+            if (req.query.ids && JSON.parse(req.query.ids).length) {
+                const ids: any = JSON.parse(req.query.ids);
+                conditions = { "_id": {"$in": ids}};
+            }
 
-            const snippets = await SnippetModel.find(conditions);
+            const cursor = SnippetModel
+                .find(conditions)
+                .sort({"createdAt": req.query.sort ? +req.query.sort : - 1});
 
+            const snippets = await (req.query.page ?
+                cursor
+                    .skip((+req.query.page - 1) * 10)
+                    .limit(10) :
+                cursor
+            );
+
+            const count = await SnippetModel
+                .find(conditions)
+                .count();
+
+            // get associated authors
             const authorIds = snippets.map(d => d.userId);
             const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
             const authors = await UserModel.find({ _id: {$in: uniqueAuthorIds }});
 
-            res.status(200).json({snippets: snippets, authors: authors});
+            // get associated posts
+            const postIds = snippets.reduce((a, b) => a = [...a, ...b.linkedPosts], []);
+            const uniquePostIds = postIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+            const posts = await PostModel.find({ _id: {$in: uniquePostIds }});
+
+            res.status(200).json({snippets: snippets, authors: authors, count: count, posts: posts });
 
             return;
         } catch (e) {

@@ -12,7 +12,7 @@ import UpSEO from "../../components/up-seo";
 import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import UpModal from "../../components/up-modal";
 import SpinnerButton from "../../components/spinner-button";
 import Skeleton from "react-loading-skeleton";
@@ -22,8 +22,10 @@ import Link from "next/link";
 import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
+import {UserModel} from "../../models/user";
+import Accordion from "react-robust-accordion";
 
-export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>}) {
+export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
@@ -40,11 +42,15 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
+    const [snippetPage, setSnippetPage] = useState<number>(1);
+    const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
+    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
 
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
@@ -129,19 +135,20 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="md:flex">
-                <div className="md:w-2/3 md:pr-8 md:border-r">
+            <div className="lg:flex">
+                <div className="lg:w-2/3 lg:pr-8 lg:border-r">
                     <BackToProjects/>
                     <div className="flex items-center">
                         <div>
                             <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                            <p className="up-h2">{description}</p>
+                            <p className="opacity-50">{description}</p>
                         </div>
                         <div className="ml-auto">
                             <MoreMenu>
-                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${session ? session.username : ""}/${urlName}/edit`}/>
+                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
                                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                                 <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                <MoreMenuItem text="View as public" icon={<FiEye/>} href={`/@${props.thisUser.username}/${urlName}`}/>
                             </MoreMenu>
                             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
                                 <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
@@ -205,26 +212,48 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </UpModal>
                         </div>
                     </div>
-                    <hr className="my-8"/>
+                    <div className="sm:flex items-center mt-6">
+                        <input
+                            type="text"
+                            className="border-b my-2 py-2 mr-4 flex-grow"
+                            placeholder="Search"
+                            value={snippetSearchQuery}
+                            onChange={e => {
+                                setSnippetPage(1);
+                                setSnippetSearchQuery(e.target.value);
+                            }}
+                        />
+                        <Select
+                            className="flex-grow"
+                            options={availableTags.map(d => ({label: d, value: d}))}
+                            value={tagsQuery.map(d => ({label: d, value: d}))}
+                            onChange={(newValue) => {
+                                setSnippetPage(1);
+                                setTagsQuery(newValue.map(d => d.value));
+                            }}
+                            placeholder="Filter by tag"
+                            isMulti
+                        />
+                    </div>
+                    <hr className="my-8 lg:-mr-8 lg:pr-8"/>
                     {!(isSnippet || isResource) ? (
-                        <div className="md:flex items-center">
-                            <button className="up-button primary mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
+                        <div className="md:flex items-center mt-6">
+                            <button className="up-button primary small mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
                                 New snippet
                             </button>
-                            <button className="up-button text mb-4 md:mb-0" onClick={() => setIsResource(true)}>
+                            <button className="up-button text small mb-4 md:mb-0" onClick={() => setIsResource(true)}>
                                 <div className="flex items-center">
                                     <FiLink/>
                                     <span className="ml-4">Add resource</span>
                                 </div>
                             </button>
-                            <Link href={`/post/new?projectId=${projectId}&back=/@${session ? session.username : ""}/${urlName}`}>
-                                <a className="up-button ml-auto mb-4 md:mb-0">
-                                    <div className="flex items-center">
-                                        <FiEdit/>
-                                        <span className="ml-4">New post</span>
-                                    </div>
-                                </a>
-                            </Link>
+                            <button
+                                className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
+                                onClick={() => {
+                                    setOrderNew(!orderNew);
+                                    setSnippetPage(1);
+                                }}
+                            >{orderNew ? "View oldest first" : "View newest first"}</button>
                         </div>
                     ) : (
                         <div className="p-4 shadow-md rounded-md">
@@ -239,54 +268,126 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         </div>
                     )}
-                    <hr className="my-8"/>
-                    <div className="md:flex items-center">
-                        <input
-                            type="text"
-                            className="border-b my-2 py-2 mr-4 flex-grow"
-                            placeholder="Search"
-                            value={snippetSearchQuery}
-                            onChange={e => setSnippetSearchQuery(e.target.value)}
-                        />
-                        <Select
-                            className="flex-grow mr-4"
-                            options={availableTags.map(d => ({label: d, value: d}))}
-                            value={tagsQuery.map(d => ({label: d, value: d}))}
-                            onChange={(newValue) => setTagsQuery(newValue.map(d => d.value))}
-                            placeholder="Filter by tag"
-                            isMulti
-                        />
-                        <button
-                            className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
-                            onClick={() => setOrderNew(!orderNew)}
-                        >{orderNew ? "View oldest first" : "View newest first"}</button>
-                    </div>
-                    {snippets ? snippets.snippets.length > 0 ? (orderNew ? snippets.snippets.slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : snippets.snippets).map((snippet, i, a) => (
-                        <div key={snippet._id}>
-                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                            )}
-                            <SnippetItem
-                                snippet={snippet}
-                                authors={snippets.authors}
-                                iteration={iteration}
-                                setIteration={setIteration}
-                                availableTags={availableTags}
-                                addNewTags={addNewTags}
-                                setTagsQuery={setTagsQuery}
-                            />
+                    {selectedSnippets && !!selectedSnippets.snippets.length && (
+                        <div className="p-4 shadow-md my-8">
+                            <p className="up-ui-title">Selected ({selectedSnippetIds.length})</p>
+                            {selectedSnippets.snippets.map((snippet, i, a) => (
+                                <div key={snippet._id}>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="mt-12 pb-4 opacity-50">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItem
+                                        snippet={snippet}
+                                        authors={selectedSnippets.authors}
+                                        posts={selectedSnippets.posts}
+                                        projectData={props.projectData}
+                                        thisUser={props.thisUser}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        setTagsQuery={setTagsQuery}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                    />
+                                </div>
+                            ))}
+                            <div className="flex items-center mt-4">
+                                <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                                    <a className="up-button ml-auto mb-4 md:mb-0 small">
+                                        <div className="flex items-center">
+                                            <FiEdit/>
+                                            <span className="ml-4">New post from selected</span>
+                                        </div>
+                                    </a>
+                                </Link>
+                            </div>
                         </div>
-                    )) : (
+                    )}
+                    {snippets ? snippets.snippets.length > 0 ? (
+                        <>
+                            <p className="opacity-25 mt-8">
+                                Showing snippets {(snippetPage - 1) * 10 + 1}
+                                -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
+                            </p>
+                            {snippets.snippets.filter(d => !selectedSnippetIds.includes(d._id)).map((snippet, i, a) => (
+                                <div key={snippet._id}>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItem
+                                        snippet={snippet}
+                                        authors={snippets.authors}
+                                        posts={snippets.posts}
+                                        projectData={props.projectData}
+                                        thisUser={props.thisUser}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        setTagsQuery={setTagsQuery}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                    />
+                                </div>
+                            ))}
+                            <p className="opacity-25 mt-8">
+                                Showing snippets {(snippetPage - 1) * 10 + 1}
+                                -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
+                            </p>
+                            {snippets.count > 10 && (
+                                <div className="mt-4">
+                                    {Array.from({length: Math.ceil(snippets.count / 10)}, (x, i) => i + 1).map(d => (
+                                        <button
+                                            className={"py-2 px-4 rounded-md mr-2 " + (d === snippetPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
+                                            onClick={() => setSnippetPage(d)}
+                                            disabled={+d === +snippetPage}
+                                        >{d}</button>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    ) : (
                         <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
                     ) : (
                         <Skeleton count={10}/>
                     )}
                 </div>
-                <div className="md:w-1/3 md:pl-8">
-                    <p>Posts</p>
+                <div className="lg:w-1/3 lg:pl-8">
+                    <div className="flex items-center">
+                        <p className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</p>
+                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
+                            <a className="up-button ml-auto mb-4 md:mb-0 small">
+                                <div className="flex items-center">
+                                    <FiEdit/>
+                                    <span className="ml-4">New post</span>
+                                </div>
+                            </a>
+                        </Link>
+                    </div>
+                    {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? (
+                        <>
+                            {posts.posts.map(post => (
+                                <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
+                                    <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
+                                        <p className="">{post.title}</p>
+                                        <div className="flex items-center mt-2">
+                                            {!!collaborators.length && (
+                                                <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
+                                            )}
+                                            <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                                        </div>
+                                    </a>
+                                </Link>
+                            ))}
+                        </>
+                    ) : (
+                        <p className="my-4">No posts in this project</p>
+                    ) : (
+                        <Skeleton count={4}/>
+                    )}
                 </div>
             </div>
-
         </div>
     )
 }
@@ -327,7 +428,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             return {notFound: true};
         }
 
-        return { props: { projectData: cleanForJSON(thisProject), key: context.params.projectId }};
+        const thisUser = await UserModel.findOne({ _id: thisProject.userId });
+
+
+        return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: context.params.projectId }};
     } catch (e) {
         console.log(e);
         return { notFound: true };
