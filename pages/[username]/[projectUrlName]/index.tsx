@@ -13,6 +13,7 @@ import Skeleton from "react-loading-skeleton";
 import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
+import InlineCTA from "../../../components/inline-cta";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
@@ -70,6 +71,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 ) : (
                     <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                 )}
+                {!session && <InlineCTA/>}
             </div>
         </>
     );

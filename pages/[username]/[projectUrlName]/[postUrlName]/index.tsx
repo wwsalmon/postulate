@@ -23,6 +23,8 @@ import UpSEO from "../../../../components/up-seo";
 import useSWR, {responseInterface} from "swr";
 import Skeleton from "react-loading-skeleton";
 import PublicPostItem from "../../../../components/public-post-item";
+import UpBanner from "../../../../components/UpBanner";
+import InlineCTA from "../../../../components/inline-cta";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -118,6 +120,12 @@ export default function PublicPost(props: {
             <div className="content prose">
                 {Parser(markdownConverter.makeHtml(body))}
             </div>
+            {!session && (
+                <>
+                    <hr className="my-8"/>
+                    <InlineCTA/>
+                </>
+            )}
             <hr className="my-8"/>
             <p className="up-ui-title mb-10">
                 Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>

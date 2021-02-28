@@ -8,7 +8,7 @@ export default function Navbar() {
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="max-w-7xl mx-auto h-16 flex items-center px-4">
-                <Link href="/projects"><a><img src="/logo.svg" className="h-10"/></a></Link>
+                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10"/></a></Link>
                 <div className="ml-auto flex items-center h-full">
                     {session ? (
                         <>
@@ -18,7 +18,12 @@ export default function Navbar() {
                     ) : loading ? (
                         <p>Loading...</p>
                     ) : (
-                        <SignInButton/>
+                        <>
+                            <Link href="/#waitlist">
+                                <a className="up-button primary small">Sign up for waitlist</a>
+                            </Link>
+                            {/*<SignInButton/>*/}
+                        </>
                     )}
                 </div>
             </div>
