@@ -34,11 +34,11 @@ export default function NewPostEditor(props: {
             <h3 className="up-ui-title mb-4">Project</h3>
             <Select
                 options={[
-                    ...(props.projects && props.projects.projects.length > 0) ? props.projects.projects.map(project => ({
+                    ...(props.projects && props.projects.projects && props.projects.projects.length > 0) ? props.projects.projects.map(project => ({
                         value: project._id,
                         label: props.getProjectLabel(project._id),
                     })) : [],
-                    ...(props.sharedProjects && props.sharedProjects.projects.length > 0) ? props.sharedProjects.projects.map(project => ({
+                    ...(props.sharedProjects && props.sharedProjects.projects && props.sharedProjects.projects.length > 0) ? props.sharedProjects.projects.map(project => ({
                         value: project._id,
                         label: props.getProjectLabel(project._id),
                     })) : [],
