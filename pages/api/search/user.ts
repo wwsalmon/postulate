@@ -1,6 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import mongoose from "mongoose";
 import {UserModel} from "../../../models/user";
+import dbConnect from "../../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "GET") return res.status(405);
@@ -8,13 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!req.query.email) return res.status(406).json({message: "No email query found in request"});
 
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const matchUsers = await UserModel.find({"email": {$regex: `.*${req.query.email}.*`, $options: "i"}});
 

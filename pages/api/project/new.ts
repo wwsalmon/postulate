@@ -1,8 +1,8 @@
 import type {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import * as mongoose from "mongoose";
 import {ProjectObj} from "../../../utils/types";
 import {ProjectModel} from "../../../models/project";
+import dbConnect from "../../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405);
@@ -25,13 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const sameUrlProject = await ProjectModel.findOne({ userId: session.userId, urlName: req.body.urlName });
 

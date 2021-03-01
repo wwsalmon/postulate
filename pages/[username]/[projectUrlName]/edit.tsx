@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {GetServerSideProps} from "next";
-import mongoose from "mongoose";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
 import {cleanForJSON} from "../../../utils/utils";
@@ -10,6 +9,7 @@ import {useRouter} from "next/router";
 import axios from "axios";
 import SpinnerButton from "../../../components/spinner-button";
 import Link from "next/link";
+import dbConnect from "../../../utils/dbConnect";
 
 export default function EditProject({projectData, thisUser}: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -120,13 +120,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // fetch project info from MongoDB
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const thisUser = await UserModel.findOne({ username: username });
         if (!thisUser) return { notFound: true };

@@ -1,8 +1,8 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import mongoose from "mongoose";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
 import {getSession} from "next-auth/client";
+import dbConnect from "../../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -11,13 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const session = await getSession({req});
 
         try {
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
-            }
+            await dbConnect();
 
             const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
 
@@ -54,13 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No projectId found in request"});
 
             try {
-                if (mongoose.connection.readyState !== 1) {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
-                }
+                await dbConnect();
 
                 const queryProjectId: any = req.query.projectId;
 

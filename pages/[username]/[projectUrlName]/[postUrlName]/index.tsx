@@ -1,5 +1,4 @@
 import {GetServerSideProps} from "next";
-import mongoose from "mongoose";
 import {UserModel} from "../../../../models/user";
 import {ProjectModel} from "../../../../models/project";
 import {cleanForJSON, fetcher} from "../../../../utils/utils";
@@ -23,8 +22,8 @@ import UpSEO from "../../../../components/up-seo";
 import useSWR, {responseInterface} from "swr";
 import Skeleton from "react-loading-skeleton";
 import PublicPostItem from "../../../../components/public-post-item";
-import UpBanner from "../../../../components/UpBanner";
 import InlineCTA from "../../../../components/inline-cta";
+import dbConnect from "../../../../utils/dbConnect";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -167,13 +166,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // fetch project info from MongoDB
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const thisOwner = await UserModel.findOne({ username: username });
 

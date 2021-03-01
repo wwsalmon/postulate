@@ -1,6 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import mongoose from "mongoose";
 import {ProjectModel} from "../../models/project";
 import {PostObj} from "../../utils/types";
 import {PostModel} from "../../models/post";
@@ -10,6 +9,7 @@ import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
 import {SnippetModel} from "../../models/snippet";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -28,13 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
 
                 try {
-                    if (mongoose.connection.readyState !== 1) {
-                        await mongoose.connect(process.env.MONGODB_URL, {
-                            useNewUrlParser: true,
-                            useUnifiedTopology: true,
-                            useFindAndModify: false,
-                        });
-                    }
+                    await dbConnect();
 
                     const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
                     if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
@@ -147,13 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.postId) return res.status(406).json({message: "No post ID found in request."});
 
                 try {
-                    if (mongoose.connection.readyState !== 1) {
-                        await mongoose.connect(process.env.MONGODB_URL, {
-                            useNewUrlParser: true,
-                            useUnifiedTopology: true,
-                            useFindAndModify: false,
-                        });
-                    }
+                    await dbConnect();
 
                     await PostModel.deleteOne({ _id: req.body.postId });
 
@@ -180,13 +168,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No project ID found in request."});
 
             try {
-                if (mongoose.connection.readyState !== 1) {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
-                }
+                await dbConnect();
 
                 const queryProjectId: any = req.query.projectId;
 

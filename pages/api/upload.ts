@@ -3,10 +3,10 @@ import {getSession} from "next-auth/client";
 import multiparty from "multiparty";
 import short from "short-uuid";
 import {PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
-import mongoose from "mongoose";
 import {ImageModel} from "../../models/image";
 import {ImageObj} from "../../utils/types";
 import * as fs from "fs";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
     // check auth
@@ -45,13 +45,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
             fs.unlink(thisFile.path, () => null);
 
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
-            }
+            await dbConnect();
 
             const imageObj: ImageObj = {
                 key: fileKey,

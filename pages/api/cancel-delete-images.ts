@@ -1,10 +1,10 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import mongoose from "mongoose";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
 import {PostModel} from "../../models/post";
 import {SnippetModel} from "../../models/snippet";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405);
@@ -14,13 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!session || !session.userId) return res.status(403);
 
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         // if body contains `type`, cancelling edit
         if (req.body.type === "post" || req.body.type === "snippet") {

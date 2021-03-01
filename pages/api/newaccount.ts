@@ -1,8 +1,8 @@
 import type {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import * as mongoose from "mongoose";
 import {UserModel} from "../../models/user";
 import {UserObj} from "../../utils/types";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405);
@@ -17,13 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         // check if account already exists with this email
         const emailUser = await UserModel.findOne({ "email": session.user.email });

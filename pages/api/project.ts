@@ -1,9 +1,9 @@
 import type {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import mongoose from "mongoose";
 import {ProjectModel} from "../../models/project";
 import {SnippetModel} from "../../models/snippet";
 import {UserModel} from "../../models/user";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
@@ -15,13 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case "GET":
             try {
-                if (mongoose.connection.readyState !== 1) {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
-                }
+                await dbConnect();
 
                 if (req.query.shared) {
                     const projects = await ProjectModel.find({ collaborators: session.userId });
@@ -43,13 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
 
             try {
-                if (mongoose.connection.readyState !== 1) {
-                    await mongoose.connect(process.env.MONGODB_URL, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true,
-                        useFindAndModify: false,
-                    });
-                }
+                await dbConnect();
 
                 const thisProject = await ProjectModel.findOne({ _id: req.body.id });
 
