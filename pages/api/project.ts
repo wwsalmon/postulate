@@ -18,13 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await dbConnect();
 
                 if (req.query.shared) {
-                    const projects = await ProjectModel.find({ collaborators: session.userId });
+                    const projects = await ProjectModel.find({ collaborators: session.userId }).sort({ "updatedAt": -1 });
                     const projectOwners = projects.map(d => d.userId.toString());
                     const uniqueProjectOwners = projectOwners.filter((d, i, a) => a.findIndex(x => x === d) === i);
                     const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
                     res.status(200).json({projects: projects, owners: owners});
                 } else {
-                    const projects = await ProjectModel.find({ userId: session.userId });
+                    const projects = await ProjectModel.find({ userId: session.userId }).sort({ "updatedAt": -1 });
                     res.status(200).json({projects: projects});
                 }
 
