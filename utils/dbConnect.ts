@@ -9,7 +9,7 @@ async function dbConnect() {
         return;
     }
 
-    return mongoose.connect(process.env.MONGODB_URI, {
+    return mongoose.connect(process.env.MONGODB_URL, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         useFindAndModify: false,
