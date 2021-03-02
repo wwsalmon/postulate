@@ -175,7 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const thisProject = await ProjectModel.findOne({ _id: queryProjectId });
                 if (!thisProject) return res.status(500).json({message: "No project exists for given project ID"});
 
-                const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId });
+                const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId }).sort({ updatedAt: -1 });
 
                 const authorIds = thisProjectPosts.map(d => d.userId);
                 const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
