@@ -10,7 +10,7 @@ import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
 import Link from "next/link";
-import {useSession} from "next-auth/client";
+import {getSession, useSession} from "next-auth/client";
 import MoreMenu from "../../../../components/more-menu";
 import MoreMenuItem from "../../../../components/more-menu-item";
 import {FiEdit2, FiTrash} from "react-icons/fi";
@@ -81,6 +81,11 @@ export default function PublicPost(props: {
             {(props.postData.privacy === "unlisted") && (
                 <UpBanner className="mb-8">
                     <p>This is an <b>unlisted</b> post. It does not show up in any public profiles or web searches. It is only accessible by direct link, so be mindful about sharing it.</p>
+                </UpBanner>
+            )}
+            {(props.postData.privacy === "private") && (
+                <UpBanner className="mb-8">
+                    <p>This is a <b>private</b> post. It can only be accessed by the project owner and collaborators.</p>
                 </UpBanner>
             )}
             <div className="flex">
@@ -187,6 +192,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisPost = await PostModel.findOne({ projectId: thisProject._id, urlName: encodeURIComponent(postUrlName) });
 
         if (!thisPost) return { notFound: true };
+
+        if (thisPost.privacy === "private") {
+            const session = await getSession(context);
+
+            if (!session) return { notFound: true };
+
+            const isOwner = session.userId === thisPost.userId.toString();
+            const isCollaborator = thisProject.collaborators.map(d => d.toString()).includes(session.userId);
+
+            if (!isOwner && !isCollaborator) return { notFound: true };
+        }
 
         let thisAuthor = thisOwner;
 
