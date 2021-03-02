@@ -26,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.tempId) return res.status(406).json({message: "No post urlName found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
+                if (req.body.privacy !== "public" && req.body.privacy !== "private" && req.body.privacy !== "unlisted") return res.status(406).json({message: "Missing or invalid privacy setting"});
 
                 try {
                     await dbConnect();
@@ -41,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         thisPost.title = req.body.title;
                         thisPost.body = req.body.body;
                         thisPost.projectId = req.body.projectId;
+                        thisPost.privacy = req.body.privacy;
 
                         await thisPost.save();
 
@@ -95,6 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             userId: session.userId,
                             title: req.body.title,
                             body: req.body.body,
+                            privacy: "public",
                         }
 
                         const newPostObj = await PostModel.create(newPost);

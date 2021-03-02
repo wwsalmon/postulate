@@ -50,6 +50,7 @@ export interface PostObj {
     body: string,
     tags?: string[],
     likes?: string[], // array of IDs
+    privacy: "public" | "private" | "unlisted",
 }
 
 export interface ImageObj {

@@ -49,6 +49,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
             postId: props.postId || "",
             title: title,
             body: body,
+            privacy: "public",
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
         }).then(res => {
