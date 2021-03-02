@@ -24,6 +24,7 @@ import Skeleton from "react-loading-skeleton";
 import PublicPostItem from "../../../../components/public-post-item";
 import InlineCTA from "../../../../components/inline-cta";
 import dbConnect from "../../../../utils/dbConnect";
+import UpBanner from "../../../../components/UpBanner";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -49,6 +50,9 @@ export default function PublicPost(props: {
 
     const isOwner = session && props.thisAuthor._id === session.userId;
 
+    const latestPostsReady = latestPosts && latestPosts.posts && latestPosts.authors;
+    const filteredPosts = latestPostsReady ? latestPosts.posts.filter(post => post.privacy === "public" && post._id !== props.postData._id) : [];
+
     function onDelete() {
         setIsDeleteLoading(true);
 
@@ -72,7 +76,13 @@ export default function PublicPost(props: {
                 description={body.substr(0, 200)}
                 projectName={props.projectData.name}
                 imgUrl={props.postData.body.match(/!\[.*?\]\((.*?)\)/) ? props.postData.body.match(/!\[.*?\]\((.*?)\)/)[1] : null}
+                noindex={props.postData.privacy !== "public"}
             />
+            {(props.postData.privacy === "unlisted") && (
+                <UpBanner className="mb-8">
+                    <p>This is an <b>unlisted</b> post. It does not show up in any public profiles or web searches. It is only accessible by direct link, so be mindful about sharing it.</p>
+                </UpBanner>
+            )}
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
                 <div className="ml-auto">
@@ -131,15 +141,13 @@ export default function PublicPost(props: {
                     <a className="underline">{projectName}</a>
                 </Link>
             </p>
-            {latestPosts ? latestPosts.posts.filter(d => d._id !== props.postData._id).length ? (
-                latestPosts.posts.filter(d => d._id !== props.postData._id).slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
-                    <PublicPostItem
-                        post={post}
-                        author={latestPosts.authors.find(d => d._id === post.userId)}
-                        urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
-                    />
-                ))
-            ) : (
+            {latestPostsReady ? filteredPosts.length ? filteredPosts.map(post => (
+                <PublicPostItem
+                    post={post}
+                    author={latestPosts.authors.find(d => d._id === post.userId)}
+                    urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
+                />
+            )) : (
                 <p className="my-4">No other posts in this project</p>
             ) : (
                 <Skeleton className="h-24"/>

@@ -369,7 +369,12 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             {posts.posts.map(post => (
                                 <Link href={`/@${props.thisUser.username}/${urlName}/${post.urlName}`}>
                                     <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
-                                        <p className="">{post.title}</p>
+                                        <p className="">
+                                            {post.privacy !== "public" && (
+                                                <span className="p-1 bg-gray-100 border rounded-md inline-block text-xs mb-2 mr-2">{post.privacy.charAt(0).toUpperCase() + post.privacy.substr(1)}</span>
+                                            )}
+                                            <span>{post.title}</span>
+                                        </p>
                                         <div className="flex items-center mt-2">
                                             {collaborators && !!collaborators.length && (
                                                 <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
