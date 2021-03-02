@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             userId: session.userId,
                             title: req.body.title,
                             body: req.body.body,
-                            privacy: "public",
+                            privacy: req.body.privacy,
                         }
 
                         const newPostObj = await PostModel.create(newPost);

@@ -20,7 +20,7 @@ import SnippetBrowser from "../../components/snippet-browser";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
 
-export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
+export default function NewPost(props: {title: string, body: string, privacy: "public" | "unlisted" | "private", postId: string, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
     const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
 
@@ -41,7 +41,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string) {
+    function onSaveEdit(projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private") {
         setIsEditLoading(true);
 
         axios.post("/api/post", {
@@ -49,7 +49,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
             postId: props.postId || "",
             title: title,
             body: body,
-            privacy: "public",
+            privacy: privacy,
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
         }).then(res => {
@@ -84,6 +84,7 @@ export default function NewPost(props: {title: string, body: string, postId: str
                         isEditLoading={isEditLoading}
                         title={props.title}
                         body={props.body}
+                        privacy={props.privacy}
                     />
                 </div>
                 <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
@@ -143,7 +144,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const postId: any = context.params.postId;
 
-    if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null, linkedPosts: null}};
+    if (postId === "new") return {props: {title: "", body: "", privacy: null, postId: null, projectId: null, urlName: null, linkedPosts: null}};
 
     try {
         await dbConnect();
@@ -154,7 +155,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const selectedSnippets = await SnippetModel.find({ linkedPosts: postId });
 
-        return {props: {title: thisPost.title, body: thisPost.body, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
+        return {props: {title: thisPost.title, body: thisPost.body, privacy: thisPost.privacy, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
     } catch (e) {
         return {notFound: true};
     }
