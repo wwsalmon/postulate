@@ -1,9 +1,9 @@
 import NextAuth, {InitOptions} from "next-auth";
 import Providers from "next-auth/providers";
 import {NextApiRequest, NextApiResponse} from "next";
-import mongoose from "mongoose";
 import {UserModel} from "../../../models/user";
 import {SessionObj} from "../../../utils/types";
+import dbConnect from "../../../utils/dbConnect";
 
 const options: InitOptions = {
     providers: [
@@ -14,13 +14,7 @@ const options: InitOptions = {
     ],
     callbacks: {
         session: async (session, user) => {
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
-            }
+            await dbConnect();
 
             const foundUser = await UserModel.findOne({ email: user.email }).exec();
 

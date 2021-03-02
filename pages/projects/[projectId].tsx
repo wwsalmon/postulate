@@ -1,5 +1,4 @@
 import {GetServerSideProps} from "next";
-import mongoose from "mongoose";
 import {ProjectModel} from "../../models/project";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
@@ -12,7 +11,7 @@ import UpSEO from "../../components/up-seo";
 import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiChevronDown, FiChevronUp, FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import UpModal from "../../components/up-modal";
 import SpinnerButton from "../../components/spinner-button";
 import Skeleton from "react-loading-skeleton";
@@ -23,7 +22,7 @@ import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
-import Accordion from "react-robust-accordion";
+import dbConnect from "../../utils/dbConnect";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -372,7 +371,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
                                         <p className="">{post.title}</p>
                                         <div className="flex items-center mt-2">
-                                            {!!collaborators.length && (
+                                            {collaborators && !!collaborators.length && (
                                                 <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
                                             )}
                                             <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
@@ -408,13 +407,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // fetch project info from MongoDB
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         // any typing to avoid ts error
         const projectId: any = context.params.projectId;

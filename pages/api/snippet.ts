@@ -1,13 +1,13 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import mongoose, {Document} from "mongoose";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
-import {DatedObj, ProjectObj, SnippetObj} from "../../utils/types";
+import {SnippetObj} from "../../utils/types";
 import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
 import {PostModel} from "../../models/post";
+import dbConnect from "../../utils/dbConnect";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -18,13 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         try {
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
-            }
+            await dbConnect();
 
             let thisProject: any = null;
             let thisSnippet: any = null; // any typing for mongoose condition type thing
@@ -124,13 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
-            if (mongoose.connection.readyState !== 1) {
-                await mongoose.connect(process.env.MONGODB_URL, {
-                    useNewUrlParser: true,
-                    useUnifiedTopology: true,
-                    useFindAndModify: false,
-                });
-            }
+            await dbConnect();
 
             let conditions: any = { projectId: req.query.projectId };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};

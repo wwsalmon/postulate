@@ -9,9 +9,7 @@ import SnippetItemReduced from "../../components/snippet-item-reduced";
 import "easymde/dist/easymde.min.css";
 import axios from "axios";
 import {GetServerSideProps} from "next";
-import mongoose from "mongoose";
 import {PostModel} from "../../models/post";
-import Select from "react-select";
 import UpSEO from "../../components/up-seo";
 import {getSession} from "next-auth/client";
 import UpBackLink from "../../components/up-back-link";
@@ -20,6 +18,7 @@ import NewPostEditor from "../../components/new-post-editor";
 import UpModal from "../../components/up-modal";
 import SnippetBrowser from "../../components/snippet-browser";
 import {SnippetModel} from "../../models/snippet";
+import dbConnect from "../../utils/dbConnect";
 
 export default function NewPost(props: {title: string, body: string, postId: string, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
@@ -146,13 +145,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (postId === "new") return {props: {title: "", body: "", postId: null, projectId: null, urlName: null, linkedPosts: null}};
 
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const thisPost = await PostModel.findOne({ _id: postId });
 

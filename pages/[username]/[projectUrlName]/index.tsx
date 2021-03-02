@@ -1,5 +1,4 @@
 import {GetServerSideProps} from "next";
-import mongoose from "mongoose";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
@@ -14,6 +13,7 @@ import UpSEO from "../../../components/up-seo";
 import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
+import dbConnect from "../../../utils/dbConnect";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
@@ -93,13 +93,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     // fetch project info from MongoDB
     try {
-        if (mongoose.connection.readyState !== 1) {
-            await mongoose.connect(process.env.MONGODB_URL, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                useFindAndModify: false,
-            });
-        }
+        await dbConnect();
 
         const thisUser = await UserModel.findOne({ username: username });
 
