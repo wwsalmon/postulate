@@ -168,26 +168,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     switch (req.method) {
         case "GET":
-            if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "No project ID found in request."});
+            if (
+                (!req.query.projectId || Array.isArray(req.query.projectId)) &&
+                (!req.query.userId || Array.isArray(req.query.userId))
+            ){
+                return res.status(406).json({message: "No project ID or user ID found in request."});
+            }
 
             try {
                 await dbConnect();
 
-                const queryProjectId: any = req.query.projectId;
+                // if projectId, fetch posts for project, otherwise fetch posts for user
+                if (req.query.projectId) {
+                    const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId }).sort({ createdAt: -1 });
 
-                const thisProject = await ProjectModel.findOne({ _id: queryProjectId });
-                if (!thisProject) return res.status(500).json({message: "No project exists for given project ID"});
+                    const authorIds = thisProjectPosts.map(d => d.userId);
+                    const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+                    const thisProjectPostAuthors = await UserModel.find({ _id: {$in: uniqueAuthorIds}});
 
-                const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId }).sort({ updatedAt: -1 });
+                    res.status(200).json({
+                        posts: thisProjectPosts,
+                        authors: thisProjectPostAuthors,
+                    });
+                } else {
+                    const thisUserPosts = await PostModel.find({ userId: req.query.userId }).sort({ createdAt: -1 });
 
-                const authorIds = thisProjectPosts.map(d => d.userId);
-                const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                const thisProjectPostAuthors = await UserModel.find({ _id: {$in: uniqueAuthorIds}});
+                    const projectIds = thisUserPosts.map(d => d.projectId);
+                    const uniqueProjectIds = projectIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+                    const thisUserPostProjects = await ProjectModel.find({ _id: {$in: uniqueProjectIds }});
 
-                res.status(200).json({
-                    posts: thisProjectPosts,
-                    authors: thisProjectPostAuthors,
-                });
+                    res.status(200).json({
+                        posts: thisUserPosts,
+                        projects: thisUserPostProjects,
+                    });
+                }
 
                 return;
             } catch (e) {
