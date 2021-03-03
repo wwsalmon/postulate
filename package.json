@@ -31,6 +31,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-icons": "^4.1.0",
+    "react-linkify": "^1.0.0-alpha",
     "react-loading-skeleton": "^2.1.1",
     "react-modal": "^3.12.1",
     "react-robust-accordion": "^0.5.2",

@@ -11,6 +11,11 @@ import PublicPostItem from "../../components/public-post-item";
 import Skeleton from "react-loading-skeleton";
 import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
+import MoreMenu from "../../components/more-menu";
+import MoreMenuItem from "../../components/more-menu-item";
+import {FiEdit2} from "react-icons/fi";
+import Link from "next/link";
+import Linkify from "react-linkify";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
     const [session, loading] = useSession();
@@ -24,13 +29,28 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={thisUser.name + "'s profile"}/>
             <div className="lg:flex">
-                <div className="lg:w-1/3 lg:pr-8 lg:border-r">
-                    <img src={thisUser.image} alt={`Profile picture of ${thisUser.name}`} className="w-20 h-20 rounded-full"/>
+                <div className="lg:w-1/3 lg:pr-12 lg:border-r">
+                    <div className="flex">
+                        <img src={thisUser.image} alt={`Profile picture of ${thisUser.name}`} className="w-20 h-20 rounded-full"/>
+                        {session && session.userId === thisUser._id && (
+                            <div className="ml-auto">
+                                <MoreMenu>
+                                    <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${thisUser.username}/edit`}/>
+                                </MoreMenu>
+                            </div>
+                        )}
+                    </div>
                     <h1 className="up-h1 mt-6">{thisUser.name}</h1>
-                    <p className="opacity-50 mt-4">Bio of {thisUser.name}</p>
+                    {thisUser.bio ? (
+                        <p className="mt-4 prose">
+                            <Linkify>{thisUser.bio}</Linkify>
+                        </p>
+                    ) : (
+                        <p className="mt-4 opacity-50"><Link href={`/@${thisUser.username}/edit`}><a className="underline">Edit your profile</a></Link> to add a bio.</p>
+                    )}
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
                 </div>
-                <div className="lg:w-2/3 lg:pl-8">
+                <div className="lg:w-2/3 lg:pl-12">
                     <hr className="my-10 lg:hidden"/>
                     <h3 className="up-ui-title mb-8">Featured projects</h3>
                     {(projects && projects.projects && projects.owners) ? projects.projects.length === 0 ? (
