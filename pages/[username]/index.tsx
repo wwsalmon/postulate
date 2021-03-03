@@ -24,6 +24,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
 
     const postsReady = posts && posts.posts && posts.projects && posts.owners;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
+    const isOwner = session && session.userId === thisUser._id;
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
@@ -45,16 +46,16 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <p className="mt-4 prose">
                             <Linkify>{thisUser.bio}</Linkify>
                         </p>
-                    ) : (
+                    ) : (isOwner && (
                         <p className="mt-4 opacity-50"><Link href={`/@${thisUser.username}/edit`}><a className="underline">Edit your profile</a></Link> to add a bio.</p>
-                    )}
+                    ))}
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
                 </div>
                 <div className="lg:w-2/3 lg:pl-12">
                     <hr className="my-10 lg:hidden"/>
                     <h3 className="up-ui-title mb-8">Featured projects</h3>
                     {(projects && projects.projects && projects.owners) ? projects.projects.length === 0 ? (
-                        <p className="opacity-50">No featured projects. Go to a project and press "Display project on profile" to feature a project.</p>
+                        <p className="opacity-50">No featured projects. {isOwner ? "Go to a project and press \"Display project on profile\" to feature a project." : ""}</p>
                     ) : (
                         <div className="-mx-2 flex-wrap md:flex">
                             {projects.projects.map(project => (
