@@ -9,6 +9,7 @@ const PostSchema = new mongoose.Schema({
     body: {type: String, required: true},
     tags: [{type: String, required: true}],
     likes: [mongoose.Schema.Types.ObjectId],
+    privacy: {type: String, required: true}, // "public", "private", "unlisted"
 }, {
     timestamps: true,
 });

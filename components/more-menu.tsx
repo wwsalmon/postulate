@@ -1,7 +1,7 @@
 import React, {ReactNode, useEffect, useRef, useState} from "react";
 import {FiMoreVertical} from "react-icons/fi";
 
-export default function MoreMenu({children}: {children: ReactNode}) {
+export default function MoreMenu({children, className = ""}: {children: ReactNode, className?: string}) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -16,7 +16,7 @@ export default function MoreMenu({children}: {children: ReactNode}) {
     }, []);
 
     return (
-        <div className="relative" ref={ref}>
+        <div className={`relative ${className}`} ref={ref}>
             <button className="p-2" onClick={() => setIsOpen(!isOpen)}><FiMoreVertical/></button>
             {isOpen && (
                 <div className="absolute top-10 right-0 bg-white rounded-md shadow-lg z-20">

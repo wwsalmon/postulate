@@ -10,7 +10,7 @@ import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
 import Link from "next/link";
-import {useSession} from "next-auth/client";
+import {getSession, useSession} from "next-auth/client";
 import MoreMenu from "../../../../components/more-menu";
 import MoreMenuItem from "../../../../components/more-menu-item";
 import {FiEdit2, FiTrash} from "react-icons/fi";
@@ -24,6 +24,7 @@ import Skeleton from "react-loading-skeleton";
 import PublicPostItem from "../../../../components/public-post-item";
 import InlineCTA from "../../../../components/inline-cta";
 import dbConnect from "../../../../utils/dbConnect";
+import UpBanner from "../../../../components/UpBanner";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -49,6 +50,9 @@ export default function PublicPost(props: {
 
     const isOwner = session && props.thisAuthor._id === session.userId;
 
+    const latestPostsReady = latestPosts && latestPosts.posts && latestPosts.authors;
+    const filteredPosts = latestPostsReady ? latestPosts.posts.filter(post => post.privacy === "public" && post._id !== props.postData._id) : [];
+
     function onDelete() {
         setIsDeleteLoading(true);
 
@@ -72,7 +76,18 @@ export default function PublicPost(props: {
                 description={body.substr(0, 200)}
                 projectName={props.projectData.name}
                 imgUrl={props.postData.body.match(/!\[.*?\]\((.*?)\)/) ? props.postData.body.match(/!\[.*?\]\((.*?)\)/)[1] : null}
+                noindex={props.postData.privacy !== "public"}
             />
+            {(props.postData.privacy === "unlisted") && (
+                <UpBanner className="mb-8">
+                    <p>This is an <b>unlisted</b> post. It does not show up in any public profiles or web searches. It is only accessible by direct link, so be mindful about sharing it.</p>
+                </UpBanner>
+            )}
+            {(props.postData.privacy === "private") && (
+                <UpBanner className="mb-8">
+                    <p>This is a <b>private</b> post. It can only be accessed by the project owner and collaborators.</p>
+                </UpBanner>
+            )}
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
                 <div className="ml-auto">
@@ -131,15 +146,13 @@ export default function PublicPost(props: {
                     <a className="underline">{projectName}</a>
                 </Link>
             </p>
-            {latestPosts ? latestPosts.posts.filter(d => d._id !== props.postData._id).length ? (
-                latestPosts.posts.filter(d => d._id !== props.postData._id).slice(0).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
-                    <PublicPostItem
-                        post={post}
-                        author={latestPosts.authors.find(d => d._id === post.userId)}
-                        urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
-                    />
-                ))
-            ) : (
+            {latestPostsReady ? filteredPosts.length ? filteredPosts.map(post => (
+                <PublicPostItem
+                    post={post}
+                    author={latestPosts.authors.find(d => d._id === post.userId)}
+                    urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
+                />
+            )) : (
                 <p className="my-4">No other posts in this project</p>
             ) : (
                 <Skeleton className="h-24"/>
@@ -179,6 +192,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisPost = await PostModel.findOne({ projectId: thisProject._id, urlName: encodeURIComponent(postUrlName) });
 
         if (!thisPost) return { notFound: true };
+
+        if (thisPost.privacy === "private") {
+            const session = await getSession(context);
+
+            if (!session) return { notFound: true };
+
+            const isOwner = session.userId === thisPost.userId.toString();
+            const isCollaborator = thisProject.collaborators.map(d => d.toString()).includes(session.userId);
+
+            if (!isOwner && !isCollaborator) return { notFound: true };
+        }
 
         let thisAuthor = thisOwner;
 

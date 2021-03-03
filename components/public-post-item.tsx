@@ -1,12 +1,13 @@
 import React from 'react';
-import {DatedObj, PostObj, UserObj} from "../utils/types";
+import {DatedObj, PostObj, ProjectObj, UserObj} from "../utils/types";
 import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PublicPostItem({post, author, urlPrefix}: {
+export default function PublicPostItem({post, author, project = null, urlPrefix}: {
     post: DatedObj<PostObj>,
     author: DatedObj<UserObj>,
+    project?: DatedObj<ProjectObj>,
     urlPrefix: string,
 }) {
     return (
@@ -20,16 +21,24 @@ export default function PublicPostItem({post, author, urlPrefix}: {
                     </p>
                 </a>
             </Link>
-            <Link href={`/@${author.username}`}>
-                <a>
-                    <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
-                        <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-8 h-8 rounded-full mr-4"/>
-                        <div>
-                            <p className="font-bold">{author.name}</p>
+            {project ? (
+                <Link href={`${urlPrefix}`}>
+                    <a className="block mt-4 opacity-50 hover:opacity-75 transition underline">
+                        {project.name}
+                    </a>
+                </Link>
+            ) : (
+                <Link href={`/@${author.username}`}>
+                    <a>
+                        <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
+                            <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-8 h-8 rounded-full mr-4"/>
+                            <div>
+                                <p className="font-bold">{author.name}</p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            </Link>
+                    </a>
+                </Link>
+            )}
             <hr className="my-10"/>
         </div>
     );

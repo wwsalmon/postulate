@@ -6,7 +6,8 @@ export default function UpSEO({
     description = "Postulate is an all-in-one tool for you to collect and publish your knowledge.",
     projectName = "",
     imgUrl = null,
-}: { title?: string, description?: string, projectName?: string, imgUrl?: string }) {
+    noindex = false,
+}: { title?: string, description?: string, projectName?: string, imgUrl?: string, noindex?: boolean }) {
     const router = useRouter();
     const fullTitle = title + (projectName ? ` | ${projectName} on Postulate` : " | Postulate");
 
@@ -22,6 +23,7 @@ export default function UpSEO({
                     { url: imgUrl }
                 ] : [],
             }}
+            noindex={noindex}
         />
     );
 }

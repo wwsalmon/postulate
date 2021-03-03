@@ -17,6 +17,8 @@ export interface UserObj {
     username: string,
     image: string,
     bio: string,
+    featuredProjects: string[], // array of IDs
+    featuredPosts: string[], // array of IDs
 }
 
 export interface ProjectObj {
@@ -50,6 +52,7 @@ export interface PostObj {
     body: string,
     tags?: string[],
     likes?: string[], // array of IDs
+    privacy: "public" | "private" | "unlisted",
 }
 
 export interface ImageObj {
@@ -71,4 +74,5 @@ export type DatedObj<T extends {}> = T & {
 export interface SessionObj extends SessionBase {
     userId: string,
     username: string,
+    featuredProjects: string[],
 }

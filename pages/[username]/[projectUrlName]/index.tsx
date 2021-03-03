@@ -23,6 +23,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
 
+    const postsReady = posts && posts.posts && posts.authors;
+    const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
+
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
@@ -59,8 +62,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     </div>
                 </div>
                 <hr className="my-8"/>
-                <p className="up-ui-title mb-12 opacity-50">Public posts ({posts ? posts.posts.length : "Loading..."})</p>
-                {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? posts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
+                <p className="up-ui-title mb-12 opacity-50">Public posts ({posts ? filteredPosts.length : "Loading..."})</p>
+                {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                     <PublicPostItem
                         post={post}
                         author={posts.authors.find(d => d._id === post.userId)}

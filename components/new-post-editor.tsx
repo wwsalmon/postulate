@@ -7,11 +7,12 @@ import Select from "react-select";
 export default function NewPostEditor(props: {
     body?: string,
     title?: string,
+    privacy?: "public" | "unlisted" | "private",
     tempId: string,
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string) => void,
+    onSaveEdit: (projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private") => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -19,6 +20,22 @@ export default function NewPostEditor(props: {
     const [body, setBody] = useState<string>(props.body);
     const [title, setTitle] = useState<string>(props.title);
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
+    const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
+
+    const privacyOptions = [
+        {
+            label: "Public (appears on profile)",
+            value: "public",
+        },
+        {
+            label: "Unlisted (link accessible, but doesn't appear on profile)",
+            value: "unlisted",
+        },
+        {
+            label: "Private (not accessible by non-collaborators)",
+            value: "private",
+        },
+    ];
 
     return (
         <>
@@ -31,28 +48,43 @@ export default function NewPostEditor(props: {
                 placeholder="Add a title"
             />
             <hr className="my-8"/>
-            <h3 className="up-ui-title mb-4">Project</h3>
-            <Select
-                options={[
-                    ...((props.projects && props.projects.projects && props.projects.projects.length > 0) ? props.projects.projects.map(project => ({
-                        value: project._id,
-                        label: props.getProjectLabel(project._id),
-                    })) : []),
-                    ...((props.sharedProjects && props.sharedProjects.projects && props.sharedProjects.projects.length > 0) ? props.sharedProjects.projects.map(project => ({
-                        value: project._id,
-                        label: props.getProjectLabel(project._id),
-                    })) : []),
-                ]}
-                value={{
-                    value: projectId,
-                    label:props.getProjectLabel(projectId)
-                }}
-                onChange={option => setProjectId(option.value)}
-                className="mt-4 content"
-                styles={{
-                    menu: provided => ({...provided, zIndex: 6}),
-                }}
-            />
+            <div className="flex -mx-4 w-full">
+                <div className="mx-4 w-1/2">
+                    <h3 className="up-ui-title mb-4">Project</h3>
+                    <Select
+                        options={[
+                            ...((props.projects && props.projects.projects && props.projects.projects.length > 0) ? props.projects.projects.map(project => ({
+                                value: project._id,
+                                label: props.getProjectLabel(project._id),
+                            })) : []),
+                            ...((props.sharedProjects && props.sharedProjects.projects && props.sharedProjects.projects.length > 0) ? props.sharedProjects.projects.map(project => ({
+                                value: project._id,
+                                label: props.getProjectLabel(project._id),
+                            })) : []),
+                        ]}
+                        value={{
+                            value: projectId,
+                            label:props.getProjectLabel(projectId)
+                        }}
+                        onChange={option => setProjectId(option.value)}
+                        styles={{
+                            menu: provided => ({...provided, zIndex: 6}),
+                        }}
+                    />
+                </div>
+                <div className="mx-4 w-1/2">
+                    <h3 className="up-ui-title mb-4">Visibility</h3>
+                    <Select
+                        options={privacyOptions}
+                        value={privacyOptions.find(d => d.value === privacy)}
+                        onChange={option => setPrivacy(option.value)}
+                        styles={{
+                            menu: provided => ({...provided, zIndex: 6}),
+                        }}
+                    />
+                </div>
+            </div>
+
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-4">Body</h3>
             <div className="content prose w-full">
@@ -64,7 +96,7 @@ export default function NewPostEditor(props: {
                 />
             </div>
             <div className="flex mt-4">
-                <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body)} isDisabled={!body || !title}>
+                <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body, privacy)} isDisabled={!body || !title}>
                     {props.title ? "Save" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>

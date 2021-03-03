@@ -34,6 +34,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!thisProject) return res.status(404).json({message: "No project found for given ID"});
 
+        if (thisProject.userId !== session.userId) return res.status(403).json({message: "Not authorized"});
+
         thisProject.name = req.body.name;
         thisProject.description = req.body.description || "";
         thisProject.urlName = req.body.urlName;

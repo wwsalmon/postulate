@@ -17,7 +17,7 @@ export default function NewAccount() {
     function onSubmit() {
         setIsLoading(true);
 
-        axios.post("/api/newaccount", {
+        axios.post("/api/account", {
             username: username,
         }).then(res => {
             if (res.data.error) {
