@@ -22,7 +22,7 @@ export default function PublicPostItem({post, author, project = null, urlPrefix}
                 </a>
             </Link>
             {project ? (
-                <Link href={`/@${author.username}/${project.urlName}`}>
+                <Link href={`${urlPrefix}`}>
                     <a className="block mt-4 opacity-50 hover:opacity-75 transition underline">
                         {project.name}
                     </a>

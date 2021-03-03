@@ -22,11 +22,13 @@ const options: InitOptions = {
                 ...session,
                 userId: "",
                 username: "",
+                featuredProjects: [],
             }
 
             if (foundUser) {
                 newSession.userId = foundUser._id;
                 newSession.username = foundUser.username;
+                newSession.featuredProjects = foundUser.featuredProjects;
             }
 
             return newSession;

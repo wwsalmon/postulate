@@ -74,4 +74,5 @@ export type DatedObj<T extends {}> = T & {
 export interface SessionObj extends SessionBase {
     userId: string,
     username: string,
+    featuredProjects: string[],
 }

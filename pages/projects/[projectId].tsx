@@ -11,7 +11,7 @@ import UpSEO from "../../components/up-seo";
 import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiEye, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiExternalLink, FiEye, FiEyeOff, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
 import UpModal from "../../components/up-modal";
 import SpinnerButton from "../../components/spinner-button";
 import Skeleton from "react-loading-skeleton";
@@ -52,6 +52,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
+
+    const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
 
     function onSubmit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
         setIsLoading(true);
@@ -131,6 +133,12 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         setProjectData(newProjectData);
     }
 
+    function toggleProjectFeatured() {
+        axios.post("/api/project/feature", { id: projectId, addOrRemove: projectIsFeatured ? "remove" : "add" }).then(() => {
+            setProjectIsFeatured(!projectIsFeatured);
+        }).catch(e => console.log(e));
+    }
+
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
@@ -144,10 +152,19 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         </div>
                         <div className="ml-auto">
                             <MoreMenu>
-                                <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
-                                <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                                <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
-                                <MoreMenuItem text="View as public" icon={<FiEye/>} href={`/@${props.thisUser.username}/${urlName}`}/>
+                                <MoreMenuItem text="View as public" icon={<FiExternalLink/>} href={`/@${props.thisUser.username}/${urlName}`}/>
+                                {!isCollaborator && (
+                                    <>
+                                        <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
+                                        <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                        <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                    </>
+                                )}
+                                {projectIsFeatured ? (
+                                    <MoreMenuItem text="Don't display on profile" icon={<FiEyeOff/>} onClick={toggleProjectFeatured}/>
+                                ) : (
+                                    <MoreMenuItem text="Display on profile" icon={<FiEye/>} onClick={toggleProjectFeatured}/>
+                                )}
                             </MoreMenu>
                             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
                                 <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>

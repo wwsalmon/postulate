@@ -7,6 +7,7 @@ import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import UpSEO from "../components/up-seo";
+import ProjectItem from "../components/project-item";
 
 export default function Projects({}: {  }) {
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR("/api/project", fetcher);
@@ -38,14 +39,7 @@ export default function Projects({}: {  }) {
             ) : (
                 <div className="md:flex -mx-2 flex-wrap">
                     {projects.projects.map(project => (
-                        <div className="p-2 md:w-1/3">
-                            <Link href={`/projects/${project._id}`}>
-                                <a className="block p-4 shadow-md rounded-md md:h-full">
-                                    <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
-                                    <p className="opacity-50">{project.description}</p>
-                                </a>
-                            </Link>
-                        </div>
+                        <ProjectItem project={project} owners={[]} sessionUserId={session ? session.userId : null}/>
                     ))}
                 </div>
             )}
@@ -58,20 +52,7 @@ export default function Projects({}: {  }) {
             ) : (
                 <div className="md:flex -mx-4">
                     {sharedProjects.projects.map(project => (
-                        <Link href={`/projects/${project._id}`}>
-                            <a className="block p-4 shadow-md rounded-md md:w-1/3 mx-4 mb-8 md:mb-0">
-                                <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
-                                <div className="flex items-center my-4">
-                                    <img
-                                        src={sharedProjects.owners.find(d => d._id === project.userId).image}
-                                        alt={sharedProjects.owners.find(d => d._id === project.userId).name}
-                                        className="w-10 w-10 rounded-full mr-4"
-                                    />
-                                    <p>{sharedProjects.owners.find(d => d._id === project.userId).name}</p>
-                                </div>
-                                <p className="opacity-50">{project.description}</p>
-                            </a>
-                        </Link>
+                        <ProjectItem project={project} owners={sharedProjects.owners} sessionUserId={session ? session.userId : null}/>
                     ))}
                 </div>
             )}

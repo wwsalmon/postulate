@@ -5,17 +5,17 @@ import {cleanForJSON, fetcher} from "../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
 import React from "react";
-import BackToProjects from "../../components/back-to-projects";
 import {format} from "date-fns";
 import useSWR, {responseInterface} from "swr";
 import PublicPostItem from "../../components/public-post-item";
 import Skeleton from "react-loading-skeleton";
-import InlineCTA from "../../components/inline-cta";
+import ProjectItem from "../../components/project-item";
+import {useSession} from "next-auth/client";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
+    const [session, loading] = useSession();
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
-
-    console.log(posts);
+    const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
 
     const postsReady = posts && posts.posts && posts.projects;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
@@ -31,6 +31,21 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
                 </div>
                 <div className="lg:w-2/3 lg:pl-8">
+                    <hr className="my-10 lg:hidden"/>
+                    <h3 className="up-ui-title mb-8">Featured projects</h3>
+                    {(projects && projects.projects && projects.owners) ? projects.projects.length === 0 ? (
+                        <p className="opacity-50">No featured projects. Go to a project and press "Display project on profile" to feature a project.</p>
+                    ) : (
+                        <div className="-mx-2 flex-wrap md:flex">
+                            {projects.projects.map(project => (
+                                <ProjectItem project={project} owners={projects.owners} sessionUserId={thisUser._id}/>
+                            ))}
+                        </div>
+                    ) : (
+                        <Skeleton count={10}/>
+                    )}
+                    <hr className="my-10"/>
+                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? filteredPosts.length : "Loading..."})</h3>
                     {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                         <PublicPostItem
                             post={post}
