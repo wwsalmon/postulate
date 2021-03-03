@@ -33,6 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             name: session.user.name,
             image: session.user.image,
             bio: "",
+            featuredProjects: [],
+            featuredPosts: [],
         };
 
         await UserModel.create(newUser);
