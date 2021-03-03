@@ -196,10 +196,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const projectIds = thisUserPosts.map(d => d.projectId);
                     const uniqueProjectIds = projectIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
                     const thisUserPostProjects = await ProjectModel.find({ _id: {$in: uniqueProjectIds }});
+                    const ownerIds = thisUserPostProjects.map(d => d.userId);
+                    const uniqueOwnerIds = ownerIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
+                    const thisUserPostProjectOwners = await UserModel.find({ _id: {$in: uniqueOwnerIds}});
 
                     res.status(200).json({
                         posts: thisUserPosts,
                         projects: thisUserPostProjects,
+                        owners: thisUserPostProjectOwners,
                     });
                 }
 

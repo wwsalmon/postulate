@@ -14,10 +14,10 @@ import {useSession} from "next-auth/client";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
     const [session, loading] = useSession();
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
 
-    const postsReady = posts && posts.posts && posts.projects;
+    const postsReady = posts && posts.posts && posts.projects && posts.owners;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
     return (
@@ -51,7 +51,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                             post={post}
                             author={thisUser}
                             project={posts.projects.find(d => d._id === post.projectId)}
-                            urlPrefix={`/@${thisUser.username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
+                            urlPrefix={`/@${posts.owners.find(d => d._id === posts.projects.find(d => d._id === post.projectId).userId).username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
                         />
                     )) : (
                         <p>No public posts have been published in this project yet.</p>
