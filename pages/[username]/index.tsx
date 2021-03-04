@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, UserObj} from "../../utils/types";
+import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
 import React from "react";
 import {format} from "date-fns";
@@ -20,7 +20,7 @@ import Linkify from "react-linkify";
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
     const [session, loading] = useSession();
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
-    const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
+    const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
 
     const postsReady = posts && posts.posts && posts.projects && posts.owners;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
