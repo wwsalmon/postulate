@@ -2,10 +2,11 @@ import {DatedObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../utils/type
 import Link from "next/link";
 import {FiEdit, FiMessageSquare} from "react-icons/fi";
 
-export default function ProjectItem({project, owners, sessionUserId = null}: {
+export default function ProjectItem({project, owners, sessionUserId = null, isProjects = false}: {
     project: DatedObj<ProjectObjWithCounts>,
     owners: DatedObj<UserObj>[],
     sessionUserId?: string,
+    isProjects?: boolean,
 }) {
     const numPosts = project.posts.length ? project.posts[0].count : 0;
     const numSnippets = project.snippets.length ? project.snippets[0].count : 0;
@@ -37,12 +38,14 @@ export default function ProjectItem({project, owners, sessionUserId = null}: {
                                 <FiEdit/>
                             </div>
                         </div>
-                        <div className="up-hover-child">
-                            <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
-                                <p className="mr-2">{numSnippets}</p>
-                                <FiMessageSquare/>
+                        {isProjects && (
+                            <div className="up-hover-child">
+                                <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                                    <p className="mr-2">{numSnippets}</p>
+                                    <FiMessageSquare/>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </a>
             </Link>

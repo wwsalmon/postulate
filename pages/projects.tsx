@@ -39,7 +39,12 @@ export default function Projects({}: {  }) {
             ) : (
                 <div className="md:flex -mx-2 flex-wrap">
                     {projects.projects.map(project => (
-                        <ProjectItem project={project} owners={[]} sessionUserId={session ? session.userId : null}/>
+                        <ProjectItem
+                            project={project}
+                            owners={[]}
+                            sessionUserId={session ? session.userId : null}
+                            isProjects={true}
+                        />
                     ))}
                 </div>
             )}
@@ -52,7 +57,12 @@ export default function Projects({}: {  }) {
             ) : (
                 <div className="md:flex -mx-4">
                     {sharedProjects.projects.map(project => (
-                        <ProjectItem project={project} owners={sharedProjects.owners} sessionUserId={session ? session.userId : null}/>
+                        <ProjectItem
+                            project={project}
+                            owners={sharedProjects.owners}
+                            sessionUserId={session ? session.userId : null}
+                            isProjects={true}
+                        />
                     ))}
                 </div>
             )}
