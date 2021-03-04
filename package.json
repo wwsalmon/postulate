@@ -30,6 +30,7 @@
     "postcss": "^8.2.4",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "react-github-contribution-calendar": "^2.0.0",
     "react-icons": "^4.1.0",
     "react-linkify": "^1.0.0-alpha",
     "react-loading-skeleton": "^2.1.1",

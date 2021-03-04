@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
 import {aggregatePipeline, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, SnippetObj, UserObj} from "../../utils/types";
+import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
@@ -35,8 +35,9 @@ import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
 import mongoose from "mongoose";
+import GitHubCalendar from "react-github-contribution-calendar/lib";
 
-export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithCounts>, thisUser: DatedObj<UserObj>}) {
+export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
@@ -69,13 +70,16 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         availableTags,
         posts: postsCount,
         snippets: snippetsCount,
-        linkedSnippets: linkedSnippetsCount
-    }, setProjectData] = useState<DatedObj<ProjectObjWithCounts>>(props.projectData)
+        linkedSnippets: linkedSnippetsCount,
+        snippetDates,
+        postDates,
+    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
 
     const numPosts = postsCount.length ? postsCount[0].count : 0;
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
     const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
+    const allDates = [...(snippetDates || []), ...(postDates || null)].sort((a, b) => +new Date(b._id) - +new Date(a._id));
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
@@ -217,7 +221,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                                     userId,
                                                     ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
                                                 ].includes(d._id));
-                                                console.log(filteredResults);
                                                 callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
                                             }).catch(e => {
                                                 console.log(e);
@@ -271,7 +274,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         />
                         <Select
                             className="flex-grow"
-                            options={availableTags.map(d => ({label: d, value: d}))}
+                            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
                             value={tagsQuery.map(d => ({label: d, value: d}))}
                             onChange={(newValue) => {
                                 setSnippetPage(1);
@@ -414,6 +417,49 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             {percentLinked}% linked
                         </p>
                     </div>
+                    <div className="my-8">
+                        {/*
+                        // @ts-ignore*/}
+                        <GitHubCalendar
+                            panelColors={[
+                                "#eeeeee",
+                                "#ccd4ff",
+                                "#99a8ff",
+                                "#667dff",
+                                "#3351ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                            ]}
+                            values={allDates.reduce((a, b, i, arr) => {
+                                const thisDate = format(new Date(b._id), "yyyy-MM-dd");
+                                if (i === 0) {
+                                    a[thisDate] = 1;
+                                    return a;
+                                } else {
+                                    const lastDate = format(new Date(allDates[i - 1]._id), "yyyy-MM-dd");
+                                    a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
+                                    return a;
+                                }
+                            }, {})}
+                            until={format(new Date(), "yyyy-MM-dd")}
+                        />
+                    </div>
                     <hr className="my-10"/>
                     <div className="flex items-center">
                         <h3 className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</h3>
@@ -482,6 +528,44 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisProjectArr = await ProjectModel.aggregate([
             { $match: {_id: mongoose.Types.ObjectId(projectId)} },
             ...aggregatePipeline,
+            {
+                $lookup: {
+                    from: "posts",
+                    let: {"projectId": "$_id"},
+                    pipeline: [
+                        { $match:
+                                { $expr:
+                                        { $eq: ["$projectId", "$$projectId"] }
+                                }
+                        },
+                        {
+                            $group: {
+                                _id: "$createdAt",
+                            }
+                        }
+                    ],
+                    as: "postDates"
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"projectId": "$_id"},
+                    pipeline: [
+                        { $match:
+                                { $expr:
+                                        { $eq: ["$projectId", "$$projectId"] }
+                                }
+                        },
+                        {
+                            $group: {
+                                _id: "$createdAt",
+                            }
+                        }
+                    ],
+                    as: "snippetDates"
+                }
+            },
         ]);
 
         const thisProject = thisProjectArr.length ? thisProjectArr[0] : null;
@@ -492,7 +576,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         }
 
         const thisUser = await UserModel.findOne({ _id: thisProject.userId });
-
 
         return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: context.params.projectId }};
     } catch (e) {
