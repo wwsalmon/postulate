@@ -124,8 +124,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         }
 
                         // update linked snippets
-                        if (req.body.linkedPosts && req.body.linkedPosts) {
-                            await SnippetModel.updateMany({ _id: { $in: req.body.linkedPosts } }, {
+                        if (req.body.selectedSnippetIds && req.body.selectedSnippetIds.length) {
+                            await SnippetModel.updateMany({ _id: { $in: req.body.selectedSnippetIds } }, {
                                 $push: { linkedPosts: newPostObj._id }
                             });
                         }
