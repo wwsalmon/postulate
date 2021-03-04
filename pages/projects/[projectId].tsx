@@ -1,8 +1,8 @@
 import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
-import {cleanForJSON, fetcher} from "../../utils/utils";
+import {aggregatePipeline, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
+import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
@@ -11,7 +11,18 @@ import UpSEO from "../../components/up-seo";
 import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiExternalLink, FiEye, FiEyeOff, FiLink, FiTrash, FiUserPlus, FiX} from "react-icons/fi";
+import {
+    FiEdit,
+    FiEdit2,
+    FiExternalLink,
+    FiEye,
+    FiEyeOff,
+    FiLink,
+    FiMessageSquare,
+    FiTrash,
+    FiUserPlus,
+    FiX
+} from "react-icons/fi";
 import UpModal from "../../components/up-modal";
 import SpinnerButton from "../../components/spinner-button";
 import Skeleton from "react-loading-skeleton";
@@ -23,8 +34,10 @@ import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
+import mongoose from "mongoose";
+import GitHubCalendar from "react-github-contribution-calendar/lib";
 
-export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
+export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
@@ -45,7 +58,28 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
     const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
 
-    const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
+    const [{
+        _id: projectId,
+        userId,
+        name,
+        description,
+        urlName,
+        createdAt,
+        stars,
+        collaborators,
+        availableTags,
+        posts: postsCount,
+        snippets: snippetsCount,
+        linkedSnippets: linkedSnippetsCount,
+        snippetDates,
+        postDates,
+    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
+
+    const numPosts = postsCount.length ? postsCount[0].count : 0;
+    const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
+    const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
+    const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
+    const allDates = [...(snippetDates || []), ...(postDates || null)].sort((a, b) => +new Date(b._id) - +new Date(a._id));
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
@@ -187,7 +221,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                                     userId,
                                                     ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
                                                 ].includes(d._id));
-                                                console.log(filteredResults);
                                                 callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
                                             }).catch(e => {
                                                 console.log(e);
@@ -241,7 +274,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         />
                         <Select
                             className="flex-grow"
-                            options={availableTags.map(d => ({label: d, value: d}))}
+                            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
                             value={tagsQuery.map(d => ({label: d, value: d}))}
                             onChange={(newValue) => {
                                 setSnippetPage(1);
@@ -370,8 +403,66 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                     )}
                 </div>
                 <div className="lg:w-1/3 lg:pl-8">
+                    <h3 className="up-ui-title mb-8">Stats</h3>
                     <div className="flex items-center">
-                        <p className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</p>
+                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                            <FiEdit/>
+                            <p className="ml-2">{numPosts} posts</p>
+                        </div>
+                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                            <FiMessageSquare/>
+                            <p className="ml-2">{numSnippets} snippets</p>
+                        </div>
+                        <p className="opacity-25 hover:opacity-75 transition mr-6">
+                            {percentLinked}% linked
+                        </p>
+                    </div>
+                    <div className="my-8">
+                        {/*
+                        // @ts-ignore*/}
+                        <GitHubCalendar
+                            panelColors={[
+                                "#eeeeee",
+                                "#ccd4ff",
+                                "#99a8ff",
+                                "#667dff",
+                                "#3351ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                                "#0026ff",
+                            ]}
+                            values={allDates.reduce((a, b, i, arr) => {
+                                const thisDate = format(new Date(b._id), "yyyy-MM-dd");
+                                if (i === 0) {
+                                    a[thisDate] = 1;
+                                    return a;
+                                } else {
+                                    const lastDate = format(new Date(allDates[i - 1]._id), "yyyy-MM-dd");
+                                    a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
+                                    return a;
+                                }
+                            }, {})}
+                            until={format(new Date(), "yyyy-MM-dd")}
+                        />
+                    </div>
+                    <hr className="my-10"/>
+                    <div className="flex items-center">
+                        <h3 className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</h3>
                         <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
                             <a className="up-button ml-auto mb-4 md:mb-0 small">
                                 <div className="flex items-center">
@@ -434,9 +525,50 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // any typing to avoid ts error
         const projectId: any = context.params.projectId;
 
-        console.log(projectId);
+        const thisProjectArr = await ProjectModel.aggregate([
+            { $match: {_id: mongoose.Types.ObjectId(projectId)} },
+            ...aggregatePipeline,
+            {
+                $lookup: {
+                    from: "posts",
+                    let: {"projectId": "$_id"},
+                    pipeline: [
+                        { $match:
+                                { $expr:
+                                        { $eq: ["$projectId", "$$projectId"] }
+                                }
+                        },
+                        {
+                            $group: {
+                                _id: "$createdAt",
+                            }
+                        }
+                    ],
+                    as: "postDates"
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"projectId": "$_id"},
+                    pipeline: [
+                        { $match:
+                                { $expr:
+                                        { $eq: ["$projectId", "$$projectId"] }
+                                }
+                        },
+                        {
+                            $group: {
+                                _id: "$createdAt",
+                            }
+                        }
+                    ],
+                    as: "snippetDates"
+                }
+            },
+        ]);
 
-        const thisProject = await ProjectModel.findOne({ _id: projectId });
+        const thisProject = thisProjectArr.length ? thisProjectArr[0] : null;
 
         // check auth
         if (!thisProject || ![thisProject.userId.toString(), ...(thisProject.collaborators.map(d => d.toString()))].includes(session.userId)) {
@@ -444,7 +576,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         }
 
         const thisUser = await UserModel.findOne({ _id: thisProject.userId });
-
 
         return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: context.params.projectId }};
     } catch (e) {

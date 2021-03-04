@@ -4,6 +4,8 @@ import {ProjectModel} from "../../models/project";
 import {SnippetModel} from "../../models/snippet";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
+import * as mongoose from "mongoose";
+import {aggregatePipeline} from "../../utils/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
@@ -19,18 +21,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 if (req.query.shared || req.query.userId) {
                     let projects;
+
                     if (req.query.userId) {
                         const thisUser = await UserModel.findById(req.query.userId);
-                        projects = await ProjectModel.find({ _id: {$in: thisUser.featuredProjects}});
+                        projects = await ProjectModel.aggregate([
+                            {
+                                $match: {
+                                    _id: {$in: thisUser.featuredProjects},
+                                },
+                            },
+                            ...aggregatePipeline,
+                        ]);
                     } else {
-                        projects = await ProjectModel.find({ collaborators: session.userId }).sort({ "updatedAt": -1 });
+                        projects = await ProjectModel.aggregate([
+                            {
+                                $match: { collaborators: new mongoose.Types.ObjectId(session.userId) },
+                            },
+                            ...aggregatePipeline,
+                        ]);
                     }
                     const projectOwners = projects.map(d => d.userId.toString());
                     const uniqueProjectOwners = projectOwners.filter((d, i, a) => a.findIndex(x => x === d) === i);
                     const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
                     res.status(200).json({projects: projects, owners: owners});
                 } else {
-                    const projects = await ProjectModel.find({ userId: session.userId }).sort({ "updatedAt": -1 });
+                    const projects = await ProjectModel.aggregate([
+                        {
+                            $match: { userId: new mongoose.Types.ObjectId(session.userId) },
+                        },
+                        ...aggregatePipeline,
+                    ])
                     res.status(200).json({projects: projects});
                 }
 

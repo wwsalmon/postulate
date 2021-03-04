@@ -34,3 +34,59 @@ type ToolbarButton =
     | 'guide';
 
 export const simpleMDEToolbar: ReadonlyArray<"|" | ToolbarButton | ToolbarIcon | ToolbarDropdownIcon> = ["bold", "italic", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "preview", "guide"]
+
+export const aggregatePipeline = [
+    {
+        $sort: {
+            "updatedAt": -1,
+        }
+    },
+    {
+        $lookup: {
+            from: "posts",
+            let: {"projectId": "$_id"},
+            pipeline: [
+                { $match:
+                        { $expr:
+                                { $eq: ["$projectId", "$$projectId"] }
+                        }
+                },
+                { $count: "count" }
+            ],
+            as: "posts"
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"projectId": "$_id"},
+            pipeline: [
+                { $match:
+                        { $expr:
+                                { $eq: ["$projectId", "$$projectId"] }
+                        }
+                },
+                { $count: "count" }
+            ],
+            as: "snippets"
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"projectId": "$_id"},
+            pipeline: [
+                { $match:
+                        { $expr:
+                                { $and: [
+                                        { $eq: ["$projectId", "$$projectId"] },
+                                        { $ne: ["$linkedPosts", []] }
+                                    ]}
+                        }
+                },
+                { $count: "count" }
+            ],
+            as: "linkedSnippets"
+        }
+    }
+];
