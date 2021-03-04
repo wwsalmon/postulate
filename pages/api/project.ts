@@ -5,6 +5,7 @@ import {SnippetModel} from "../../models/snippet";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
 import * as mongoose from "mongoose";
+import {aggregatePipeline} from "../../utils/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
@@ -17,62 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case "GET":
             try {
                 await dbConnect();
-
-                const aggregatePipeline = [
-                    {
-                        $sort: {
-                            "updatedAt": -1,
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "posts",
-                            let: {"projectId": "$_id"},
-                            pipeline: [
-                                { $match:
-                                        { $expr:
-                                                { $eq: ["$projectId", "$$projectId"] }
-                                        }
-                                },
-                                { $count: "count" }
-                            ],
-                            as: "posts"
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "snippets",
-                            let: {"projectId": "$_id"},
-                            pipeline: [
-                                { $match:
-                                        { $expr:
-                                                { $eq: ["$projectId", "$$projectId"] }
-                                        }
-                                },
-                                { $count: "count" }
-                            ],
-                            as: "snippets"
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "snippets",
-                            let: {"projectId": "$_id"},
-                            pipeline: [
-                                { $match:
-                                        { $expr:
-                                                { $and: [
-                                                        { $eq: ["$projectId", "$$projectId"] },
-                                                        { $ne: ["$linkedPosts", []] }
-                                                    ]}
-                                        }
-                                },
-                                { $count: "count" }
-                            ],
-                            as: "linkedSnippets"
-                        }
-                    }
-                ];
 
                 if (req.query.shared || req.query.userId) {
                     let projects;
