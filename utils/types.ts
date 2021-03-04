@@ -31,6 +31,12 @@ export interface ProjectObj {
     availableTags: string[],
 }
 
+export interface ProjectObjWithCounts extends ProjectObj {
+    posts: {count: number}[],
+    snippets: {count: number}[],
+    linkedSnippets: {count: number}[],
+}
+
 export interface SnippetObj {
     urlName: string,
     projectId: string,
