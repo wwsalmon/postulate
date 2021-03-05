@@ -1,8 +1,5 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../../models/user";
-import {ProjectModel} from "../../../../models/project";
-import {cleanForJSON} from "../../../../utils/utils";
-import {PostModel} from "../../../../models/post";
 import React from "react";
 import {getSession} from "next-auth/client";
 import dbConnect from "../../../../utils/dbConnect";
@@ -42,7 +39,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                                 from: "posts",
                                 let: {"projectId": "$_id"},
                                 pipeline: [
-                                    {$match: {$expr: {$and: [{$eq: ["$projectId", "$$projectId"]}, {$eq: ["$urlName", encodeURIComponent(postUrlName)]}]}}},
+                                    {$match: {$expr: {$and: [{$eq: ["$projectId", "$$projectId"]}, {$eq: ["$urlName", postUrlName]}]}}},
                                     {
                                         $lookup: {
                                             from: "users",

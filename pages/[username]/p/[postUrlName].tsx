@@ -186,7 +186,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "posts",
                     let: {"userId": "$_id"},
                     pipeline: [
-                        {$match: {$expr: {$and: [{$eq: ["$userId", "$$userId"]}, {$eq: ["$urlName", encodeURIComponent(postUrlName)]}]}}},
+                        {$match: {$expr: {$and: [{$eq: ["$userId", "$$userId"]}, {$eq: ["$urlName", postUrlName]}]}}},
                         {
                             $lookup: {
                                 from: "projects",
@@ -210,6 +210,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 }
             },
         ]);
+
+        console.log(JSON.stringify(graphObj));
 
         // return 404 if missing object at any stage
         if (!graphObj.length || !graphObj[0].postArr.length || !graphObj[0].postArr[0].projectArr.length || !graphObj[0].postArr[0].projectArr[0].ownerArr.length) {
