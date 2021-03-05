@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
     name: {type: String, required: true},
     username: {type: String, required: true, unique: true},
     image: {type: String, required: true},
-    bio: {type: String, required: true},
+    bio: {type: String, required: false},
     featuredProjects: [mongoose.Schema.Types.ObjectId],
     featuredPosts: [mongoose.Schema.Types.ObjectId],
 }, {

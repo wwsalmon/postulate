@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         res.status(200).json({
                             message: "Post successfully updated.",
-                            url: `/@${projectUsername}/${thisProject.urlName}/${thisPost.urlName}`,
+                            url: `/@${session.username}/p/${encodeURIComponent(thisPost.urlName)}`,
                         });
 
                         return;
@@ -132,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                         res.status(200).json({
                             message: "Post successfully created.",
-                            url: `/@${projectUsername}/${thisProject.urlName}/${urlName}`,
+                            url: `/@${session.username}/p/${encodeURIComponent(urlName)}`,
                         });
 
                         return;
