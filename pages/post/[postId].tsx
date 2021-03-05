@@ -34,7 +34,7 @@ export default function NewPost(props: {title: string, body: string, privacy: "p
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
     function getProjectLabel(projectId: string): string {
-        if (!(projects && sharedProjects)) return "";
+        if (!(projects && sharedProjects && (projects.projects.length + sharedProjects.projects.length > 0))) return "";
         const thisProject: DatedObj<ProjectObj> = [...projects.projects, ...sharedProjects.projects].find(d => d._id === projectId);
         let label = thisProject.name;
         if (sharedProjects.projects.map(d => d._id).includes(projectId)) label += ` (owned by ${sharedProjects.owners.find(d => d._id === thisProject.userId).name})`;
