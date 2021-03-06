@@ -12,7 +12,7 @@ export default function PublicPostItem({post, author, project = null, urlPrefix}
 }) {
     return (
         <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
-            <Link href={`/@${author.username}/p/${encodeURIComponent(post.urlName)}`}>
+            <Link href={`/@${author.username}/p/${post.urlName}`}>
                 <a>
                     <p className="up-ui-item-title mb-2">{post.title}</p>
                     <p>

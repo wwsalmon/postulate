@@ -33,13 +33,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "projects",
                     let: {"userId": "$_id"},
                     pipeline: [
-                        {$match: {$expr: {$and: [{$eq: ["$userId", "$$userId"]}, {$eq: ["$urlName", projectUrlName]}]}}},
+                        {$match: {$expr: {$and: [{$eq: ["$userId", "$$userId"]}, {$eq: ["$urlName", encodeURIComponent(projectUrlName)]}]}}},
                         {
                             $lookup: {
                                 from: "posts",
                                 let: {"projectId": "$_id"},
                                 pipeline: [
-                                    {$match: {$expr: {$and: [{$eq: ["$projectId", "$$projectId"]}, {$eq: ["$urlName", postUrlName]}]}}},
+                                    {$match: {$expr: {$and: [{$eq: ["$projectId", "$$projectId"]}, {$eq: ["$urlName", encodeURIComponent(postUrlName)]}]}}},
                                     {
                                         $lookup: {
                                             from: "users",
@@ -81,7 +81,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             if (!isOwner && !isCollaborator) return { notFound: true };
         }
 
-        context.res.setHeader("location", `/@${thisAuthor._id}/p/${postUrlName}`);
+        context.res.setHeader("location", `/@${thisAuthor._id}/p/${encodeURIComponent(postUrlName)}`);
         context.res.statusCode = 302;
         context.res.end();
     } catch (e) {
