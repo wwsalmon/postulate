@@ -475,7 +475,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                     {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? (
                         <>
                             {posts.posts.map(post => (
-                                <Link href={`/@${posts.authors.find(d => d._id === post.userId).username}/p/${encodeURIComponent(post.urlName)}`}>
+                                <Link href={`/@${posts.authors.find(d => d._id === post.userId).username}/p/${post.urlName}`}>
                                     <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
                                         <p className="">
                                             {post.privacy !== "public" && (
