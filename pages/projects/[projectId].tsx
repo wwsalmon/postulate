@@ -1,6 +1,6 @@
 import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
-import {aggregatePipeline, cleanForJSON, fetcher} from "../../utils/utils";
+import {aggregatePipeline, arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
 import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
 import React, {useState} from "react";
@@ -36,6 +36,7 @@ import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
 import mongoose from "mongoose";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
+import ReactFrappeChart from "../../components/frappe-chart";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -71,16 +72,17 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         posts: postsCount,
         snippets: snippetsCount,
         linkedSnippets: linkedSnippetsCount,
-        snippetDates,
-        postDates,
+        snippetDates: snippetDatesArr,
+        postDates: postDatesArr,
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
 
     const numPosts = postsCount.length ? postsCount[0].count : 0;
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
     const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const snippetDatesSorted = snippetDates ? snippetDates.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : [];
-    const postDatesSorted = postDates ? postDates.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : [];
+    const snippetDates = arrToDict(snippetDatesArr);
+    const postDates = arrToDict(postDatesArr);
+    const numGraphDays = 30;
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
@@ -441,21 +443,37 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                         "#3351ff",
                                         ...Array(50).fill("#0026ff"),
                                     ]}
-                                    values={({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab]).reduce((a, b, i, arr) => {
-                                        const thisDate = format(new Date(b.createdAt), "yyyy-MM-dd");
-                                        if (i === 0) {
-                                            a[thisDate] = 1;
-                                            return a;
-                                        } else {
-                                            const lastDate = format(new Date({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab][i - 1].createdAt), "yyyy-MM-dd");
-                                            a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
-                                            return a;
-                                        }
-                                    }, {})}
+                                    values={{snippets: snippetDates, posts: postDates}[statsTab]}
                                     until={format(new Date(), "yyyy-MM-dd")}
                                 />
                             </>
-
+                        )}
+                        {statsTab === "graph" && (
+                            <ReactFrappeChart
+                                type="line"
+                                colors={["#ccd4ff", "#0026ff"]}
+                                axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
+                                lineOptions={{ regionFill: 1, hideDots: 1 }}
+                                height={250}
+                                animate={false}
+                                data={{
+                                    labels: Array(numGraphDays).fill(0).map((d, i) => {
+                                        const currDate = new Date();
+                                        const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
+                                        return format(new Date(thisDate), "M/d");
+                                    }),
+                                    datasets: [
+                                        {
+                                            name: "Snippets",
+                                            values: arrGraphGenerator(snippetDates, numGraphDays),
+                                        },
+                                        {
+                                            name: "Posts",
+                                            values: arrGraphGenerator(postDates, numGraphDays),
+                                        },
+                                    ],
+                                }}
+                            />
                         )}
                     </div>
                     <hr className="my-10"/>
