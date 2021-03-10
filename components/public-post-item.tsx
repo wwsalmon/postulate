@@ -19,12 +19,20 @@ export default function PublicPostItem({post, author, project = null, urlPrefix}
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
                         <a>
                             <p className="up-ui-item-title mb-2">{post.title}</p>
-                            <p>
-                                <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
-                                <span className="opacity-50"> | {readingTime(post.body).text}</span>
-                            </p>
                         </a>
                     </Link>
+                    <p>
+                        <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
+                        <span className="opacity-50"> | {readingTime(post.body).text}</span>
+                        {!!post.tags.length && (
+                            <>
+                                <span className="opacity-50"> | </span>
+                                {post.tags.map(tag => (
+                                    <button className="opacity-50">#{tag} </button>
+                                ))}
+                            </>
+                        )}
+                    </p>
                     {project ? (
                         <Link href={`${urlPrefix}`}>
                             <a className="block mt-4 opacity-50 hover:opacity-75 transition underline">
