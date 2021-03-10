@@ -46,7 +46,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
 
         axios.post("/api/post", {
             projectId: projectId || "",
-            postId: props.post._id || "",
+            postId: props.post ? props.post._id : "",
             title: title,
             body: body,
             privacy: privacy,
@@ -62,17 +62,17 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
     }
 
     async function onCancelEdit() {
-        await axios.post("/api/cancel-delete-images", props.post._id ? {id: props.post._id, type: "post"} : {urlName: tempId});
+        await axios.post("/api/cancel-delete-images", props.post ? {id: props.post._id, type: "post"} : {urlName: tempId});
         router.push((Array.isArray(router.query.back) || !router.query.back) ? "/projects" : router.query.back);
     }
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
-            <UpSEO title={(props.post._id ? "Edit post" : "New post")}/>
+            <UpSEO title={(props.post ? "Edit post" : "New post")}/>
             <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8"/>
             <div className="flex">
                 <div className="w-2/3 pr-4 border-r">
-                    <h1 className="up-h1 mb-8">{props.post._id ? "Edit" : "New"} post</h1>
+                    <h1 className="up-h1 mb-8">{props.post ? "Edit" : "New"} post</h1>
                     <hr className="my-8"/>
                     <NewPostEditor
                         tempId={tempId}
@@ -83,10 +83,10 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                         onCancelEdit={onCancelEdit}
                         getProjectLabel={getProjectLabel}
                         isEditLoading={isEditLoading}
-                        title={props.post.title}
-                        body={props.post.body}
-                        privacy={props.post.privacy}
-                        tags={props.post.tags}
+                        title={props.post ? props.post.title : null}
+                        body={props.post ? props.post.body : null}
+                        privacy={props.post ? props.post.privacy : null}
+                        tags={props.post ? props.post.tags : null}
                     />
                 </div>
                 <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
