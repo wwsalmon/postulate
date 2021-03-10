@@ -4,7 +4,7 @@ import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
-import React from "react";
+import React, {useState} from "react";
 import {format} from "date-fns";
 import useSWR, {responseInterface} from "swr";
 import PublicPostItem from "../../components/public-post-item";
@@ -16,10 +16,12 @@ import MoreMenuItem from "../../components/more-menu-item";
 import {FiEdit2} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
+import UpBanner from "../../components/UpBanner";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
     const [session, loading] = useSession();
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
+    const [tag, setTag] = useState<string>("");
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
 
@@ -56,7 +58,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                             <hr className="my-8"/>
                             <h3 className="up-ui-title mb-4">Tags</h3>
                             {tags.data.map(tag => (
-                                <button className="opacity-50 hover:opacity-100 transition mr-3">#{tag._id} ({tag.count})</button>
+                                <button className="opacity-50 hover:opacity-100 transition mr-3" onClick={() => setTag(tag._id)}>#{tag._id} ({tag.count})</button>
                             ))}
                         </>
                     )}
@@ -77,6 +79,14 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <Skeleton count={10}/>
                     )}
                     <hr className="my-10"/>
+                    {tag && (
+                        <UpBanner className="mb-8">
+                            <div className="md:flex items-center w-full">
+                                <p>Showing posts with the tag <b>#{tag}</b></p>
+                                <button className="up-button text ml-auto" onClick={() => setTag("")}>Clear</button>
+                            </div>
+                        </UpBanner>
+                    )}
                     <h3 className="up-ui-title mb-8">Public posts ({postsReady ? filteredPosts.length : "Loading..."})</h3>
                     {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                         <PublicPostItem

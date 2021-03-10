@@ -172,22 +172,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             try {
                 await dbConnect();
 
+                let conditions: any = req.query.projectId ? { projectId: req.query.projectId } : { userId: req.query.userId };
+                if (req.query.search) conditions["$text"] = {"$search": req.query.search};
+                if (req.query.tag) conditions["tags"] = req.query.tag;
+
+                const cursor = PostModel
+                    .find(conditions)
+                    .sort({"createdAt": -1});
+
+                const posts = await (req.query.page ?
+                    cursor
+                        .skip((+req.query.page - 1) * 10)
+                        .limit(10) :
+                    cursor
+                );
+
+                const count = await PostModel
+                    .find(conditions)
+                    .count();
+
                 // if projectId, fetch posts for project, otherwise fetch posts for user
                 if (req.query.projectId) {
-                    const thisProjectPosts = await PostModel.find({ projectId: req.query.projectId }).sort({ createdAt: -1 });
-
-                    const authorIds = thisProjectPosts.map(d => d.userId);
+                    const authorIds = posts.map(d => d.userId);
                     const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
                     const thisProjectPostAuthors = await UserModel.find({ _id: {$in: uniqueAuthorIds}});
 
                     res.status(200).json({
-                        posts: thisProjectPosts,
+                        posts: posts,
+                        count: count,
                         authors: thisProjectPostAuthors,
                     });
                 } else {
-                    const thisUserPosts = await PostModel.find({ userId: req.query.userId }).sort({ createdAt: -1 });
-
-                    const projectIds = thisUserPosts.map(d => d.projectId);
+                    const projectIds = posts.map(d => d.projectId);
                     const uniqueProjectIds = projectIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
                     const thisUserPostProjects = await ProjectModel.find({ _id: {$in: uniqueProjectIds }});
                     const ownerIds = thisUserPostProjects.map(d => d.userId);
@@ -195,7 +211,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const thisUserPostProjectOwners = await UserModel.find({ _id: {$in: uniqueOwnerIds}});
 
                     res.status(200).json({
-                        posts: thisUserPosts,
+                        posts: posts,
+                        count: count,
                         projects: thisUserPostProjects,
                         owners: thisUserPostProjectOwners,
                     });
