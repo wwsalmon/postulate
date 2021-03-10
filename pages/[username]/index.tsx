@@ -1,7 +1,7 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {cleanForJSON, fetcher} from "../../utils/utils";
+import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
 import React, {useState} from "react";
@@ -13,22 +13,39 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit2} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
+import GitHubCalendar from "react-github-contribution-calendar/lib";
+import ReactFrappeChart from "../../components/frappe-chart";
 
-export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
+interface DatedUserObjWithCounts extends DatedObj<UserObj> {
+    snippetsArr: {createdAt: string}[],
+    postsArr: {createdAt: string}[],
+    linkedSnippetsArr: {count: number}[],
+}
+
+export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCounts }) {
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
+    const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const postsReady = posts && posts.posts && posts.projects && posts.owners;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
     const isOwner = session && session.userId === thisUser._id;
+
+    const snippetDates = arrToDict(thisUser.snippetsArr);
+    const postDates = arrToDict(thisUser.postsArr);
+    const snippetsCount = thisUser.snippetsArr ? thisUser.snippetsArr.length : 0;
+    const postsCount = thisUser.postsArr ? thisUser.postsArr.length : 0;
+    const numLinkedSnippets = !!thisUser.linkedSnippetsArr.length ? thisUser.linkedSnippetsArr[0].count : 0;
+    const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / snippetsCount * 100) : 0;
+    const numGraphDays = 30;
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
@@ -54,7 +71,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <p className="mt-4 opacity-50"><Link href={`/@${thisUser.username}/edit`}><a className="underline">Edit your profile</a></Link> to add a bio.</p>
                     ))}
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
-                    {tags && tags.data.length && (
+                    {tags && !!tags.data.length && (
                         <>
                             <hr className="my-8"/>
                             <h3 className="up-ui-title mb-4">Tags</h3>
@@ -63,7 +80,77 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                             ))}
                         </>
                     )}
-
+                    <hr className="my-8"/>
+                    <h3 className="up-ui-title mb-4">Activity</h3>
+                    <div className="flex items-center">
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "posts" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("posts")}
+                        >
+                            <FiEdit/>
+                            <p className="ml-2">{postsCount} posts</p>
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "snippets" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("snippets")}
+                        >
+                            <FiMessageSquare/>
+                            <p className="ml-2">{snippetsCount} snippets</p>
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "graph" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("graph")}
+                        >
+                            {percentLinked}% linked
+                        </button>
+                    </div>
+                    <div className="my-8">
+                        {(statsTab === "snippets" || statsTab === "posts") && (
+                            <>
+                                {/*
+                                // @ts-ignore*/}
+                                <GitHubCalendar
+                                    panelColors={[
+                                        "#eeeeee",
+                                        "#ccd4ff",
+                                        "#99a8ff",
+                                        "#667dff",
+                                        "#3351ff",
+                                        ...Array(50).fill("#0026ff"),
+                                    ]}
+                                    values={{snippets: snippetDates, posts: postDates}[statsTab]}
+                                    until={format(new Date(), "yyyy-MM-dd")}
+                                />
+                            </>
+                        )}
+                        {statsTab === "graph" && (
+                            <ReactFrappeChart
+                                type="line"
+                                colors={["#ccd4ff", "#0026ff"]}
+                                axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
+                                lineOptions={{ regionFill: 1, hideDots: 1 }}
+                                height={250}
+                                animate={false}
+                                data={{
+                                    labels: Array(numGraphDays).fill(0).map((d, i) => {
+                                        const currDate = new Date();
+                                        const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
+                                        return format(new Date(thisDate), "M/d");
+                                    }),
+                                    datasets: [
+                                        {
+                                            name: "Snippets",
+                                            values: arrGraphGenerator(snippetDates, numGraphDays),
+                                        },
+                                        {
+                                            name: "Posts",
+                                            values: arrGraphGenerator(postDates, numGraphDays),
+                                        },
+                                    ],
+                                }}
+                            />
+                        )}
+                    </div>
                 </div>
                 <div className="lg:w-2/3 lg:pl-12">
                     <hr className="my-10 lg:hidden"/>
@@ -91,8 +178,8 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                             </div>
                         </UpBanner>
                     )}
-                    <h3 className="up-ui-title mb-8">Public posts (showing {postsReady ? <>{(page - 1) * 10 + 1}
-                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : "Loading..."})</h3>
+                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
+                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
                     {postsReady ? filteredPosts.length > 0 ? (
                         <>
                             {filteredPosts.map(post => (
@@ -148,11 +235,49 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         await dbConnect();
 
-        const thisUser = await UserModel.findOne({ username: username });
+        const graphObj = await UserModel.aggregate([
+            {$match: {username: username}},
+            {
+                $lookup: {
+                    from: "posts",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        {$project: {"createdAt": 1}},
+                    ],
+                    as: "postsArr",
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        {$project: {"createdAt": 1}},
+                    ],
+                    as: "snippetsArr",
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$and: [
+                            {$eq: ["$userId", "$$userId"]},
+                            {$ne: ["$linkedPosts", []]},
+                        ]}}},
+                        {$count: "count"},
+                    ],
+                    as: "linkedSnippetsArr",
+                }
+            }
+        ]);
 
-        if (!thisUser) return { notFound: true };
+        if (!graphObj.length) return { notFound: true };
 
-        return { props: { thisUser: cleanForJSON(thisUser), key: username }};
+        return { props: { thisUser: cleanForJSON(graphObj[0]), key: username }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

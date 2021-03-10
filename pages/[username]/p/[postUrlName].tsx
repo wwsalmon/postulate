@@ -1,19 +1,17 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../models/user";
-import {ProjectModel} from "../../../models/project";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {PostModel} from "../../../models/post";
-import {DatedObj, PostObj, ProjectObj, UserObj} from "../../../utils/types";
+import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
 import {useRouter} from "next/router";
 import React, {useState} from "react";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
 import Link from "next/link";
-import {getSession, useSession} from "next-auth/client";
+import {useSession} from "next-auth/client";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
-import {FiEdit2, FiTrash} from "react-icons/fi";
+import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
 import UpModal from "../../../components/up-modal";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
@@ -25,9 +23,12 @@ import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
 import UpBanner from "../../../components/UpBanner";
+import Accordion from "react-robust-accordion";
+import SnippetItemReduced from "../../../components/snippet-item-reduced";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
+    linkedSnippets: string[],
     projectData: DatedObj<ProjectObj>,
     thisOwner: DatedObj<UserObj>,
     thisAuthor: DatedObj<UserObj>,
@@ -35,11 +36,17 @@ export default function PublicPost(props: {
     const router = useRouter();
     const [session, loading] = useSession();
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = props.projectData;
+    const isOwner = session && props.thisAuthor._id === session.userId;
+
     const [body, setBody] = useState<string>(props.postData.body);
     const [title, setTitle] = useState<string>(props.postData.title);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
+    const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}`, isOwner ? fetcher : () => []);
+
+    const linkedSnippetsReady = linkedSnippets && linkedSnippets.snippets && !!linkedSnippets.snippets.length;
 
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -47,8 +54,6 @@ export default function PublicPost(props: {
         tables: true,
         extensions: [showdownHtmlEscape],
     });
-
-    const isOwner = session && props.thisAuthor._id === session.userId;
 
     const latestPostsReady = latestPosts && latestPosts.posts && latestPosts.authors;
     const filteredPosts = latestPostsReady ? latestPosts.posts.filter(post => post.privacy === "public" && post._id !== props.postData._id) : [];
@@ -130,15 +135,52 @@ export default function PublicPost(props: {
                     </p>
                 </div>
             </div>
-            {!!props.postData.tags.length && (
-                <div className="my-8 opacity-50">
-                    <span>Tags: </span>
-                    {props.postData.tags.map(tag => (
-                        <Link href="">
-                            <a className="font-bold">#{tag}</a>
-                        </Link>
-                    ))}
+            {(!!props.postData.tags.length || !!props.linkedSnippets.length) && (
+                <div className="my-8">
+                    {!!props.postData.tags.length && (
+                        <span className="opacity-50">
+                            <span>Tags: </span>
+                            {props.postData.tags.map(tag => (
+                                <Link href="">
+                                    <a className="font-bold">#{tag}</a>
+                                </Link>
+                            ))}
+                        </span>
+                    )}
+                    {!!props.postData.tags.length && !!props.linkedSnippets.length && <span className="opacity-25 inline-block mx-2"> | </span>}
+                    {!!props.linkedSnippets.length && (
+                        <span className="opacity-25">{props.linkedSnippets.length} linked {props.linkedSnippets.length === 1 ? "snippet" : "snippets"}</span>
+                    )}
                 </div>
+            )}
+            {isOwner && !!props.linkedSnippets.length && (
+                <UpBanner className="my-8">
+                    <Accordion
+                        label={(
+                            <div className="w-full flex items-center">
+                                <h3 className="up-ui-title">View linked snippets ({props.linkedSnippets.length})</h3>
+                                <div className="ml-auto">
+                                    {viewLinkedSnippetsOpen ? (
+                                        <FiChevronUp/>
+                                    ) : (
+                                        <FiChevronDown/>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        openState={viewLinkedSnippetsOpen}
+                        setOpenState={setViewLinkedSnippetsOpen}
+                    >
+                        {linkedSnippetsReady && linkedSnippets.snippets.map((snippet, i, a) => (
+                            <div key={snippet._id}>
+                                {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                    <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                )}
+                                <SnippetItemReduced snippet={snippet} authors={linkedSnippets.authors} isPostPage={true}/>
+                            </div>
+                        ))}
+                    </Accordion>
+                </UpBanner>
             )}
             <hr className="my-8"/>
             <div className="content prose">
@@ -210,11 +252,23 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                                             foreignField: "_id",
                                             as: "ownerArr",
                                         }
-                                    }
+                                    },
                                 ],
                                 as: "projectArr",
+                            },
+                        },
+                        {
+                            $lookup: {
+                                from: "snippets",
+                                let: {"postId": "$_id"},
+                                pipeline: [
+                                    {$unwind: "$linkedPosts"},
+                                    {$match: {$expr: {$eq: ["$linkedPosts", "$$postId"]}}},
+                                    {$project: {"_id": 1}},
+                                ],
+                                as: "linkedSnippetsArr",
                             }
-                        }
+                        },
                     ],
                     as: "postArr",
                 }
@@ -228,10 +282,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisAuthor = graphObj[0];
         const thisPost = thisAuthor.postArr[0];
+        const linkedSnippets = thisPost.linkedSnippetsArr || [];
         const thisProject = thisPost.projectArr[0];
         const thisOwner = thisProject.ownerArr[0];
 
-        return { props: { postData: cleanForJSON(thisPost), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), key: postUrlName }};
+        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), key: postUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

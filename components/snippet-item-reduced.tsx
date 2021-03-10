@@ -7,11 +7,12 @@ import showdownHtmlEscape from "showdown-htmlescape";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
 
-export default function SnippetItemReduced({snippet, authors, selectedSnippetIds, setSelectedSnippetIds}: {
+export default function SnippetItemReduced({snippet, authors, selectedSnippetIds = null, setSelectedSnippetIds = null, isPostPage = false}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
-    selectedSnippetIds: string[],
-    setSelectedSnippetIds: Dispatch<SetStateAction<string[]>>,
+    selectedSnippetIds?: string[],
+    setSelectedSnippetIds?: Dispatch<SetStateAction<string[]>>,
+    isPostPage?: boolean,
 }) {
     const markdownConverter = new showdown.Converter({
         strikethrough: true,
@@ -21,10 +22,10 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
     });
     const [session, loading] = useSession();
 
-    const isSelected = selectedSnippetIds.includes(snippet._id);
+    const isSelected = selectedSnippetIds ? selectedSnippetIds.includes(snippet._id) : null;
 
     return (
-        <div className="py-8 border-b hover:bg-gray-50 transition px-4 -mx-4">
+        <div className={`py-8 border-b hover:bg-gray-50 transition ${isPostPage ? "" : "px-4 -mx-4"}`}>
             <div className="flex items-center mb-4">
                 {!(session && session.userId === snippet.userId) && (
                     <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
@@ -38,18 +39,20 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                     </Link>
                 )}
                 <div className="flex items-center">
-                    <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={e => {
-                            if (e.target.checked) {
-                                setSelectedSnippetIds([...selectedSnippetIds, snippet._id]);
-                            } else {
-                                setSelectedSnippetIds(selectedSnippetIds.filter(d => d !== snippet._id));
-                            }
-                        }}
-                        className="mr-4 opacity-50 hover:opacity-100 w-4 h-4"
-                    />
+                    {selectedSnippetIds && setSelectedSnippetIds && (
+                        <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={e => {
+                                if (e.target.checked) {
+                                    setSelectedSnippetIds([...selectedSnippetIds, snippet._id]);
+                                } else {
+                                    setSelectedSnippetIds(selectedSnippetIds.filter(d => d !== snippet._id));
+                                }
+                            }}
+                            className="mr-4 opacity-50 hover:opacity-100 w-4 h-4"
+                        />
+                    )}
                     <div className="opacity-25">
                         {format(new Date(snippet.createdAt), "h:mm a")}
                     </div>
@@ -60,7 +63,7 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                     <span>{snippet.url}</span>
                 </div>
             )}
-            <div className="prose">
+            <div className="prose" style={{maxWidth: "unset"}}>
                 {Parser(markdownConverter.makeHtml(snippet.body))}
             </div>
         </div>

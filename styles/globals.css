@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+body, div.chart-container {
     font-family: "IBM Plex Sans", sans-serif;
 }
 

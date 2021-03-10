@@ -1,6 +1,6 @@
 import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
-import {aggregatePipeline, cleanForJSON, fetcher} from "../../utils/utils";
+import {aggregatePipeline, arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
 import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
 import React, {useState} from "react";
@@ -36,6 +36,7 @@ import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
 import mongoose from "mongoose";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
+import ReactFrappeChart from "../../components/frappe-chart";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -56,7 +57,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
-    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
+    const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const [{
         _id: projectId,
@@ -71,20 +72,22 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         posts: postsCount,
         snippets: snippetsCount,
         linkedSnippets: linkedSnippetsCount,
-        snippetDates,
-        postDates,
+        snippetDates: snippetDatesArr,
+        postDates: postDatesArr,
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
 
     const numPosts = postsCount.length ? postsCount[0].count : 0;
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
     const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const allDates = [...(snippetDates || []), ...(postDates || null)].sort((a, b) => +new Date(b._id) - +new Date(a._id));
+    const snippetDates = arrToDict(snippetDatesArr);
+    const postDates = arrToDict(postDatesArr);
+    const numGraphDays = 30;
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
@@ -405,60 +408,73 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 <div className="lg:w-1/3 lg:pl-8">
                     <h3 className="up-ui-title mb-8">Stats</h3>
                     <div className="flex items-center">
-                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "posts" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("posts")}
+                        >
                             <FiEdit/>
                             <p className="ml-2">{numPosts} posts</p>
-                        </div>
-                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "snippets" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("snippets")}
+                        >
                             <FiMessageSquare/>
                             <p className="ml-2">{numSnippets} snippets</p>
-                        </div>
-                        <p className="opacity-25 hover:opacity-75 transition mr-6">
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "graph" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("graph")}
+                        >
                             {percentLinked}% linked
-                        </p>
+                        </button>
                     </div>
                     <div className="my-8">
-                        {/*
-                        // @ts-ignore*/}
-                        <GitHubCalendar
-                            panelColors={[
-                                "#eeeeee",
-                                "#ccd4ff",
-                                "#99a8ff",
-                                "#667dff",
-                                "#3351ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                            ]}
-                            values={allDates.reduce((a, b, i, arr) => {
-                                const thisDate = format(new Date(b._id), "yyyy-MM-dd");
-                                if (i === 0) {
-                                    a[thisDate] = 1;
-                                    return a;
-                                } else {
-                                    const lastDate = format(new Date(allDates[i - 1]._id), "yyyy-MM-dd");
-                                    a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
-                                    return a;
-                                }
-                            }, {})}
-                            until={format(new Date(), "yyyy-MM-dd")}
-                        />
+                        {(statsTab === "snippets" || statsTab === "posts") && (
+                            <>
+                                {/*
+                                // @ts-ignore*/}
+                                <GitHubCalendar
+                                    panelColors={[
+                                        "#eeeeee",
+                                        "#ccd4ff",
+                                        "#99a8ff",
+                                        "#667dff",
+                                        "#3351ff",
+                                        ...Array(50).fill("#0026ff"),
+                                    ]}
+                                    values={{snippets: snippetDates, posts: postDates}[statsTab]}
+                                    until={format(new Date(), "yyyy-MM-dd")}
+                                />
+                            </>
+                        )}
+                        {statsTab === "graph" && (
+                            <ReactFrappeChart
+                                type="line"
+                                colors={["#ccd4ff", "#0026ff"]}
+                                axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
+                                lineOptions={{ regionFill: 1, hideDots: 1 }}
+                                height={250}
+                                animate={false}
+                                data={{
+                                    labels: Array(numGraphDays).fill(0).map((d, i) => {
+                                        const currDate = new Date();
+                                        const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
+                                        return format(new Date(thisDate), "M/d");
+                                    }),
+                                    datasets: [
+                                        {
+                                            name: "Snippets",
+                                            values: arrGraphGenerator(snippetDates, numGraphDays),
+                                        },
+                                        {
+                                            name: "Posts",
+                                            values: arrGraphGenerator(postDates, numGraphDays),
+                                        },
+                                    ],
+                                }}
+                            />
+                        )}
                     </div>
                     <hr className="my-10"/>
                     <div className="flex items-center">
@@ -533,16 +549,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "posts",
                     let: {"projectId": "$_id"},
                     pipeline: [
-                        { $match:
-                                { $expr:
-                                        { $eq: ["$projectId", "$$projectId"] }
-                                }
-                        },
-                        {
-                            $group: {
-                                _id: "$createdAt",
-                            }
-                        }
+                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
+                        {$project: {"createdAt": 1}},
                     ],
                     as: "postDates"
                 }
@@ -552,16 +560,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "snippets",
                     let: {"projectId": "$_id"},
                     pipeline: [
-                        { $match:
-                                { $expr:
-                                        { $eq: ["$projectId", "$$projectId"] }
-                                }
-                        },
-                        {
-                            $group: {
-                                _id: "$createdAt",
-                            }
-                        }
+                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
+                        {$project: {"createdAt": 1}},
                     ],
                     as: "snippetDates"
                 }
