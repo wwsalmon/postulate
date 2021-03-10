@@ -38,8 +38,8 @@ export interface ProjectObjWithCounts extends ProjectObj {
 }
 
 export interface ProjectObjWithGraph extends ProjectObjWithCounts {
-    postDates: {_id: string}[],
-    snippetDates: {_id: string}[],
+    postDates: {createdAt: string}[],
+    snippetDates: {createdAt: string}[],
 }
 
 export interface SnippetObj {

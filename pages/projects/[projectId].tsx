@@ -79,8 +79,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
     const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const snippetDatesSorted = snippetDates ? snippetDates.sort((a, b) => +new Date(b._id) - +new Date(a._id)) : [];
-    const postDatesSorted = postDates ? postDates.sort((a, b) => +new Date(b._id) - +new Date(a._id)) : [];
+    const snippetDatesSorted = snippetDates ? snippetDates.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : [];
+    const postDatesSorted = postDates ? postDates.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)) : [];
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
@@ -439,32 +439,15 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                         "#99a8ff",
                                         "#667dff",
                                         "#3351ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
-                                        "#0026ff",
+                                        ...Array(50).fill("#0026ff"),
                                     ]}
                                     values={({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab]).reduce((a, b, i, arr) => {
-                                        const thisDate = format(new Date(b._id), "yyyy-MM-dd");
+                                        const thisDate = format(new Date(b.createdAt), "yyyy-MM-dd");
                                         if (i === 0) {
                                             a[thisDate] = 1;
                                             return a;
                                         } else {
-                                            const lastDate = format(new Date({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab][i - 1]._id), "yyyy-MM-dd");
+                                            const lastDate = format(new Date({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab][i - 1].createdAt), "yyyy-MM-dd");
                                             a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
                                             return a;
                                         }
@@ -548,16 +531,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "posts",
                     let: {"projectId": "$_id"},
                     pipeline: [
-                        { $match:
-                                { $expr:
-                                        { $eq: ["$projectId", "$$projectId"] }
-                                }
-                        },
-                        {
-                            $group: {
-                                _id: "$createdAt",
-                            }
-                        }
+                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
+                        {$project: {"createdAt": 1}},
                     ],
                     as: "postDates"
                 }
@@ -567,16 +542,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     from: "snippets",
                     let: {"projectId": "$_id"},
                     pipeline: [
-                        { $match:
-                                { $expr:
-                                        { $eq: ["$projectId", "$$projectId"] }
-                                }
-                        },
-                        {
-                            $group: {
-                                _id: "$createdAt",
-                            }
-                        }
+                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
+                        {$project: {"createdAt": 1}},
                     ],
                     as: "snippetDates"
                 }
