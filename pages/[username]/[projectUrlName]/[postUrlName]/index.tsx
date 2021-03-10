@@ -84,6 +84,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         context.res.setHeader("location", `/@${thisAuthor._id}/p/${encodeURIComponent(postUrlName)}`);
         context.res.statusCode = 302;
         context.res.end();
+
+        return { props: {} };
     } catch (e) {
         console.log(e);
         return { notFound: true };
