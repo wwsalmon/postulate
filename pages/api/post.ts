@@ -10,6 +10,7 @@ import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
+import {TagModel} from "../../models/tag";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -33,7 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
                     if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
-                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "You do not have permission to add posts in this project."})
+                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "You do not have permission to add posts in this project."});
+
+                    // create new tags
+                    if (req.body.tags && req.body.tags.length) {
+                        const existingTags = await TagModel.find({ key: { $in: req.body.tags }});
+                        const newTags = req.body.tags.filter(d => !existingTags.some(x => x.key === d));
+                        if (newTags.length) await TagModel.insertMany(newTags.map(d => ({key: d})));
+                    }
 
                     if (req.body.postId) {
                         const thisPost = await PostModel.findOne({ _id: req.body.postId });
@@ -43,16 +51,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         thisPost.body = req.body.body;
                         thisPost.projectId = req.body.projectId;
                         thisPost.privacy = req.body.privacy;
+                        thisPost.tags = req.body.tags;
 
                         await thisPost.save();
-
-                        let projectUsername = session.username;
-
-                        // if collaborator, fetch owner username
-                        if (thisProject.userId.toString() !== session.userId) {
-                            const thisProjectOwner = await UserModel.findOne({ _id: thisProject.userId });
-                            projectUsername = thisProjectOwner.username;
-                        }
 
                         // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
@@ -98,17 +99,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             title: req.body.title,
                             body: req.body.body,
                             privacy: req.body.privacy,
+                            tags: req.body.tags,
                         }
 
                         const newPostObj = await PostModel.create(newPost);
-
-                        let projectUsername = session.username;
-
-                        // if collaborator, fetch owner username
-                        if (thisProject.userId.toString() !== session.userId) {
-                            const thisProjectOwner = await UserModel.findOne({ _id: thisProject.userId });
-                            projectUsername = thisProjectOwner.username;
-                        }
 
                         // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: req.body.tempId });

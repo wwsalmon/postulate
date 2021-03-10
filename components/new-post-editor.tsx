@@ -3,16 +3,19 @@ import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import Select from "react-select";
+import AsyncCreatableSelect from "react-select/async-creatable";
+import axios from "axios";
 
 export default function NewPostEditor(props: {
     body?: string,
     title?: string,
     privacy?: "public" | "unlisted" | "private",
+    tags?: string[],
     tempId: string,
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private") => void,
+    onSaveEdit: (projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private", tags: string[]) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -21,6 +24,7 @@ export default function NewPostEditor(props: {
     const [title, setTitle] = useState<string>(props.title);
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
     const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
+    const [tags, setTags] = useState<string[]>(props.tags || []);
 
     const privacyOptions = [
         {
@@ -36,6 +40,12 @@ export default function NewPostEditor(props: {
             value: "private",
         },
     ];
+
+    function promiseOptions(inputValue, cb) {
+        axios.get(`/api/tag?query=${inputValue}`).then(res => {
+            cb(res.data.tags.map(d => ({label: d.key, value: d.key})));
+        }).catch(e => console.log(e));
+    }
 
     useEffect(() => {
         window.onbeforeunload = !!body ? () => true : undefined;
@@ -93,6 +103,18 @@ export default function NewPostEditor(props: {
                 </div>
             </div>
 
+            <div className="my-8">
+                <h3 className="up-ui-title mb-4">Tags</h3>
+                <AsyncCreatableSelect
+                    isMulti
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={promiseOptions}
+                    value={tags.map(d => ({label: d, value: d}))}
+                    onChange={newValue => setTags(newValue.map(d => d.value))}
+                />
+            </div>
+
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-4">Body</h3>
             <div className="content prose w-full">
@@ -105,7 +127,7 @@ export default function NewPostEditor(props: {
                 />
             </div>
             <div className="flex mt-4">
-                <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body, privacy)} isDisabled={!body || !title}>
+                <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body, privacy, tags)} isDisabled={!body || !title}>
                     {props.title ? "Save" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>

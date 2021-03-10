@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
-import {fetcher} from "../../utils/utils";
+import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
+import {cleanForJSON, fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
 import Skeleton from "react-loading-skeleton";
@@ -20,7 +20,7 @@ import SnippetBrowser from "../../components/snippet-browser";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
 
-export default function NewPost(props: {title: string, body: string, privacy: "public" | "unlisted" | "private", postId: string, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
+export default function NewPost(props: {post: DatedObj<PostObj>, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
     const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
 
@@ -41,15 +41,16 @@ export default function NewPost(props: {title: string, body: string, privacy: "p
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private") {
+    function onSaveEdit(projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private", tags: string[]) {
         setIsEditLoading(true);
 
         axios.post("/api/post", {
             projectId: projectId || "",
-            postId: props.postId || "",
+            postId: props.post._id || "",
             title: title,
             body: body,
             privacy: privacy,
+            tags: tags,
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
         }).then(res => {
@@ -61,17 +62,17 @@ export default function NewPost(props: {title: string, body: string, privacy: "p
     }
 
     async function onCancelEdit() {
-        await axios.post("/api/cancel-delete-images", props.postId ? {id: props.postId, type: "post"} : {urlName: tempId});
+        await axios.post("/api/cancel-delete-images", props.post._id ? {id: props.post._id, type: "post"} : {urlName: tempId});
         router.push((Array.isArray(router.query.back) || !router.query.back) ? "/projects" : router.query.back);
     }
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
-            <UpSEO title={(props.postId ? "Edit post" : "New post")}/>
+            <UpSEO title={(props.post._id ? "Edit post" : "New post")}/>
             <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8"/>
             <div className="flex">
                 <div className="w-2/3 pr-4 border-r">
-                    <h1 className="up-h1 mb-8">{props.postId ? "Edit" : "New"} post</h1>
+                    <h1 className="up-h1 mb-8">{props.post._id ? "Edit" : "New"} post</h1>
                     <hr className="my-8"/>
                     <NewPostEditor
                         tempId={tempId}
@@ -82,9 +83,10 @@ export default function NewPost(props: {title: string, body: string, privacy: "p
                         onCancelEdit={onCancelEdit}
                         getProjectLabel={getProjectLabel}
                         isEditLoading={isEditLoading}
-                        title={props.title}
-                        body={props.body}
-                        privacy={props.privacy}
+                        title={props.post.title}
+                        body={props.post.body}
+                        privacy={props.post.privacy}
+                        tags={props.post.tags}
                     />
                 </div>
                 <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
@@ -144,7 +146,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const postId: any = context.params.postId;
 
-    if (postId === "new") return {props: {title: "", body: "", privacy: null, postId: null, projectId: null, urlName: null, linkedPosts: null}};
+    if (postId === "new") return {props: {post: null, projectId: null, urlName: null, linkedPosts: null}};
 
     try {
         await dbConnect();
@@ -155,7 +157,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const selectedSnippets = await SnippetModel.find({ linkedPosts: postId });
 
-        return {props: {title: thisPost.title, body: thisPost.body, privacy: thisPost.privacy, postId: postId, projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
+        return {props: {post: cleanForJSON(thisPost), projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
     } catch (e) {
         return {notFound: true};
     }
