@@ -54,7 +54,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <p className="mt-4 opacity-50"><Link href={`/@${thisUser.username}/edit`}><a className="underline">Edit your profile</a></Link> to add a bio.</p>
                     ))}
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
-                    {tags && tags.data.length && (
+                    {tags && !!tags.data.length && (
                         <>
                             <hr className="my-8"/>
                             <h3 className="up-ui-title mb-4">Tags</h3>
@@ -91,8 +91,8 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                             </div>
                         </UpBanner>
                     )}
-                    <h3 className="up-ui-title mb-8">Public posts (showing {postsReady ? <>{(page - 1) * 10 + 1}
-                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : "Loading..."})</h3>
+                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
+                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
                     {postsReady ? filteredPosts.length > 0 ? (
                         <>
                             {filteredPosts.map(post => (
