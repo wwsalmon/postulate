@@ -21,6 +21,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
     const [session, loading] = useSession();
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
+    const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
 
     const postsReady = posts && posts.posts && posts.projects && posts.owners;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
@@ -50,6 +51,16 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <p className="mt-4 opacity-50"><Link href={`/@${thisUser.username}/edit`}><a className="underline">Edit your profile</a></Link> to add a bio.</p>
                     ))}
                     <p className="opacity-25 mt-2">Joined Postulate on {format(new Date(thisUser.createdAt), "MMMM d, yyyy")}</p>
+                    {tags && tags.data.length && (
+                        <>
+                            <hr className="my-8"/>
+                            <h3 className="up-ui-title mb-4">Tags</h3>
+                            {tags.data.map(tag => (
+                                <button className="opacity-50 hover:opacity-100 transition mr-3">#{tag._id} ({tag.count})</button>
+                            ))}
+                        </>
+                    )}
+
                 </div>
                 <div className="lg:w-2/3 lg:pl-12">
                     <hr className="my-10 lg:hidden"/>
