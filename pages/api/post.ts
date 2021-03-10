@@ -173,7 +173,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await dbConnect();
 
                 let conditions: any = req.query.projectId ? { projectId: req.query.projectId } : { userId: req.query.userId };
-                conditions["privacy"] = "public";
+
+                if (req.query.private) {
+                    const session = await getSession({req});
+                    if (req.query.userId && req.query.userId !== session.userId) return res.status(403).json({message: "Unauthed"});
+                    const reqProjectId: any = req.query.projectId;
+                    const project = await ProjectModel.findOne({_id: reqProjectId});
+                    if (project.userId.toString() !== session.userId && !project.collaborators.some(d => d.toString() === session.userId)) return res.status(403).json({message: "Unauthed"});
+                } else {
+                    conditions["privacy"] = "public";
+                }
+
                 if (req.query.search) conditions["$text"] = {"$search": req.query.search};
                 if (req.query.tag) conditions["tags"] = req.query.tag;
 
