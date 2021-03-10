@@ -15,7 +15,7 @@ export default function ProjectItem({project, owners, sessionUserId = null, isPr
 
     return (
         <div className="p-2 md:w-1/3">
-            <Link href={`/projects/${project._id}`}>
+            <Link href={isProjects ? `/projects/${project._id}` : `/@${owners.find(d => d._id === project.userId).username}/${project.urlName}`}>
                 <a className="block p-4 shadow-md rounded-md md:h-full relative pb-12 up-hover-parent">
                     <h3 className="up-ui-item-title leading-tight mb-2">{project.name}</h3>
                     {(project.userId !== sessionUserId) && (

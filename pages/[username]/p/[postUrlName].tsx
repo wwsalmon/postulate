@@ -130,6 +130,16 @@ export default function PublicPost(props: {
                     </p>
                 </div>
             </div>
+            {!!props.postData.tags.length && (
+                <div className="my-8 opacity-50">
+                    <span>Tags: </span>
+                    {props.postData.tags.map(tag => (
+                        <Link href="">
+                            <a className="font-bold">#{tag}</a>
+                        </Link>
+                    ))}
+                </div>
+            )}
             <hr className="my-8"/>
             <div className="content prose">
                 {Parser(markdownConverter.makeHtml(body))}

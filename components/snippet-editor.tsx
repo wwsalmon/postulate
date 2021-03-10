@@ -38,6 +38,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     setBody={setBody}
                     imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
                     placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
+                    id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
                 />
             </div>
             <hr className="my-6"/>
