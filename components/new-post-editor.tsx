@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
@@ -36,6 +36,14 @@ export default function NewPostEditor(props: {
             value: "private",
         },
     ];
+
+    useEffect(() => {
+        window.onbeforeunload = !!body ? () => true : undefined;
+
+        return () => {
+            window.onbeforeunload = undefined;
+        };
+    }, [!!body]);
 
     return (
         <>
