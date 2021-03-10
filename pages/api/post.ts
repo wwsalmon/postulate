@@ -173,6 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await dbConnect();
 
                 let conditions: any = req.query.projectId ? { projectId: req.query.projectId } : { userId: req.query.userId };
+                conditions["privacy"] = "public";
                 if (req.query.search) conditions["$text"] = {"$search": req.query.search};
                 if (req.query.tag) conditions["tags"] = req.query.tag;
 

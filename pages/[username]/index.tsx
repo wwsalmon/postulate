@@ -21,7 +21,8 @@ import UpBanner from "../../components/UpBanner";
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> }) {
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}`, fetcher);
+    const [page, setPage] = useState<number>(1);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
 
@@ -83,19 +84,45 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObj> })
                         <UpBanner className="mb-8">
                             <div className="md:flex items-center w-full">
                                 <p>Showing posts with the tag <b>#{tag}</b></p>
-                                <button className="up-button text ml-auto" onClick={() => setTag("")}>Clear</button>
+                                <button className="up-button text ml-auto" onClick={() => {
+                                    setTag("");
+                                    setPage(1);
+                                }}>Clear</button>
                             </div>
                         </UpBanner>
                     )}
-                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? filteredPosts.length : "Loading..."})</h3>
-                    {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
-                        <PublicPostItem
-                            post={post}
-                            author={thisUser}
-                            project={posts.projects.find(d => d._id === post.projectId)}
-                            urlPrefix={`/@${posts.owners.find(d => d._id === posts.projects.find(d => d._id === post.projectId).userId).username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
-                        />
-                    )) : (
+                    <h3 className="up-ui-title mb-8">Public posts (showing {postsReady ? <>{(page - 1) * 10 + 1}
+                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : "Loading..."})</h3>
+                    {postsReady ? filteredPosts.length > 0 ? (
+                        <>
+                            {filteredPosts.map(post => (
+                                <PublicPostItem
+                                    post={post}
+                                    author={thisUser}
+                                    project={posts.projects.find(d => d._id === post.projectId)}
+                                    urlPrefix={`/@${posts.owners.find(d => d._id === posts.projects.find(d => d._id === post.projectId).userId).username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
+                                />
+                            ))}
+                            
+                            {posts.count > 10 && (
+                                <>
+                                    <p className="opacity-25 mt-8">
+                                        Showing snippets {(page - 1) * 10 + 1}
+                                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}
+                                    </p>
+                                    <div className="mt-4">
+                                        {Array.from({length: Math.ceil(posts.count / 10)}, (x, i) => i + 1).map(d => (
+                                            <button
+                                                className={"py-2 px-4 rounded-md mr-2 " + (d === page ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
+                                                onClick={() => setPage(d)}
+                                                disabled={+d === +page}
+                                            >{d}</button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    ) : (
                         <p>No public posts have been published in this project yet.</p>
                     ) : (
                         <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
