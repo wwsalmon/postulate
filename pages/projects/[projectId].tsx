@@ -56,7 +56,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
-    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
+    const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const [{
         _id: projectId,
@@ -79,7 +79,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
     const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const allDates = [...(snippetDates || []), ...(postDates || null)].sort((a, b) => +new Date(b._id) - +new Date(a._id));
+    const snippetDatesSorted = snippetDates ? snippetDates.sort((a, b) => +new Date(b._id) - +new Date(a._id)) : [];
+    const postDatesSorted = postDates ? postDates.sort((a, b) => +new Date(b._id) - +new Date(a._id)) : [];
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
@@ -405,60 +406,74 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 <div className="lg:w-1/3 lg:pl-8">
                     <h3 className="up-ui-title mb-8">Stats</h3>
                     <div className="flex items-center">
-                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "posts" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("posts")}
+                        >
                             <FiEdit/>
                             <p className="ml-2">{numPosts} posts</p>
-                        </div>
-                        <div className="flex items-center opacity-25 hover:opacity-75 mr-6 transition">
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "snippets" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("snippets")}
+                        >
                             <FiMessageSquare/>
                             <p className="ml-2">{numSnippets} snippets</p>
-                        </div>
-                        <p className="opacity-25 hover:opacity-75 transition mr-6">
+                        </button>
+                        <button
+                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "graph" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
+                            onClick={() => setStatsTab("graph")}
+                        >
                             {percentLinked}% linked
-                        </p>
+                        </button>
                     </div>
                     <div className="my-8">
-                        {/*
-                        // @ts-ignore*/}
-                        <GitHubCalendar
-                            panelColors={[
-                                "#eeeeee",
-                                "#ccd4ff",
-                                "#99a8ff",
-                                "#667dff",
-                                "#3351ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                                "#0026ff",
-                            ]}
-                            values={allDates.reduce((a, b, i, arr) => {
-                                const thisDate = format(new Date(b._id), "yyyy-MM-dd");
-                                if (i === 0) {
-                                    a[thisDate] = 1;
-                                    return a;
-                                } else {
-                                    const lastDate = format(new Date(allDates[i - 1]._id), "yyyy-MM-dd");
-                                    a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
-                                    return a;
-                                }
-                            }, {})}
-                            until={format(new Date(), "yyyy-MM-dd")}
-                        />
+                        {(statsTab === "snippets" || statsTab === "posts") && (
+                            <>
+                                {/*
+                                // @ts-ignore*/}
+                                <GitHubCalendar
+                                    panelColors={[
+                                        "#eeeeee",
+                                        "#ccd4ff",
+                                        "#99a8ff",
+                                        "#667dff",
+                                        "#3351ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                        "#0026ff",
+                                    ]}
+                                    values={({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab]).reduce((a, b, i, arr) => {
+                                        const thisDate = format(new Date(b._id), "yyyy-MM-dd");
+                                        if (i === 0) {
+                                            a[thisDate] = 1;
+                                            return a;
+                                        } else {
+                                            const lastDate = format(new Date({snippets: snippetDatesSorted, posts: postDatesSorted}[statsTab][i - 1]._id), "yyyy-MM-dd");
+                                            a[thisDate] = (thisDate === lastDate) ? a[thisDate] + 1 : 1;
+                                            return a;
+                                        }
+                                    }, {})}
+                                    until={format(new Date(), "yyyy-MM-dd")}
+                                />
+                            </>
+
+                        )}
                     </div>
                     <hr className="my-10"/>
                     <div className="flex items-center">
