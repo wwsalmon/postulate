@@ -101,6 +101,7 @@ export default function NewPostEditor(props: {
                     setBody={setBody}
                     imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
                     placeholder="Turn your snippets into a shareable post!"
+                    id={projectId}
                 />
             </div>
             <div className="flex mt-4">
