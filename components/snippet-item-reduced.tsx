@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction} from 'react';
+import React, {Dispatch, SetStateAction, useState} from 'react';
 import {DatedObj, SnippetObj, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
@@ -6,6 +6,9 @@ import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
+import {FiCode, FiEye} from "react-icons/fi";
+import SimpleMDEEditor from "react-simplemde-editor";
+import {simpleMDEToolbar} from "../utils/utils";
 
 export default function SnippetItemReduced({snippet, authors, selectedSnippetIds = null, setSelectedSnippetIds = null, isPostPage = false}: {
     snippet: DatedObj<SnippetObj>,
@@ -21,6 +24,7 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
         extensions: [showdownHtmlEscape],
     });
     const [session, loading] = useSession();
+    const [isMarkdown, setIsMarkdown] = useState<boolean>(false);
 
     const isSelected = selectedSnippetIds ? selectedSnippetIds.includes(snippet._id) : null;
 
@@ -38,7 +42,7 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                         </a>
                     </Link>
                 )}
-                <div className="flex items-center">
+                <div className="flex items-center w-full">
                     {selectedSnippetIds && setSelectedSnippetIds && (
                         <input
                             type="checkbox"
@@ -56,6 +60,11 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                     <div className="opacity-25">
                         {format(new Date(snippet.createdAt), "h:mm a")}
                     </div>
+                    {!isPostPage && (
+                        <button className="up-button text ml-auto opacity-50" onClick={() => setIsMarkdown(!isMarkdown)}>
+                            {isMarkdown ? <FiEye/> : <FiCode/>}
+                        </button>
+                    )}
                 </div>
             </div>
             {snippet.url && (
@@ -64,7 +73,24 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                 </div>
             )}
             <div className="prose" style={{maxWidth: "unset"}}>
-                {Parser(markdownConverter.makeHtml(snippet.body))}
+                {(!isMarkdown || isPostPage) ? (
+                    Parser(markdownConverter.makeHtml(snippet.body))
+                ) : (
+                    <div className="border rounded-md bg-white p-2">
+                        <SimpleMDEEditor
+                            value={snippet.body}
+                            onChange={() => null}
+                            getMdeInstance={instance => {
+                                instance.codemirror.setOption("readOnly", true);
+                            }}
+                            options={{
+                                spellChecker: false,
+                                toolbar: false,
+                                status: false,
+                            }}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
