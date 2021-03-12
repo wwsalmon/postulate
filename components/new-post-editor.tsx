@@ -1,14 +1,16 @@
-import React, {useEffect, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
+import EasyMDE from "easymde";
 
 export default function NewPostEditor(props: {
     body?: string,
     title?: string,
+    postId?: string,
     privacy?: "public" | "unlisted" | "private",
     tags?: string[],
     tempId: string,
@@ -19,6 +21,7 @@ export default function NewPostEditor(props: {
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
+    setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
     const [body, setBody] = useState<string>(props.body);
     const [title, setTitle] = useState<string>(props.title);
@@ -126,7 +129,8 @@ export default function NewPostEditor(props: {
                     setBody={setBody}
                     imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
                     placeholder="Turn your snippets into a shareable post!"
-                    id={projectId}
+                    id={projectId + (props.postId || "new")}
+                    setInstance={props.setInstance}
                 />
             </div>
             <div className="flex mt-4">
