@@ -112,6 +112,9 @@ export default function NewPostEditor(props: {
                     loadOptions={promiseOptions}
                     value={tags.map(d => ({label: d, value: d}))}
                     onChange={newValue => setTags(newValue.map(d => d.value))}
+                    styles={{
+                        menu: provided => ({...provided, zIndex: 6}),
+                    }}
                 />
             </div>
 
