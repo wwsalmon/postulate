@@ -37,6 +37,7 @@ import dbConnect from "../../utils/dbConnect";
 import mongoose from "mongoose";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
+import EasyMDE from "easymde";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -58,6 +59,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
+    const [instance, setInstance] = useState<EasyMDE>(null);
 
     const [{
         _id: projectId,
@@ -104,6 +106,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             tags: tags || [],
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
+            instance.clearAutosavedValue();
             setIsLoading(false);
             setIteration(iteration + 1);
             setIsSnippet(false);
@@ -317,6 +320,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 isLoading={isLoading}
                                 onSaveEdit={onSubmit}
                                 onCancelEdit={onCancelSnippetOrResource}
+                                setInstance={setInstance}
                             />
                         </div>
                     )}

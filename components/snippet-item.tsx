@@ -17,6 +17,7 @@ import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import project from "../pages/api/project";
+import EasyMDE from "easymde";
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
@@ -38,6 +39,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
+    const [instance, setInstance] = useState<EasyMDE>(null);
 
     const isSelected = selectedSnippetIds.includes(snippet._id);
 
@@ -184,6 +186,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                             isLoading={isEditLoading}
                             onSaveEdit={onSaveEdit}
                             onCancelEdit={onCancelEdit}
+                            setInstance={setInstance}
                         />
                     ) : (
                         <>

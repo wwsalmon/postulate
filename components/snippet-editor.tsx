@@ -1,12 +1,13 @@
-import React, {useState} from "react";
+import React, {Dispatch, SetStateAction, useState} from "react";
 import {DatedObj, SnippetObj} from "../utils/types";
 import SpinnerButton from "./spinner-button";
 import MDEditor from "./md-editor";
 import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
+import EasyMDE from "easymde";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObj>,
     projectId?: string,
@@ -14,6 +15,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     isLoading: boolean,
     onSaveEdit: (urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) => void,
     onCancelEdit: (urlName: string) => void,
+    setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
@@ -39,6 +41,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
                     placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
                     id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
+                    setInstance={setInstance}
                 />
             </div>
             <hr className="my-6"/>

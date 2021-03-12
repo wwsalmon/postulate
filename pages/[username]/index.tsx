@@ -194,7 +194,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             {posts.count > 10 && (
                                 <>
                                     <p className="opacity-25 mt-8">
-                                        Showing snippets {(page - 1) * 10 + 1}
+                                        Showing posts {(page - 1) * 10 + 1}
                                         -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}
                                     </p>
                                     <div className="mt-4">

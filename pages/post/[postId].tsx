@@ -19,6 +19,7 @@ import UpModal from "../../components/up-modal";
 import SnippetBrowser from "../../components/snippet-browser";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
+import EasyMDE from "easymde";
 
 export default function NewPost(props: {post: DatedObj<PostObj>, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
@@ -28,6 +29,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
     const [tempId, setTempId] = useState<string>(props.urlName || short.generate());
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>(props.selectedSnippetIds || ((router.query.snippets && !Array.isArray(router.query.snippets)) ? JSON.parse(router.query.snippets) : []));
     const [isBrowseOpen, setIsBrowseOpen] = useState<boolean>(false);
+    const [instance, setInstance] = useState<EasyMDE>(null);
 
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
@@ -54,6 +56,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
         }).then(res => {
+            instance.clearAutosavedValue();
             router.push(res.data.url);
         }).catch(e => {
             console.log(e);
@@ -83,10 +86,12 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                         onCancelEdit={onCancelEdit}
                         getProjectLabel={getProjectLabel}
                         isEditLoading={isEditLoading}
+                        postId={props.post ? props.post._id : null}
                         title={props.post ? props.post.title : null}
                         body={props.post ? props.post.body : null}
                         privacy={props.post ? props.post.privacy : null}
                         tags={props.post ? props.post.tags : null}
+                        setInstance={setInstance}
                     />
                 </div>
                 <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
