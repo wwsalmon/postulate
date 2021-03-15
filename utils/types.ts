@@ -51,7 +51,6 @@ export interface SnippetObj {
     date: string, // ISO datestring
     url: string,
     tags: string[],
-    likes: string[], // array of IDs
     linkedPosts: string[], // array of IDs
 }
 
@@ -62,7 +61,6 @@ export interface PostObj {
     title: string,
     body: string,
     tags?: string[],
-    likes?: string[], // array of IDs
     privacy: "public" | "private" | "unlisted",
 }
 
@@ -77,6 +75,11 @@ export interface ImageObj {
 
 export interface TagObj {
     key: string,
+}
+
+export interface ReactionObj {
+    userId: string,
+    targetId: string,
 }
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript

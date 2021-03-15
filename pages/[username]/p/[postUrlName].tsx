@@ -1,7 +1,7 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../../utils/types";
+import {DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
 import {useRouter} from "next/router";
 import React, {useState} from "react";
 import showdown from "showdown";
@@ -25,6 +25,7 @@ import dbConnect from "../../../utils/dbConnect";
 import UpBanner from "../../../components/UpBanner";
 import Accordion from "react-robust-accordion";
 import SnippetItemReduced from "../../../components/snippet-item-reduced";
+import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -43,8 +44,11 @@ export default function PublicPost(props: {
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
     const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
+    const [reactionsIteration, setReactionsIteration] = useState<number>(0);
+    const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
+    const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
 
     const linkedSnippetsReady = linkedSnippets && linkedSnippets.snippets && !!linkedSnippets.snippets.length;
 
@@ -72,6 +76,20 @@ export default function PublicPost(props: {
             setIsDeleteLoading(false);
             console.log(e);
         });
+    }
+
+    function onLike() {
+        if (session) {
+            axios.post("/api/reaction", {
+                targetId: props.postData._id,
+            }).then(() => {
+                setReactionsIteration(reactionsIteration + 1);
+            }).catch(e => {
+                console.log(e);
+            });
+        } else {
+            setReactionsUnauthModalOpen(true);
+        }
     }
 
     return (
@@ -137,24 +155,44 @@ export default function PublicPost(props: {
                     </p>
                 </div>
             </div>
-            {(!!props.postData.tags.length || !!props.linkedSnippets.length) && (
-                <div className="my-8">
-                    {!!props.postData.tags.length && (
-                        <span className="opacity-50">
+            <div className="flex items-center">
+                {(!!props.postData.tags.length || !!props.linkedSnippets.length) && (
+                    <div>
+                        {!!props.postData.tags.length && (
+                            <span className="opacity-50">
                             <span>Tags: </span>
-                            {props.postData.tags.map(tag => (
-                                <Link href="">
-                                    <a className="font-bold">#{tag}</a>
-                                </Link>
-                            ))}
+                                {props.postData.tags.map(tag => (
+                                    <Link href="">
+                                        <a className="font-bold">#{tag}</a>
+                                    </Link>
+                                ))}
                         </span>
-                    )}
-                    {!!props.postData.tags.length && !!props.linkedSnippets.length && <span className="opacity-25 inline-block mx-2"> | </span>}
-                    {!!props.linkedSnippets.length && (
-                        <span className="opacity-25">{props.linkedSnippets.length} linked {props.linkedSnippets.length === 1 ? "snippet" : "snippets"}</span>
-                    )}
-                </div>
-            )}
+                        )}
+                        {!!props.postData.tags.length && !!props.linkedSnippets.length && <span className="opacity-25 inline-block mx-2"> | </span>}
+                        {!!props.linkedSnippets.length && (
+                            <span className="opacity-25">{props.linkedSnippets.length} linked {props.linkedSnippets.length === 1 ? "snippet" : "snippets"}</span>
+                        )}
+                    </div>
+                )}
+                {reactions && reactions.data && (
+                    <div className="ml-auto flex items-center">
+                        {reactions.data.length > 0 && (
+                            <span className="opacity-25">{reactions.data.length}</span>
+                        )}
+                        <button className="up-button text small -my-6 ml-2" onClick={onLike} disabled={isOwner}>
+                            {(session && reactions.data.some(d => d.userId === session.userId)) ? (
+                                <RiHeartFill/>
+                            ) : (
+                                <RiHeartLine/>
+                            )}
+                        </button>
+                    </div>
+                )}
+                <UpModal isOpen={reactionsUnauthModalOpen} setIsOpen={setReactionsUnauthModalOpen}>
+                    <p>You must have an account to react to posts.</p>
+                    <button className="up-button mt-4 primary" onClick={() => setReactionsUnauthModalOpen(false)}>Okay</button>
+                </UpModal>
+            </div>
             {isOwner && !!props.linkedSnippets.length && (
                 <UpBanner className="my-8">
                     <Accordion
