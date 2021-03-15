@@ -81,6 +81,8 @@ export default function PublicPost(props: {
                 description={body.substr(0, 200)}
                 projectName={props.projectData.name}
                 imgUrl={props.postData.body.match(/!\[.*?\]\((.*?)\)/) ? props.postData.body.match(/!\[.*?\]\((.*?)\)/)[1] : null}
+                authorUsername={props.thisAuthor.username}
+                publishedDate={props.postData.createdAt}
                 noindex={props.postData.privacy !== "public"}
             />
             {(props.postData.privacy === "unlisted") && (
