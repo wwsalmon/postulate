@@ -44,7 +44,7 @@ export default function PublicPost(props: {
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
     const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
-    const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}`, isOwner ? fetcher : () => []);
+    const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
 
     const linkedSnippetsReady = linkedSnippets && linkedSnippets.snippets && !!linkedSnippets.snippets.length;
 
@@ -75,7 +75,7 @@ export default function PublicPost(props: {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 pb-16">
+        <div className="mx-auto px-4 pb-16" style={{maxWidth: 780}}>
             <UpSEO
                 title={title}
                 description={body.substr(0, 200)}
