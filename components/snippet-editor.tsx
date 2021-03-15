@@ -52,6 +52,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 onChange={(newValue) => setTags(newValue.map(d => d.value))}
                 isMulti
             />
+            <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or type to create a new one</p>
             <hr className="my-6"/>
             <div className="flex">
                 <SpinnerButton isLoading={isLoading} onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}>

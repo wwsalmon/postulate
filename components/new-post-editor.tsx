@@ -119,11 +119,12 @@ export default function NewPostEditor(props: {
                         menu: provided => ({...provided, zIndex: 6}),
                     }}
                 />
+                <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag or type to create a new one</p>
             </div>
 
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-4">Body</h3>
-            <div className="content prose w-full">
+            <div className="content prose w-full" style={{maxWidth: "unset"}}>
                 <MDEditor
                     body={body}
                     setBody={setBody}
