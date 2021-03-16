@@ -1,7 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {TagModel} from "../../models/tag";
-import {UserModel} from "../../models/user";
 import {PostModel} from "../../models/post";
 import * as mongoose from "mongoose";
 

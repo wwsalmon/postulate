@@ -1,7 +1,7 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
+import {CommentWithAuthor, DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
 import {useRouter} from "next/router";
 import React, {useState} from "react";
 import showdown from "showdown";
@@ -26,6 +26,7 @@ import UpBanner from "../../../components/UpBanner";
 import Accordion from "react-robust-accordion";
 import SnippetItemReduced from "../../../components/snippet-item-reduced";
 import {RiHeartFill, RiHeartLine} from "react-icons/ri";
+import CommentItem from "../../../components/comment-item";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -46,9 +47,11 @@ export default function PublicPost(props: {
     const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
+    const [commentsIteration, setCommentsIteration] = useState<number>(0);
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
+    const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${props.postData._id}&iter=${commentsIteration}`);
 
     const linkedSnippetsReady = linkedSnippets && linkedSnippets.snippets && !!linkedSnippets.snippets.length;
 
@@ -233,11 +236,31 @@ export default function PublicPost(props: {
                 </>
             )}
             <hr className="my-8"/>
-            <p className="up-ui-title mb-10">
+            <h3 className="up-ui-title mb-8">Comments</h3>
+            {session ? (
+                <CommentItem
+                    authorId={session.userId}
+                    targetId={props.postData._id}
+                    parentCommentId={undefined}
+                    iteration={commentsIteration}
+                    setIteration={setCommentsIteration}
+                />
+            ) : (
+                <p>You must have an account to post a comment.</p>
+            )}
+            {comments && comments.data && comments.data.map(comment => (
+                <CommentItem comment={comment} iteration={commentsIteration} setIteration={setCommentsIteration}/>
+            ))}
+            <hr className="my-8"/>
+            <h3 className="up-ui-title mb-10">
                 Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
                     <a className="underline">{projectName}</a>
+                </Link> by <Link href={`/@${props.thisOwner.username}`}>
+                    <a className="underline">
+                        {props.thisOwner.name}
+                    </a>
                 </Link>
-            </p>
+            </h3>
             {latestPostsReady ? filteredPosts.length ? filteredPosts.map(post => (
                 <PublicPostItem
                     post={post}

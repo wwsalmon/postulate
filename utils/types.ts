@@ -89,6 +89,14 @@ export interface CommentObj {
     body: string,
 }
 
+export interface CommentWithAuthor extends CommentObj {
+    author: {
+        name: string,
+        image: string,
+        username: string,
+    }[],
+}
+
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
     _id: string,
