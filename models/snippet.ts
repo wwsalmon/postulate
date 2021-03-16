@@ -10,7 +10,6 @@ const SnippetSchema = new mongoose.Schema({
     date: {type: String, required: true},
     url: {type: String, required: false},
     tags: [{type: String, required: true}],
-    likes: [mongoose.Schema.Types.ObjectId],
     linkedPosts: [mongoose.Schema.Types.ObjectId],
 }, {
     timestamps: true,

@@ -8,7 +8,6 @@ const PostSchema = new mongoose.Schema({
     title: {type: String, required: true},
     body: {type: String, required: true},
     tags: [{type: String, required: true}],
-    likes: [mongoose.Schema.Types.ObjectId],
     privacy: {type: String, required: true}, // "public", "private", "unlisted"
 }, {
     timestamps: true,

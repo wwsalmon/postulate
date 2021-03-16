@@ -69,6 +69,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
 
     function onCancelEdit(urlName: string) {
         setIsEdit(false);
+        instance.clearAutosavedValue();
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
@@ -83,6 +84,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
             urlName: snippet.urlName,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
+            instance.clearAutosavedValue();
             setIteration(iteration + 1);
             setIsEdit(false);
         }).catch(e => {

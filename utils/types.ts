@@ -51,7 +51,6 @@ export interface SnippetObj {
     date: string, // ISO datestring
     url: string,
     tags: string[],
-    likes: string[], // array of IDs
     linkedPosts: string[], // array of IDs
 }
 
@@ -62,7 +61,6 @@ export interface PostObj {
     title: string,
     body: string,
     tags?: string[],
-    likes?: string[], // array of IDs
     privacy: "public" | "private" | "unlisted",
 }
 
@@ -77,6 +75,42 @@ export interface ImageObj {
 
 export interface TagObj {
     key: string,
+}
+
+export interface ReactionObj {
+    userId: string,
+    targetId: string,
+}
+
+export interface CommentObj {
+    userId: string,
+    targetId: string,
+    parentCommentId: string,
+    body: string,
+}
+
+export interface NotificationObj {
+    userId: string,
+    type: "postReaction" | "postComment" | "postCommentReply",
+    targetId: string, // ID of relevant object, i.e. a reaction or comment
+    read: boolean,
+}
+
+export interface CommentWithAuthor extends CommentObj {
+    author: {
+        name: string,
+        image: string,
+        username: string,
+    }[],
+}
+
+export interface PostWithAuthor extends PostObj {
+    author: DatedObj<UserObj>[],
+}
+
+export interface NotificationWithAuthorAndTarget extends NotificationObj {
+    comment: DatedObj<CommentObj> & {post: PostWithAuthor[], author: DatedObj<UserObj>[]},
+    reaction: DatedObj<ReactionObj> & {post: PostWithAuthor[], author: DatedObj<UserObj>[]},
 }
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
