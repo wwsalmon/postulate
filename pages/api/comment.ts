@@ -3,6 +3,9 @@ import dbConnect from "../../utils/dbConnect";
 import {getSession} from "next-auth/client";
 import {CommentModel} from "../../models/comment";
 import * as mongoose from "mongoose";
+import {PostModel} from "../../models/post";
+import {DatedObj, PostObj} from "../../utils/types";
+import {NotificationModel} from "../../models/notification";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST" && req.method !== "GET" && req.method !== "DELETE") return res.status(405).json({message: "Invalid method"});
@@ -32,12 +35,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await existingComment.save();
                 return res.status(200).json({message: "Comment updated"});
             } else {
-                await CommentModel.create({
+                const thisComment = await CommentModel.create({
                     userId: session.userId,
                     targetId: req.body.targetId,
                     parentCommentId: req.body.parentCommentId || null,
                     body: req.body.body,
                 });
+
+                const thisPost: DatedObj<PostObj> = await PostModel.findById(req.body.targetId);
+
+                if (thisPost) {
+                    if (thisPost.userId.toString() !== session.userId) {
+                        await NotificationModel.create({
+                            userId: thisPost.userId,
+                            targetId: thisComment._id,
+                            type: "postComment",
+                            read: false,
+                        });
+                    }
+
+                    if (req.body.parentCommentId) {
+                        const relevantComments = await CommentModel.find({
+                            $or: [
+                                { _id: req.body.parentCommentId },
+                                { parentCommentId: req.body.parentCommentId },
+                            ]
+                        });
+
+                        const uniqueRelevantUserIds = relevantComments
+                            .map(d => d.userId.toString())
+                            .filter((d, i, a) => i === a.findIndex(x => x === d) && d !== session.userId && d !== thisPost.userId);
+
+                        await NotificationModel.insertMany(uniqueRelevantUserIds.map(userId => ({
+                            userId: userId,
+                            targetId: thisComment._id,
+                            type: "postCommentReply",
+                            read: false,
+                        })));
+                    }
+                }
 
                 return res.status(200).json({message: "Comment created"});
             }

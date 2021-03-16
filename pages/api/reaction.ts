@@ -2,6 +2,8 @@ import {NextApiRequest, NextApiResponse} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {getSession} from "next-auth/client";
 import {ReactionModel} from "../../models/reaction";
+import {NotificationModel} from "../../models/notification";
+import {PostModel} from "../../models/post";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST" && req.method !== "GET") return res.status(405).json({message: "Invalid method"});
@@ -30,6 +32,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await ReactionModel.deleteOne(conditions);
             } else {
                 await ReactionModel.create(conditions);
+
+                const thisPost = await PostModel.findById(req.body.targetId);
+
+                if (thisPost) {
+                    await NotificationModel.create({
+                        userId: thisPost.userId,
+                        targetId: req.body.targetId,
+                        type: "postReaction",
+                        read: false,
+                    });
+                }
+
             }
 
             return res.status(200).json({message: "Reaction updated"});
