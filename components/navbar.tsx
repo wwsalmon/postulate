@@ -10,32 +10,34 @@ export default function Navbar() {
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="max-w-7xl mx-auto h-16 flex items-center px-4">
-                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10"/></a></Link>
+                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10 mr-10"/></a></Link>
+                {session && (
+                    <>
+                        <Link href={"/projects"}>
+                            <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
+                                <div className="mr-3">
+                                    <FiGrid/>
+                                </div>
+                                Projects
+                            </a>
+                        </Link>
+                        <Link href={`/@${session.username}`}>
+                            <a className="hidden md:flex items-center opacity-50 hover:opacity-100">
+                                <div className="mr-3">
+                                    <FiUser/>
+                                </div>
+                                Profile
+                            </a>
+                        </Link>
+                    </>
+                )}
                 <div className="ml-auto flex items-center h-full">
                     {session ? (
-                        <>
-                            <Link href={"/projects"}>
-                                <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
-                                    <div className="mr-3">
-                                        <FiGrid/>
-                                    </div>
-                                    Projects
-                                </a>
-                            </Link>
-                            <Link href={`/@${session.username}`}>
-                                <a className="hidden md:flex items-center opacity-50 hover:opacity-100">
-                                    <div className="mr-3">
-                                        <FiUser/>
-                                    </div>
-                                    Profile
-                                </a>
-                            </Link>
-                            <MoreMenu className="ml-6">
-                                <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`} className="md:hidden"/>
-                                <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
-                                <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
-                            </MoreMenu>
-                        </>
+                        <MoreMenu className="ml-6" customButton={<img src={session ? session.user.image : ""} className="w-8 rounded-full"/>}>
+                            <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
+                            <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
+                            <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
+                        </MoreMenu>
                     ) : loading ? (
                         <p>Loading...</p>
                     ) : (
