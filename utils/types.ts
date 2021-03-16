@@ -89,6 +89,13 @@ export interface CommentObj {
     body: string,
 }
 
+export interface NotificationObj {
+    userId: string,
+    type: "postReaction" | "postComment" | "postCommentReply",
+    targetId: string, // ID of relevant object, i.e. a reaction or comment
+    read: boolean,
+}
+
 export interface CommentWithAuthor extends CommentObj {
     author: {
         name: string,
