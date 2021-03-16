@@ -79,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         date: new Date().toISOString(),
                         url: req.body.url || "",
                         tags: req.body.tags,
-                        likes: [],
                         userId: session.userId,
                         linkedPosts: [],
                     }
