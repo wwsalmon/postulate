@@ -48,6 +48,7 @@ export default function PublicPost(props: {
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
+
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
@@ -249,7 +250,9 @@ export default function PublicPost(props: {
                 <p>You must have an account to post a comment.</p>
             )}
             {comments && comments.data && comments.data.map(comment => (
-                <CommentItem comment={comment} iteration={commentsIteration} setIteration={setCommentsIteration}/>
+                <div key={comment._id}>
+                    <CommentItem comment={comment} iteration={commentsIteration} setIteration={setCommentsIteration}/>
+                </div>
             ))}
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-10">
