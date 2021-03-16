@@ -236,7 +236,7 @@ export default function PublicPost(props: {
                 </>
             )}
             <hr className="my-8"/>
-            <h3 className="up-ui-title mb-8">Comments</h3>
+            <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
             {session ? (
                 <CommentItem
                     authorId={session.userId}
