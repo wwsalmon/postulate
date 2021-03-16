@@ -31,14 +31,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (existingReaction) {
                 await ReactionModel.deleteOne(conditions);
             } else {
-                await ReactionModel.create(conditions);
+                const thisReaction = await ReactionModel.create(conditions);
 
                 const thisPost = await PostModel.findById(req.body.targetId);
 
                 if (thisPost) {
                     await NotificationModel.create({
                         userId: thisPost.userId,
-                        targetId: req.body.targetId,
+                        targetId: thisReaction._id,
                         type: "postReaction",
                         read: false,
                     });
