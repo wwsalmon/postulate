@@ -75,6 +75,7 @@ export default function Navbar() {
                                                             const targetAuthor = target.author[0];
                                                             return `/@${targetAuthor.username}/p/${target.urlName}?notification=true`;
                                                         })()}
+                                                        className={notification.read ? "opacity-25" : ""}
                                                     />
                                                 ))}
                                             </div>

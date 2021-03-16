@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ];
 
             const notifications = await NotificationModel.aggregate([
-                {$match: {userId: mongoose.Types.ObjectId(session.userId), read: false}},
+                {$match: {userId: mongoose.Types.ObjectId(session.userId)}},
                 {$lookup: {
                     from: "comments",
                     let: {"targetId": "$targetId"},
