@@ -21,6 +21,8 @@ interface PropsNew extends PropsBase {
     authorId: any,
     targetId: string,
     parentCommentId?: string,
+    setParentIsReply?: Dispatch<SetStateAction<boolean>>,
+    parentIsSubComment?: boolean,
     comment?: never,
 }
 
@@ -28,16 +30,19 @@ interface PropsExisting extends PropsBase {
     authorId?: never,
     targetId?: never,
     parentCommentId?: never,
-    comment?: DatedObj<CommentWithAuthor>,
+    setParentIsReply?: never,
+    parentIsSubComment?: never,
+    comment: DatedObj<CommentWithAuthor>,
 }
 
-export default function CommentItem({ authorId, comment, targetId, parentCommentId, iteration, setIteration }: PropsNew | PropsExisting) {
+export default function CommentItem({ authorId, comment, targetId, parentCommentId, iteration, setIteration, setParentIsReply, parentIsSubComment }: PropsNew | PropsExisting) {
     const [session, loading] = useSession();
     const [body, setBody] = useState<string>(comment ? comment.body : "");
     const [commentLoading, setCommentLoading] = useState<boolean>(false);
     const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
+    const [isReply, setIsReply] = useState<boolean>(false);
 
     const {data: author, error: authorError}: responseInterface<{ data: DatedObj<UserObj> }, any> = useSWR(`/api/user?id=${authorId || ""}`, authorId ? fetcher : () => null)
 
@@ -61,6 +66,7 @@ export default function CommentItem({ authorId, comment, targetId, parentComment
             setBody("");
             setCommentLoading(false);
             setIteration(iteration + 1);
+            if (setParentIsReply) setParentIsReply(false);
         }).catch(e => {
             setCommentLoading(false);
             console.log(e);
@@ -99,32 +105,47 @@ export default function CommentItem({ authorId, comment, targetId, parentComment
                         <p className="mt-1 prose">
                             <Linkify>{comment.body}</Linkify>
                         </p>
-                        <div className="mt-2 flex items-center">
-                            <button className="mr-4 opacity-25 hover:opacity-50 transition">
-                                Reply
-                            </button>
-                            {isAuthor && (
-                                <>
-                                    <button className="mr-4 opacity-25 hover:opacity-50 transition" onClick={() => setIsEdit(true)}>
-                                        Edit
+                        {isReply ? (
+                            <div className={`mt-8 ${comment.parentCommentId ? "-ml-12" : ""}`}>
+                                <CommentItem
+                                    authorId={session.userId}
+                                    targetId={targetId || comment.targetId}
+                                    parentCommentId={parentCommentId || comment.parentCommentId || comment._id}
+                                    iteration={iteration}
+                                    setIteration={setIteration}
+                                    setParentIsReply={setIsReply}
+                                />
+                            </div>
+                        ) : (
+                            <div className="mt-2 flex items-center">
+                                {session && (
+                                    <button className="mr-4 opacity-25 hover:opacity-50 transition" onClick={() => setIsReply(true)}>
+                                        Reply
                                     </button>
-                                    <button className="mr-4 opacity-25 hover:opacity-50 transition" onClick={() => setDeleteOpen(true)}>
-                                        Delete
-                                    </button>
-                                    <UpModal isOpen={deleteOpen} setIsOpen={setDeleteOpen}>
-                                        Are you sure you want to delete this comment?
-                                        <div className="mt-4 flex">
-                                            <SpinnerButton isLoading={deleteLoading} onClick={onDelete}>
-                                                Delete
-                                            </SpinnerButton>
-                                            <button className="up-button text" onClick={() => setDeleteOpen(false)}>
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </UpModal>
-                                </>
-                            )}
-                        </div>
+                                )}
+                                {isAuthor && (
+                                    <>
+                                        <button className="mr-4 opacity-25 hover:opacity-50 transition" onClick={() => setIsEdit(true)}>
+                                            Edit
+                                        </button>
+                                        <button className="mr-4 opacity-25 hover:opacity-50 transition" onClick={() => setDeleteOpen(true)}>
+                                            Delete
+                                        </button>
+                                        <UpModal isOpen={deleteOpen} setIsOpen={setDeleteOpen}>
+                                            Are you sure you want to delete this comment?
+                                            <div className="mt-4 flex">
+                                                <SpinnerButton isLoading={deleteLoading} onClick={onDelete}>
+                                                    Delete
+                                                </SpinnerButton>
+                                                <button className="up-button text" onClick={() => setDeleteOpen(false)}>
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </UpModal>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </>
                 ) : (
                     <>
@@ -139,15 +160,19 @@ export default function CommentItem({ authorId, comment, targetId, parentComment
                                 onClick={onSubmit}
                                 isLoading={commentLoading}
                                 isDisabled={disablePost}
-                                noRightMargin={!isEdit}
+                                noRightMargin={!(isEdit || setParentIsReply)}
                                 className="small"
                             >
                                 {isEdit ? "Save" : "Post"}
                             </SpinnerButton>
-                            {isEdit && (
+                            {(isEdit || setParentIsReply) && (
                                 <button className="up-button small text" onClick={() => {
-                                    setBody(comment.body);
-                                    setIsEdit(false);
+                                    if (comment) {
+                                        setBody(comment.body);
+                                        setIsEdit(false);
+                                    } else {
+                                        setParentIsReply(false);
+                                    }
                                 }}>
                                     Cancel
                                 </button>

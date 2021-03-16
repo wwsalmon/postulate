@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 await CommentModel.create({
                     userId: session.userId,
                     targetId: req.body.targetId,
-                    parentCommentId: req.body.parentcommentId || null,
+                    parentCommentId: req.body.parentCommentId || null,
                     body: req.body.body,
                 });
 

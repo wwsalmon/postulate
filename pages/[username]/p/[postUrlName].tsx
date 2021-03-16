@@ -27,6 +27,7 @@ import Accordion from "react-robust-accordion";
 import SnippetItemReduced from "../../../components/snippet-item-reduced";
 import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import CommentItem from "../../../components/comment-item";
+import CommentContainerItem from "../../../components/comment-container-item";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -247,11 +248,16 @@ export default function PublicPost(props: {
                     setIteration={setCommentsIteration}
                 />
             ) : (
-                <p>You must have an account to post a comment.</p>
+                <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
             )}
-            {comments && comments.data && comments.data.map(comment => (
+            {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
                 <div key={comment._id}>
-                    <CommentItem comment={comment} iteration={commentsIteration} setIteration={setCommentsIteration}/>
+                    <CommentContainerItem
+                        iteration={commentsIteration}
+                        setIteration={setCommentsIteration}
+                        comment={comment}
+                        subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
+                    />
                 </div>
             ))}
             <hr className="my-8"/>
