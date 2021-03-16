@@ -71,6 +71,8 @@ export default function CommentItem({ authorId, comment, targetId, parentComment
         setDeleteLoading(true);
 
         axios.delete("/api/comment", { data: { id: comment ? comment._id : "" } }).then(() => {
+            setDeleteLoading(false);
+            setDeleteOpen(false);
             setIteration(iteration + 1);
         }).catch(e => {
             console.log(e);
