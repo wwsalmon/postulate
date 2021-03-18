@@ -43,7 +43,7 @@ export default function Navbar() {
                             {notifications && (
                                 <button className="up-hover-button relative h-10 px-2">
                                     <FiBell/>
-                                    {notifications.data.length && (
+                                    {!!notifications.data.length && (
                                         <>
                                             <div className="rounded-full w-3 h-3 bg-red-500 top-0 right-0 absolute text-white font-bold">
                                                 <span style={{ fontSize: 8, top: -9 }} className="relative">
