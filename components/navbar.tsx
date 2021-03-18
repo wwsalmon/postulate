@@ -8,10 +8,16 @@ import {DatedObj, NotificationWithAuthorAndTarget} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import {format} from "date-fns";
+import {useContext} from "react";
+import {NotifsContext} from "../pages/_app";
 
 export default function Navbar() {
     const [session, loading] = useSession();
-    const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}`, (session && session.userId) ? fetcher : () => null);
+    const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
+    const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
+
+    const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
+    const unreadCount = (notifications && notifications.data) ? notifications.data.filter(d => !d.read).length : 0;
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
@@ -43,43 +49,43 @@ export default function Navbar() {
                             {notifications && (
                                 <button className="up-hover-button relative h-10 px-2">
                                     <FiBell/>
-                                    {!!notifications.data.length && (
-                                        <>
-                                            <div className="rounded-full w-3 h-3 bg-red-500 top-0 right-0 absolute text-white font-bold">
+                                    {!!unreadCount && (
+                                        <div className="rounded-full w-3 h-3 top-0 right-0 absolute text-white font-bold" style={{backgroundColor: "#0026ff"}}>
                                                 <span style={{ fontSize: 8, top: -9 }} className="relative">
-                                                  {notifications.data.length}
+                                                  {unreadCount}
                                                 </span>
-                                            </div>
-                                            <div className="up-hover-dropdown mt-10 w-64">
-                                                {notifications.data.map(notification => (
-                                                    <MoreMenuItem
-                                                        text={(() => {
-                                                            const type = notification.type;
-                                                            const isComment = ["postComment", "postCommentReply"].includes(type);
-                                                            const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
-                                                            const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                            const targetAuthor = target.author[0];
+                                        </div>
+                                    )}
+                                    {!!notifsCount && (
+                                        <div className="up-hover-dropdown mt-10 w-64">
+                                            {notifications.data.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(notification => (
+                                                <MoreMenuItem
+                                                    text={(() => {
+                                                        const type = notification.type;
+                                                        const isComment = ["postComment", "postCommentReply"].includes(type);
+                                                        const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
+                                                        const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
+                                                        const targetAuthor = target.author[0];
 
-                                                            if (type === "postReaction" || type === "postComment") {
-                                                                return <span><b>{author.name}</b> {type === "postReaction" ? "liked" : "commented on"} your {format(new Date(target.createdAt), "M/d/y")} post</span>
-                                                            } else if (type === "postCommentReply") {
-                                                                return <span><b>{author.name}</b> replied to your comment on {targetAuthor._id === session.userId ? "your" : `${targetAuthor.name}'s` } {format(new Date(target.createdAt), "M/d/y")} post</span>
-                                                            }
-                                                            return "notification";
-                                                        })()}
-                                                        wrapText={true}
-                                                        href={(() => {
-                                                            const type = notification.type;
-                                                            const isComment = ["postComment", "postCommentReply"].includes(type);
-                                                            const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                            const targetAuthor = target.author[0];
-                                                            return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
-                                                        })()}
-                                                        className={notification.read ? "opacity-25" : ""}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </>
+                                                        if (type === "postReaction" || type === "postComment") {
+                                                            return <span><b>{author.name}</b> {type === "postReaction" ? "liked" : "commented on"} your {format(new Date(target.createdAt), "M/d/y")} post</span>
+                                                        } else if (type === "postCommentReply") {
+                                                            return <span><b>{author.name}</b> replied to your comment on {targetAuthor._id === session.userId ? "your" : `${targetAuthor.name}'s` } {format(new Date(target.createdAt), "M/d/y")} post</span>
+                                                        }
+                                                        return "notification";
+                                                    })()}
+                                                    wrapText={true}
+                                                    href={(() => {
+                                                        const type = notification.type;
+                                                        const isComment = ["postComment", "postCommentReply"].includes(type);
+                                                        const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
+                                                        const targetAuthor = target.author[0];
+                                                        return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
+                                                    })()}
+                                                    className={notification.read ? "opacity-25" : ""}
+                                                />
+                                            ))}
+                                        </div>
                                     )}
                                 </button>
                             )}

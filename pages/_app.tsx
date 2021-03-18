@@ -7,6 +7,7 @@ import Modal from "react-modal";
 import Footer from "../components/footer";
 import NProgress from "nprogress";
 import "../styles/nprogress.css";
+import {createContext, useState} from "react";
 
 Router.events.on("routeChangeStart", (url) => {
     NProgress.start();
@@ -14,21 +15,26 @@ Router.events.on("routeChangeStart", (url) => {
 Router.events.on("routeChangeComplete", () => NProgress.done());
 Router.events.on("routeChangeError", () => NProgress.done());
 
+export const NotifsContext = createContext(null);
+
 export default function App({Component, pageProps}: AppProps) {
     const router = useRouter();
+    const [notifsIteration, setNotifsIteration] = useState<number>(0);
 
     return (
-        <Provider session={pageProps.session}>
-            {router.route !== "/" && (
-                <Navbar/>
-            )}
-            <div id="app-root">
-                <Component {...pageProps} />
-            </div>
-            {router.route !== "/" && (
-                <Footer/>
-            )}
-        </Provider>
+        <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
+            <Provider session={pageProps.session}>
+                {router.route !== "/" && (
+                    <Navbar/>
+                )}
+                <div id="app-root">
+                    <Component {...pageProps} />
+                </div>
+                {router.route !== "/" && (
+                    <Footer/>
+                )}
+            </Provider>
+        </NotifsContext.Provider>
     )
 }
 
