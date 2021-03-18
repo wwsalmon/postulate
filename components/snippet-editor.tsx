@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObj} from "../utils/types";
 import SpinnerButton from "./spinner-button";
 import MDEditor from "./md-editor";
@@ -22,6 +22,14 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
+
+    useEffect(() => {
+        window.onbeforeunload = !!body ? () => true : undefined;
+
+        return () => {
+            window.onbeforeunload = undefined;
+        };
+    }, [!!body]);
 
     return (
         <>
