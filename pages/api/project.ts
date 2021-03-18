@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 if (!thisProject) return res.status(406).json({message: "No project found with given ID."});
 
-                if (thisProject.userId.toString() !== session.userId) return res.status(403).json({msesage: "You do not have permission to delete this snippet."});
+                if (thisProject.userId.toString() !== session.userId) return res.status(403).json({message: "You do not have permission to delete this snippet."});
 
                 await SnippetModel.deleteMany({ projectId: req.body.id });
                 await PostModel.deleteMany({ projectId: req.body.id });
