@@ -11,13 +11,13 @@ import {format} from "date-fns";
 
 export default function Navbar() {
     const [session, loading] = useSession();
-    const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session}`, session ? fetcher : () => null);
+    const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}`, (session && session.userId) ? fetcher : () => null);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="max-w-7xl mx-auto h-16 flex items-center px-4">
                 <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10 mr-10"/></a></Link>
-                {session && (
+                {session && session.username && (
                     <>
                         <Link href={"/projects"}>
                             <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
@@ -84,8 +84,12 @@ export default function Navbar() {
                                 </button>
                             )}
                             <MoreMenu className="ml-6" customButton={<img src={session ? session.user.image : ""} className="w-8 rounded-full"/>}>
-                                <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
-                                <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
+                                {session.username && (
+                                    <>
+                                        <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
+                                        <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
+                                    </>
+                                )}
                                 <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
                             </MoreMenu>
                         </>
