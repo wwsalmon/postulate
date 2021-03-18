@@ -3,7 +3,7 @@ import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {CommentWithAuthor, DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
 import {useRouter} from "next/router";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
@@ -96,6 +96,18 @@ export default function PublicPost(props: {
             setReactionsUnauthModalOpen(true);
         }
     }
+
+    useEffect(() => {
+        if (router.query.notif) {
+            axios.post("/api/notification", {
+                id: router.query.notif,
+            }).then(res => {
+                console.log(res);
+            }).catch(e => {
+                console.log(e);
+            })
+        }
+    }, [router.query]);
 
     return (
         <div className="mx-auto px-4 pb-16" style={{maxWidth: 780}}>

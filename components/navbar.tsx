@@ -73,7 +73,7 @@ export default function Navbar() {
                                                             const isComment = ["postComment", "postCommentReply"].includes(type);
                                                             const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
                                                             const targetAuthor = target.author[0];
-                                                            return `/@${targetAuthor.username}/p/${target.urlName}?notification=true`;
+                                                            return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
                                                         })()}
                                                         className={notification.read ? "opacity-25" : ""}
                                                     />
