@@ -6,6 +6,7 @@ import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
 import * as mongoose from "mongoose";
 import {aggregatePipeline} from "../../utils/utils";
+import {PostModel} from "../../models/post";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
@@ -72,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (thisProject.userId.toString() !== session.userId) return res.status(403).json({msesage: "You do not have permission to delete this snippet."});
 
                 await SnippetModel.deleteMany({ projectId: req.body.id });
-
+                await PostModel.deleteMany({ projectId: req.body.id });
                 await ProjectModel.deleteOne({ _id: req.body.id });
 
                 res.status(200).json({message: "Project successfully deleted."});
