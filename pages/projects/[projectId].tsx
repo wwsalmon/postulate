@@ -76,7 +76,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         linkedSnippets: linkedSnippetsCount,
         snippetDates: snippetDatesArr,
         postDates: postDatesArr,
-    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
+    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const numPosts = postsCount.length ? postsCount[0].count : 0;
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
