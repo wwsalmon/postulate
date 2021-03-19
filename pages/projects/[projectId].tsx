@@ -3,7 +3,7 @@ import {ProjectModel} from "../../models/project";
 import {aggregatePipeline, arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
 import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
 import axios from "axios";
@@ -76,7 +76,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         linkedSnippets: linkedSnippetsCount,
         snippetDates: snippetDatesArr,
         postDates: postDatesArr,
-    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData)
+    }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const numPosts = postsCount.length ? postsCount[0].count : 0;
     const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;

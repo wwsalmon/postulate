@@ -3,7 +3,7 @@ import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {CommentWithAuthor, DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
 import {useRouter} from "next/router";
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
@@ -28,6 +28,7 @@ import SnippetItemReduced from "../../../components/snippet-item-reduced";
 import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import CommentItem from "../../../components/comment-item";
 import CommentContainerItem from "../../../components/comment-container-item";
+import {NotifsContext} from "../../_app";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -38,6 +39,7 @@ export default function PublicPost(props: {
 }) {
     const router = useRouter();
     const [session, loading] = useSession();
+    const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = props.projectData;
     const isOwner = session && props.thisAuthor._id === session.userId;
 
@@ -96,6 +98,19 @@ export default function PublicPost(props: {
             setReactionsUnauthModalOpen(true);
         }
     }
+
+    useEffect(() => {
+        if (router.query.notif) {
+            axios.post("/api/notification", {
+                id: router.query.notif,
+            }).then(res => {
+                setNotifsIteration(notifsIteration + 1);
+                console.log(res);
+            }).catch(e => {
+                console.log(e);
+            })
+        }
+    }, [router.query]);
 
     return (
         <div className="mx-auto px-4 pb-16" style={{maxWidth: 780}}>
