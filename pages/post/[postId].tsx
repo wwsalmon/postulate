@@ -20,6 +20,7 @@ import SnippetBrowser from "../../components/snippet-browser";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
 import EasyMDE from "easymde";
+import {FiChevronLeft, FiX} from "react-icons/fi";
 
 export default function NewPost(props: {post: DatedObj<PostObj>, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
@@ -30,6 +31,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>(props.selectedSnippetIds || ((router.query.snippets && !Array.isArray(router.query.snippets)) ? JSON.parse(router.query.snippets) : []));
     const [isBrowseOpen, setIsBrowseOpen] = useState<boolean>(false);
     const [instance, setInstance] = useState<EasyMDE>(null);
+    const [isSnippetsOpen, setIsSnippetsOpen] = useState<boolean>(false);
 
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
@@ -72,9 +74,9 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
             <UpSEO title={(props.post ? "Edit post" : "New post")}/>
-            <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8"/>
-            <div className="flex">
-                <div className="w-2/3 pr-4 border-r">
+            <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8 pt-12 lg:pt-0"/>
+            <div className="lg:flex">
+                <div className="lg:w-2/3 lg:pr-4 lg:border-r">
                     <h1 className="up-h1 mb-8">{props.post ? "Edit" : "New"} post</h1>
                     <hr className="my-8"/>
                     <NewPostEditor
@@ -94,9 +96,24 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                         setInstance={setInstance}
                     />
                 </div>
-                <div className="w-1/3 pl-4 opacity-25 hover:opacity-100 transition">
-                    <div className="sticky" style={{top: 100}}>
-                        <h3 className="up-ui-title pb-4">Linked snippets ({selectedSnippetIds.length})</h3>
+                <button
+                    className="w-full h-12 lg:hidden bg-white flex items-center fixed top-16 left-0 px-4 justify-end border-t border-b z-10"
+                    onClick={() => setIsSnippetsOpen(true)}
+                >
+                            <span className="inline-block mr-2 font-bold">
+                                Linked snippets ({selectedSnippetIds.length})
+                            </span>
+                    <FiChevronLeft/>
+                </button>
+                <div
+                    className="w-96 max-w-full lg:w-1/3 border-l lg:border-none pl-4 lg:opacity-25 lg:hover:opacity-100 transition fixed lg:relative bg-white z-20 top-0 right-0 h-full"
+                    style={{marginRight: isSnippetsOpen ? "0" : "-100%", transition: "all 0.2s ease"}}
+                >
+                    <div className="relative lg:sticky" style={{top: 100}}>
+                        <div className="flex items-center pb-4 pr-4">
+                            <h3 className="up-ui-title">Linked snippets ({selectedSnippetIds.length})</h3>
+                            <button className="ml-auto lg:hidden p-2" onClick={() => setIsSnippetsOpen(false)}><FiX/></button>
+                        </div>
                         <div className="overflow-y-auto overflow-x-hidden px-4 -ml-4" style={{maxHeight: "calc(100vh - 340px)"}}>
                             {selectedSnippets ? selectedSnippets.snippets.length ? (
                                 <>

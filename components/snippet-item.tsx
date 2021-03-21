@@ -212,7 +212,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                     </a>
                                 </Link>
                             )}
-                            <div className="prose">
+                            <div className="prose break-words">
                                 {Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
                             <div className="flex mt-4">
