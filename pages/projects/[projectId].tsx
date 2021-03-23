@@ -309,8 +309,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     "false": <BiUnlink/>,
                                 }[linkedQuery]}}
                                 onChange={newValue => setLinkedQuery(newValue.value)}
-                            >
-                            </Select>
+                            />
                         </div>
                         <hr className="my-8 lg:-mr-8 lg:pr-8"/>
                         {!(isSnippet || isResource) ? (

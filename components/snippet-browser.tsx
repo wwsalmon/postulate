@@ -6,6 +6,7 @@ import Select from "react-select";
 import {format} from "date-fns";
 import Skeleton from "react-loading-skeleton";
 import SnippetItemReduced from "./snippet-item-reduced";
+import {BiLink, BiUnlink} from "react-icons/bi";
 
 export default function SnippetBrowser({startProjectId, selectedSnippetIds, setSelectedSnippetIds, onClose, className, style}: {
     startProjectId: string,
@@ -21,8 +22,9 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
     const [snippetPage, setSnippetPage] = useState<number>(1);
+    const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
 
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
@@ -53,7 +55,7 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
                 <div className="sm:flex items-center mt-6">
                     <input
                         type="text"
-                        className="border-b my-2 py-2 mr-4 flex-grow"
+                        className="border-b my-2 py-2 mr-4 flex-grow w-full sm:w-auto"
                         placeholder="Search"
                         value={snippetSearchQuery}
                         onChange={e => {
@@ -62,7 +64,7 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
                         }}
                     />
                     <Select
-                        className="flex-grow"
+                        className="flex-grow sm:mr-4 mt-4 sm:mt-0"
                         options={[...(projects ? projects.projects : []), ...(sharedProjects ? sharedProjects.projects : [])]
                             .find(d => d._id === snippetProjectId)
                             .availableTags
@@ -75,6 +77,20 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
                         }}
                         placeholder="Filter by tag"
                         isMulti
+                    />
+                    <Select
+                        className="sm:w-32 mt-4 sm:mt-0"
+                        options={[
+                            {value: "all", label: "All"},
+                            {value: "true", label: <BiLink/>},
+                            {value: "false", label: <BiUnlink/>},
+                        ]}
+                        value={{value: linkedQuery, label: {
+                                "all": "All",
+                                "true": <BiLink/>,
+                                "false": <BiUnlink/>,
+                            }[linkedQuery]}}
+                        onChange={newValue => setLinkedQuery(newValue.value)}
                     />
                 </div>
                 {snippets ? snippets.snippets.length > 0 ? (
