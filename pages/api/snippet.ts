@@ -123,6 +123,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
             if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+            if (req.query.linked) {
+                if (req.query.linked === "true") conditions["linkedPosts"] = {"$exists": true, "$ne": []};
+                if (req.query.linked === "false") conditions["linkedPosts"] = {"$eq": []};
+            }
             if (req.query.ids && JSON.parse(req.query.ids).length) {
                 const ids: any = JSON.parse(req.query.ids);
                 conditions = { "_id": {"$in": ids}};

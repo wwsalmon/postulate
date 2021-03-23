@@ -38,6 +38,7 @@ import mongoose from "mongoose";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
+import {BiLink, BiUnlink} from "react-icons/bi";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -61,6 +62,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
     const [instance, setInstance] = useState<EasyMDE>(null);
     const [tab, setTab] = useState<"home"|"posts"|"stats">("home");
+    const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
 
     const [{
         _id: projectId,
@@ -88,7 +90,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const numGraphDays = 30;
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
@@ -263,7 +265,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 ) : (
                                     <p>No collaborators found for this project.</p>
                                 ) : (
-                                    <Skeleton count={2}/>
+                                    <div className="mt-4">
+                                        <Skeleton count={2}/>
+                                    </div>
                                 )}
                             </UpModal>
                         </div>
@@ -273,7 +277,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         <div className="sm:flex items-center mt-6">
                             <input
                                 type="text"
-                                className="border-b my-2 py-2 mr-4 flex-grow"
+                                className="border-b my-2 py-2 sm:mr-4 flex-grow w-full sm:w-auto"
                                 placeholder="Search"
                                 value={snippetSearchQuery}
                                 onChange={e => {
@@ -282,7 +286,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 }}
                             />
                             <Select
-                                className="flex-grow"
+                                className="flex-grow sm:mr-4 mt-4 sm:mt-0"
                                 options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
                                 value={tagsQuery.map(d => ({label: d, value: d}))}
                                 onChange={(newValue) => {
@@ -292,6 +296,21 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 placeholder="Filter by tag"
                                 isMulti
                             />
+                            <Select
+                                className="sm:w-32 mt-4 sm:mt-0"
+                                options={[
+                                    {value: "all", label: "All"},
+                                    {value: "true", label: <BiLink/>},
+                                    {value: "false", label: <BiUnlink/>},
+                                ]}
+                                value={{value: linkedQuery, label: {
+                                    "all": "All",
+                                    "true": <BiLink/>,
+                                    "false": <BiUnlink/>,
+                                }[linkedQuery]}}
+                                onChange={newValue => setLinkedQuery(newValue.value)}
+                            >
+                            </Select>
                         </div>
                         <hr className="my-8 lg:-mr-8 lg:pr-8"/>
                         {!(isSnippet || isResource) ? (
@@ -363,7 +382,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 </div>
                             </div>
                         )}
-                        {snippets ? snippets.snippets.length > 0 ? (
+                        {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
                             <>
                                 <p className="opacity-25 mt-8">
                                     Showing snippets {(snippetPage - 1) * 10 + 1}
@@ -409,7 +428,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         ) : (
                             <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
                         ) : (
-                            <Skeleton count={10}/>
+                            <div className="mt-4">
+                                <Skeleton count={10}/>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -525,7 +546,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         ) : (
                             <p className="my-4">No posts in this project</p>
                         ) : (
-                            <Skeleton count={4}/>
+                            <div className="mt-4">
+                                <Skeleton count={4}/>
+                            </div>
                         )}
                     </div>
                 </div>
