@@ -228,6 +228,7 @@ export default function PublicPost(props: {
                                 </div>
                             </div>
                         )}
+                        className="w-full"
                         openState={viewLinkedSnippetsOpen}
                         setOpenState={setViewLinkedSnippetsOpen}
                     >
