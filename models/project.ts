@@ -5,7 +5,7 @@ const ProjectSchema = new mongoose.Schema({
     userId: mongoose.Schema.Types.ObjectId,
     urlName: {type: String, required: true},
     name: {type: String, required: true},
-    description: {type: String, required: true, unique: true},
+    description: {type: String, required: false},
     stars: [mongoose.Schema.Types.ObjectId],
     collaborators: [mongoose.Schema.Types.ObjectId],
     availableTags: [{type: String, required: true}],

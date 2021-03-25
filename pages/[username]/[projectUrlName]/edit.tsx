@@ -135,8 +135,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisProject = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });
 
-        console.log("got this far");
-
         return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: projectUrlName }};
     } catch (e) {
         console.log("error");
