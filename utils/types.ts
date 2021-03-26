@@ -21,6 +21,12 @@ export interface UserObj {
     featuredPosts: string[], // array of IDs
 }
 
+export interface UserObjBasic {
+    name: string,
+    username: string,
+    image: string,
+}
+
 export interface ProjectObj {
     urlName: string,
     userId: string, // ID
@@ -29,6 +35,17 @@ export interface ProjectObj {
     stars: string[], // array of IDs
     collaborators: string[],
     availableTags: string[],
+}
+
+export interface ProjectObjBasic {
+    urlName: string,
+    userId: string, // ID
+    name: string,
+    stars: string[], // array of IDs
+}
+
+export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
+    ownerArr: IdObj<UserObjBasic>[],
 }
 
 export interface ProjectObjWithCounts extends ProjectObj {
@@ -62,6 +79,11 @@ export interface PostObj {
     body: string,
     tags?: string[],
     privacy: "public" | "private" | "unlisted",
+}
+
+export interface PostObjGraph extends PostObj {
+    projectArr: IdObj<ProjectObjBasicWithOwner>[],
+    authorArr: IdObj<UserObjBasic>[],
 }
 
 export interface ImageObj {
@@ -118,6 +140,10 @@ export type DatedObj<T extends {}> = T & {
     _id: string,
     createdAt: string, // ISO date
     updatedAt: string, // ISO date
+}
+
+export type IdObj<T extends {}> = T & {
+    _id: string,
 }
 
 export interface SessionObj extends SessionBase {

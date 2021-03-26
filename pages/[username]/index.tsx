@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
 import React, {useState} from "react";
 import {format} from "date-fns";
@@ -13,12 +13,13 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare, FiSearch, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
+import UpModal from "../../components/up-modal";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -32,12 +33,15 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [page, setPage] = useState<number>(1);
     const [isSearch, setIsSearch] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
+    const [addPostOpen, setAddPostOpen] = useState<boolean>(false);
+    const [featuredPostsIter, setFeaturedPostsIter] = useState<number>(0);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
+    const {data: featuredPosts, error: featuredPostsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&featured=true&iter=${featuredPostsIter}`);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
-    const postsReady = posts && posts.posts && posts.projects && posts.owners;
+    const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
     const isOwner = session && session.userId === thisUser._id;
 
@@ -169,6 +173,20 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                         <Skeleton count={10}/>
                     )}
                     <hr className="my-10"/>
+                    <div className="flex mb-8 items-center">
+                        <h3 className="up-ui-title">Featured posts</h3>
+                        {isOwner && (
+                            <>
+                                <button className="ml-auto up-button small text" onClick={() => setAddPostOpen(true)}>
+                                    <FiPlus/>
+                                </button>
+                                <UpModal isOpen={addPostOpen} setIsOpen={setAddPostOpen}>
+
+                                </UpModal>
+                            </>
+                        )}
+                    </div>
+                    <hr className="my-10"/>
                     {tag && (
                         <UpBanner className="mb-8">
                             <div className="md:flex items-center w-full">
@@ -222,9 +240,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             {filteredPosts.map(post => (
                                 <PublicPostItem
                                     post={post}
-                                    author={thisUser}
-                                    project={posts.projects.find(d => d._id === post.projectId)}
-                                    urlPrefix={`/@${posts.owners.find(d => d._id === posts.projects.find(d => d._id === post.projectId).userId).username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
+                                    showProject={true}
                                 />
                             ))}
                             

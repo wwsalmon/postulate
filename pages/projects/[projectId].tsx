@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
 import {aggregatePipeline, arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {DatedObj, PostObj, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
+import {DatedObj, PostObj, PostObjGraph, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
 import React, {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
@@ -92,7 +92,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
@@ -521,10 +521,10 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 </a>
                             </Link>
                         </div>
-                        {(posts && posts.posts && posts.authors) ? posts.posts.length > 0 ? (
+                        {(posts && posts.posts) ? posts.posts.length > 0 ? (
                             <>
                                 {posts.posts.map(post => (
-                                    <Link href={`/@${posts.authors.find(d => d._id === post.userId).username}/p/${post.urlName}`}>
+                                    <Link href={`/@${post.authorArr[0].username}/p/${post.urlName}`}>
                                         <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
                                             <p className="">
                                                 {post.privacy !== "public" && (
@@ -534,7 +534,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                             </p>
                                             <div className="flex items-center mt-2">
                                                 {collaborators && !!collaborators.length && (
-                                                    <img src={posts.authors.find(d => d._id === post.userId).image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
+                                                    <img src={post.authorArr[0].image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
                                                 )}
                                                 <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
                                             </div>
