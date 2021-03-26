@@ -216,7 +216,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             lookupAuthorStage,
                         ],
                         as: "posts",
-                    }}
+                    }},
+                    {$sort: {createdAt: -1}},
                 ];
 
                 let conditions: any = req.query.projectId ? { projectId: mongoose.Types.ObjectId(req.query.projectId) } : { userId: mongoose.Types.ObjectId(req.query.userId) };
@@ -237,6 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 let cursorStages = [];
 
                 if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
+                if (!req.query.search) cursorStages.push({$sort: {createdAt: -1}});
 
                 const graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline)[0].posts : PostModel.aggregate([
                     {$match: conditions},

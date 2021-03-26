@@ -20,6 +20,7 @@ import UpBanner from "../../components/UpBanner";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import UpModal from "../../components/up-modal";
+import ProfileAddFeaturedPost from "../../components/profile-add-featured-post";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -42,7 +43,6 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const postsReady = posts && posts.posts;
-    const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
     const isOwner = session && session.userId === thisUser._id;
 
     const snippetDates = arrToDict(thisUser.snippetsArr);
@@ -180,8 +180,13 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                                 <button className="ml-auto up-button small text" onClick={() => setAddPostOpen(true)}>
                                     <FiPlus/>
                                 </button>
-                                <UpModal isOpen={addPostOpen} setIsOpen={setAddPostOpen}>
-
+                                <UpModal isOpen={addPostOpen} setIsOpen={setAddPostOpen} wide={true}>
+                                    <ProfileAddFeaturedPost
+                                        iteration={featuredPostsIter}
+                                        setIteration={setFeaturedPostsIter}
+                                        thisUser={thisUser}
+                                        setOpen={setAddPostOpen}
+                                    />
                                 </UpModal>
                             </>
                         )}
@@ -235,9 +240,9 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                         </p>
                     )}
 
-                    {postsReady ? filteredPosts.length > 0 ? (
+                    {postsReady ? posts.posts.length > 0 ? (
                         <>
-                            {filteredPosts.map(post => (
+                            {posts.posts.map(post => (
                                 <PublicPostItem
                                     post={post}
                                     showProject={true}
@@ -263,7 +268,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             )}
                         </>
                     ) : (
-                        <p>No public posts have been published in this project yet.</p>
+                        <p>No public posts have been published by this user yet.</p>
                     ) : (
                         <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                     )}
