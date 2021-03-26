@@ -106,47 +106,45 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                     <FiChevronLeft/>
                 </button>
                 <div
-                    className="w-96 max-w-full lg:w-1/3 border-l lg:border-none pl-4 lg:opacity-25 lg:hover:opacity-100 transition fixed lg:relative bg-white z-20 top-0 right-0 h-full"
+                    className="w-96 max-w-full lg:w-1/3 border-l lg:border-none pl-4 lg:opacity-25 lg:hover:opacity-100 transition fixed lg:sticky bg-white z-40 top-0 lg:top-24 pt-8 right-0 h-full"
                     style={{marginRight: isSnippetsOpen ? "0" : "-100%", transition: "all 0.2s ease"}}
                 >
-                    <div className="relative lg:sticky" style={{top: 100}}>
-                        <div className="flex items-center pb-4 pr-4">
-                            <h3 className="up-ui-title">Linked snippets ({selectedSnippetIds.length})</h3>
-                            <button className="ml-auto lg:hidden p-2" onClick={() => setIsSnippetsOpen(false)}><FiX/></button>
-                        </div>
-                        <div className="overflow-y-auto overflow-x-hidden px-4 -ml-4" style={{maxHeight: "calc(100vh - 340px)"}}>
-                            {selectedSnippets ? selectedSnippets.snippets.length ? (
-                                <>
-                                    {selectedSnippets.snippets.map((snippet, i, a) => (
-                                        <div key={snippet._id}>
-                                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                                <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                            )}
-                                            <SnippetItemReduced snippet={snippet} authors={selectedSnippets.authors} selectedSnippetIds={selectedSnippetIds} setSelectedSnippetIds={setSelectedSnippetIds}/>
-                                        </div>
-                                    ))}
-                                </>
-                            ) : (
-                                <p className="opacity-50 my-4">No linked snippets. Click "Browse snippets" to select some</p>
-                            ) : (
-                                <Skeleton count={4}/>
-                            )}
-                        </div>
-                        <button onClick={() => setIsBrowseOpen(true)} className="up-button small mt-4">Browse snippets</button>
-                        <UpModal isOpen={isBrowseOpen} setIsOpen={setIsBrowseOpen} wide={true}>
-                            <SnippetBrowser
-                                startProjectId={startProjectId}
-                                selectedSnippetIds={selectedSnippetIds}
-                                setSelectedSnippetIds={setSelectedSnippetIds}
-                                onClose={() => setIsBrowseOpen(false)}
-                                className="relative"
-                                style={{
-                                    left: "-1rem",
-                                    width: "calc(100% + 2rem)"
-                                }}
-                            />
-                        </UpModal>
+                    <div className="flex items-center pb-4 pr-4">
+                        <h3 className="up-ui-title">Linked snippets ({selectedSnippetIds.length})</h3>
+                        <button className="ml-auto lg:hidden p-2" onClick={() => setIsSnippetsOpen(false)}><FiX/></button>
                     </div>
+                    <div className="overflow-y-auto overflow-x-hidden px-4 -ml-4" style={{maxHeight: "calc(100vh - 320px)"}}>
+                        {selectedSnippets ? selectedSnippets.snippets.length ? (
+                            <>
+                                {selectedSnippets.snippets.map((snippet, i, a) => (
+                                    <div key={snippet._id}>
+                                        {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                            <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                        )}
+                                        <SnippetItemReduced snippet={snippet} authors={selectedSnippets.authors} selectedSnippetIds={selectedSnippetIds} setSelectedSnippetIds={setSelectedSnippetIds}/>
+                                    </div>
+                                ))}
+                            </>
+                        ) : (
+                            <p className="opacity-50 my-4">No linked snippets. Click "Browse snippets" to select some</p>
+                        ) : (
+                            <Skeleton count={4}/>
+                        )}
+                    </div>
+                    <button onClick={() => setIsBrowseOpen(true)} className="up-button small mt-4">Browse snippets</button>
+                    <UpModal isOpen={isBrowseOpen} setIsOpen={setIsBrowseOpen} wide={true}>
+                        <SnippetBrowser
+                            startProjectId={startProjectId}
+                            selectedSnippetIds={selectedSnippetIds}
+                            setSelectedSnippetIds={setSelectedSnippetIds}
+                            onClose={() => setIsBrowseOpen(false)}
+                            className="relative"
+                            style={{
+                                left: "-1rem",
+                                width: "calc(100% + 2rem)"
+                            }}
+                        />
+                    </UpModal>
                 </div>
             </div>
         </div>
