@@ -13,7 +13,7 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare, FiSearch, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
@@ -30,7 +30,9 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}`, fetcher);
+    const [isSearch, setIsSearch] = useState<boolean>(false);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
@@ -178,8 +180,43 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             </div>
                         </UpBanner>
                     )}
-                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
-                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
+                    <div className="flex items-center mb-8">
+                        {isSearch ? (
+                            <input
+                                type="text"
+                                className="border-b py-2 flex-grow w-full"
+                                placeholder="Search"
+                                value={searchQuery}
+                                onChange={e => {
+                                    setPage(1);
+                                    setSearchQuery(e.target.value);
+                                }}
+                            />
+                        ) : (
+                            <h3 className="up-ui-title">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
+                                -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
+                        )}
+                        <div className="ml-auto">
+                            <button className="up-button text small" onClick={() => {
+                                if (isSearch) setSearchQuery("");
+                                setIsSearch(!isSearch)
+                            }}>
+                                {isSearch ? (
+                                    <FiX/>
+                                ) : (
+                                    <FiSearch/>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isSearch && postsReady && (
+                        <p className="opacity-25 mb-12 -mt-4">
+                            Showing posts {(page - 1) * 10 + 1}
+                            -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}
+                        </p>
+                    )}
+
                     {postsReady ? filteredPosts.length > 0 ? (
                         <>
                             {filteredPosts.map(post => (
