@@ -237,8 +237,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 let cursorStages = [];
 
-                if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
                 if (!req.query.search) cursorStages.push({$sort: {createdAt: -1}});
+                if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
 
                 const graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline)[0].posts : PostModel.aggregate([
                     {$match: conditions},
