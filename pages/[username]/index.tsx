@@ -13,7 +13,7 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiStar, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiStar, FiTrash, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
@@ -21,6 +21,7 @@ import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import UpModal from "../../components/up-modal";
 import ProfileAddFeaturedPost from "../../components/profile-add-featured-post";
+import axios from "axios";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -56,7 +57,17 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
 
     const featuredPostIds = featuredPostsReady ? featuredPosts.posts.map(d => d._id) : [];
 
-    console.log(featuredPostIds, featuredPostsReady, featuredPosts);
+    function deleteFeaturedPost(id: string) {
+        axios.delete(`/api/post/feature`, {
+            data: {
+                id: id,
+            },
+        }).then(() => {
+            setFeaturedPostsIter(featuredPostsIter + 1);
+        }).catch(e => {
+            console.log(e);
+        });
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
@@ -203,16 +214,28 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                     {featuredPostsReady && featuredPosts.posts.length ? (
                         <>
                             {featuredPosts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
-                                <PublicPostItem
-                                    post={post}
-                                    showProject={true}
-                                />
+                                <>
+                                    <div className="flex">
+                                        <PublicPostItem
+                                            post={post}
+                                            showProject={true}
+                                            showLine={false}
+                                        />
+                                        <button
+                                            className="up-button text small ml-auto opacity-25 hover:opacity-100"
+                                            onClick={() => deleteFeaturedPost(post._id)}
+                                        >
+                                            <FiX/>
+                                        </button>
+                                    </div>
+                                    <hr className="my-10"/>
+                                </>
                             ))}
                             <hr className="my-6 invisible"/>
                         </>
                     ) : (
                         <>
-                            <p>This user has not featured any posts yet.</p>
+                            <p className="opacity-50">{isOwner ? "Press the + button to feature a post." : "This user has not featured any posts."}</p>
                             <hr className="my-10"/>
                         </>
                     )}

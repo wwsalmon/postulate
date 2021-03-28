@@ -4,9 +4,10 @@ import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PublicPostItem({post, showProject}: {
+export default function PublicPostItem({post, showProject, showLine = true}: {
     post: DatedObj<PostObjGraph>,
     showProject: boolean,
+    showLine?: boolean,
 }) {
     const imgUrl = post.body.match(/!\[.*?\]\((.*?)\)/) ? post.body.match(/!\[.*?\]\((.*?)\)/)[1] : null;
     const author = post.authorArr[0];
@@ -14,7 +15,7 @@ export default function PublicPostItem({post, showProject}: {
     const owner = project.ownerArr[0];
 
     return (
-        <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
+        <div className="opacity-75 hover:opacity-100 transition w-full" key={post._id}>
             <div className="flex">
                 <div>
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
@@ -61,7 +62,9 @@ export default function PublicPostItem({post, showProject}: {
                     </Link>
                 )}
             </div>
-            <hr className="my-10"/>
+            {showLine && (
+                <hr className="my-10"/>
+            )}
         </div>
     );
 }
