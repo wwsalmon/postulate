@@ -5,11 +5,12 @@ import {fetcher} from "../utils/utils";
 import PublicPostItem from "./public-post-item";
 import Skeleton from "react-loading-skeleton";
 
-export default function ProfileAddFeaturedPost({iteration, setIteration, thisUser, setOpen}: {
+export default function ProfileAddFeaturedPost({iteration, setIteration, thisUser, setOpen, featuredPostIds}: {
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
     thisUser: DatedObj<UserObj>,
-    setOpen: Dispatch<SetStateAction<boolean>>
+    setOpen: Dispatch<SetStateAction<boolean>>,
+    featuredPostIds: string[],
 }) {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [page, setPage] = useState<number>(1);
@@ -18,6 +19,7 @@ export default function ProfileAddFeaturedPost({iteration, setIteration, thisUse
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&page=${page}&search=${searchQuery}`, fetcher);
 
     const postsReady = posts && posts.posts;
+    const filteredPosts = postsReady ? posts.posts.filter(d => !featuredPostIds.includes(d._id)) : [];
 
     return (
         <>
@@ -32,10 +34,10 @@ export default function ProfileAddFeaturedPost({iteration, setIteration, thisUse
                     setSearchQuery(e.target.value);
                 }}
             />
-            {postsReady ? posts.posts.length > 0 ? (
+            {postsReady ? filteredPosts.length > 0 ? (
                 <div style={{maxHeight: "calc(100vh - 400px)", overflowY: "auto"}} className="-mr-4">
                     <div className="pr-4">
-                        {posts.posts.map(post => (
+                        {filteredPosts.map(post => (
                             <div className="flex">
                                 <input
                                     type="checkbox"

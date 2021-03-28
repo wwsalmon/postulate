@@ -43,6 +43,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const postsReady = posts && posts.posts;
+    const featuredPostsReady = featuredPosts && featuredPosts.posts;
     const isOwner = session && session.userId === thisUser._id;
 
     const snippetDates = arrToDict(thisUser.snippetsArr);
@@ -52,6 +53,10 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const numLinkedSnippets = !!thisUser.linkedSnippetsArr.length ? thisUser.linkedSnippetsArr[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / snippetsCount * 100) : 0;
     const numGraphDays = 30;
+
+    const featuredPostIds = featuredPostsReady ? featuredPosts.posts.map(d => d._id) : [];
+
+    console.log(featuredPostIds, featuredPostsReady, featuredPosts);
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
@@ -177,7 +182,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                         <h3 className="up-ui-title">Featured posts</h3>
                         {isOwner && (
                             <>
-                                <button className="ml-auto up-button small text" onClick={() => setAddPostOpen(true)}>
+                                <button className="ml-auto up-button small text" onClick={() => setAddPostOpen(true)} disabled={!featuredPostsReady}>
                                     <FiPlus/>
                                 </button>
                                 <UpModal isOpen={addPostOpen} setIsOpen={setAddPostOpen} wide={true}>
@@ -186,6 +191,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                                         setIteration={setFeaturedPostsIter}
                                         thisUser={thisUser}
                                         setOpen={setAddPostOpen}
+                                        featuredPostIds={featuredPostIds}
                                     />
                                 </UpModal>
                             </>

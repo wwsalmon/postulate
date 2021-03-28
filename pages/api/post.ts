@@ -240,12 +240,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.query.search) cursorStages.push({$sort: {createdAt: -1}});
                 if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
 
-                const graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline)[0].posts : PostModel.aggregate([
+                let graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline) : PostModel.aggregate([
                     {$match: conditions},
                     lookupProjectStage,
                     lookupAuthorStage,
                     ...cursorStages,
                 ]));
+
+                if (req.query.featured) graphObj = graphObj.length ? graphObj[0].posts : [];
 
                 const count = await PostModel
                     .find(conditions)
