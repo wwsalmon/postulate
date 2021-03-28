@@ -56,7 +56,7 @@ export default function ProfileAddFeaturedPost({iteration, setIteration, thisUse
                         {filteredPosts.map(post => (
                             <div className="flex">
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     checked={selectedPostId === post._id}
                                     onChange={() => {
                                         if (selectedPostId === post._id) setSelectedPostId(null);
