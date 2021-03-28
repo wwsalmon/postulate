@@ -1,16 +1,16 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import {ProjectModel} from "../../models/project";
-import {PostObj} from "../../utils/types";
-import {PostModel} from "../../models/post";
+import {ProjectModel} from "../../../models/project";
+import {PostObj} from "../../../utils/types";
+import {PostModel} from "../../../models/post";
 import {format} from "date-fns";
 import short from "short-uuid";
-import {UserModel} from "../../models/user";
-import {ImageModel} from "../../models/image";
-import {deleteImages} from "../../utils/deleteImages";
-import {SnippetModel} from "../../models/snippet";
-import dbConnect from "../../utils/dbConnect";
-import {TagModel} from "../../models/tag";
+import {UserModel} from "../../../models/user";
+import {ImageModel} from "../../../models/image";
+import {deleteImages} from "../../../utils/deleteImages";
+import {SnippetModel} from "../../../models/snippet";
+import dbConnect from "../../../utils/dbConnect";
+import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
 import {pipe} from "next/dist/build/webpack/config/utils";
 

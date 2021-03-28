@@ -4,6 +4,8 @@ import {DatedObj, PostObjGraph, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import PublicPostItem from "./public-post-item";
 import Skeleton from "react-loading-skeleton";
+import axios from "axios";
+import SpinnerButton from "./spinner-button";
 
 export default function ProfileAddFeaturedPost({iteration, setIteration, thisUser, setOpen, featuredPostIds}: {
     iteration: number,
@@ -15,11 +17,25 @@ export default function ProfileAddFeaturedPost({iteration, setIteration, thisUse
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [selectedPostId, setSelectedPostId] = useState<string>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&page=${page}&search=${searchQuery}`, fetcher);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(d => !featuredPostIds.includes(d._id)) : [];
+
+    function onSubmit(){
+        setIsLoading(true);
+
+        axios.post(`/api/post/feature`, {id: selectedPostId}).then(() => {
+            setIsLoading(false);
+            setIteration(iteration + 1);
+            setOpen(false);
+        }).catch(e => {
+            setIsLoading(false);
+            console.log(e);
+        });
+    }
 
     return (
         <>
@@ -80,7 +96,7 @@ export default function ProfileAddFeaturedPost({iteration, setIteration, thisUse
                 <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
             )}
             <div className="mt-4 flex items-center">
-                <button className="up-button primary mr-4" disabled={!selectedPostId}>Add</button>
+                <SpinnerButton onClick={onSubmit} isLoading={isLoading} isDisabled={!selectedPostId}>Add</SpinnerButton>
                 <button className="up-button text" onClick={() => setOpen(false)}>Cancel</button>
             </div>
         </>

@@ -13,7 +13,7 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiStar, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
@@ -179,6 +179,9 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                     )}
                     <hr className="my-10"/>
                     <div className="flex mb-8 items-center">
+                        <div className="mr-4">
+                            <FiStar/>
+                        </div>
                         <h3 className="up-ui-title">Featured posts</h3>
                         {isOwner && (
                             <>
@@ -197,7 +200,22 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             </>
                         )}
                     </div>
-                    <hr className="my-10"/>
+                    {featuredPostsReady && featuredPosts.posts.length ? (
+                        <>
+                            {featuredPosts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
+                                <PublicPostItem
+                                    post={post}
+                                    showProject={true}
+                                />
+                            ))}
+                            <hr className="my-6 invisible"/>
+                        </>
+                    ) : (
+                        <>
+                            <p>This user has not featured any posts yet.</p>
+                            <hr className="my-10"/>
+                        </>
+                    )}
                     {tag && (
                         <UpBanner className="mb-8">
                             <div className="md:flex items-center w-full">
