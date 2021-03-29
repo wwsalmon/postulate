@@ -4,9 +4,9 @@ import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PublicPostItem({post, showProject, showLine = true}: {
+export default function PublicPostItem({post, showProject = false, showLine = true}: {
     post: DatedObj<PostObjGraph>,
-    showProject: boolean,
+    showProject?: boolean,
     showLine?: boolean,
 }) {
     const imgUrl = post.body.match(/!\[.*?\]\((.*?)\)/) ? post.body.match(/!\[.*?\]\((.*?)\)/)[1] : null;
