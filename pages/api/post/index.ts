@@ -1,16 +1,18 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
-import {ProjectModel} from "../../models/project";
-import {PostObj} from "../../utils/types";
-import {PostModel} from "../../models/post";
+import {ProjectModel} from "../../../models/project";
+import {PostObj} from "../../../utils/types";
+import {PostModel} from "../../../models/post";
 import {format} from "date-fns";
 import short from "short-uuid";
-import {UserModel} from "../../models/user";
-import {ImageModel} from "../../models/image";
-import {deleteImages} from "../../utils/deleteImages";
-import {SnippetModel} from "../../models/snippet";
-import dbConnect from "../../utils/dbConnect";
-import {TagModel} from "../../models/tag";
+import {UserModel} from "../../../models/user";
+import {ImageModel} from "../../../models/image";
+import {deleteImages} from "../../../utils/deleteImages";
+import {SnippetModel} from "../../../models/snippet";
+import dbConnect from "../../../utils/dbConnect";
+import {TagModel} from "../../../models/tag";
+import mongoose from "mongoose";
+import {pipe} from "next/dist/build/webpack/config/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -163,8 +165,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case "GET":
             if (
-                (!req.query.projectId || Array.isArray(req.query.projectId)) &&
-                (!req.query.userId || Array.isArray(req.query.userId))
+                !(req.query.projectId || req.query.userId) ||
+                (Array.isArray(req.query.projectId) || Array.isArray(req.query.userId))
             ){
                 return res.status(406).json({message: "No project ID or user ID found in request."});
             }
@@ -172,7 +174,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             try {
                 await dbConnect();
 
-                let conditions: any = req.query.projectId ? { projectId: req.query.projectId } : { userId: req.query.userId };
+                const userPipeline = [
+                    {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
+                    {$project: {username: 1, image: 1, name: 1}},
+                ];
+
+                const lookupProjectStage = {$lookup: {
+                    from: "projects",
+                    let: {"projectId": "$projectId"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                        {$project: {name: 1, urlName: 1, userId: 1, stars: 1,}},
+                        {$lookup: {
+                            from: "users",
+                            let: {"userId": "$userId"},
+                            pipeline: userPipeline,
+                            as: "ownerArr",
+                        }},
+                    ],
+                    as: "projectArr"
+                }};
+
+                const lookupAuthorStage = {$lookup: {
+                    from: "users",
+                    let: {"userId": "$userId"},
+                    pipeline: userPipeline,
+                    as: "authorArr",
+                }};
+
+                const featuredPipeline = [
+                    {$match: {_id: mongoose.Types.ObjectId(req.query.userId)}},
+                    {$lookup: {
+                        from: "posts",
+                        let: {"featuredPostIds": "$featuredPosts", "userId": "$_id"},
+                        pipeline: [
+                            {$match: {$expr: {$and: [
+                                {$in: ["$_id", "$$featuredPostIds"]},
+                                {$eq: ["$privacy", "public"]},
+                            ]}}},
+                            lookupProjectStage,
+                            lookupAuthorStage,
+                        ],
+                        as: "posts",
+                    }},
+                    {$sort: {createdAt: -1}},
+                ];
+
+                let conditions: any = req.query.projectId ? { projectId: mongoose.Types.ObjectId(req.query.projectId) } : { userId: mongoose.Types.ObjectId(req.query.userId) };
 
                 if (req.query.private) {
                     const session = await getSession({req});
@@ -187,49 +235,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (req.query.search) conditions["$text"] = {"$search": req.query.search};
                 if (req.query.tag) conditions["tags"] = req.query.tag;
 
-                const cursor = PostModel
-                    .find(conditions)
-                    .sort({"createdAt": -1});
+                let cursorStages = [];
 
-                const posts = await (req.query.page ?
-                    cursor
-                        .skip((+req.query.page - 1) * 10)
-                        .limit(10) :
-                    cursor
-                );
+                if (!req.query.search) cursorStages.push({$sort: {createdAt: -1}});
+                if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
+
+                let graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline) : PostModel.aggregate([
+                    {$match: conditions},
+                    lookupProjectStage,
+                    lookupAuthorStage,
+                    ...cursorStages,
+                ]));
+
+                if (req.query.featured) graphObj = graphObj.length ? graphObj[0].posts : [];
 
                 const count = await PostModel
                     .find(conditions)
                     .count();
 
-                // if projectId, fetch posts for project, otherwise fetch posts for user
-                if (req.query.projectId) {
-                    const authorIds = posts.map(d => d.userId);
-                    const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                    const thisProjectPostAuthors = await UserModel.find({ _id: {$in: uniqueAuthorIds}});
-
-                    res.status(200).json({
-                        posts: posts,
-                        count: count,
-                        authors: thisProjectPostAuthors,
-                    });
-                } else {
-                    const projectIds = posts.map(d => d.projectId);
-                    const uniqueProjectIds = projectIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                    const thisUserPostProjects = await ProjectModel.find({ _id: {$in: uniqueProjectIds }});
-                    const ownerIds = thisUserPostProjects.map(d => d.userId);
-                    const uniqueOwnerIds = ownerIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                    const thisUserPostProjectOwners = await UserModel.find({ _id: {$in: uniqueOwnerIds}});
-
-                    res.status(200).json({
-                        posts: posts,
-                        count: count,
-                        projects: thisUserPostProjects,
-                        owners: thisUserPostProjectOwners,
-                    });
-                }
-
-                return;
+                return res.status(200).json({posts: graphObj, count: count});
             } catch (e) {
                 return res.status(500).json({message: e});
             }

@@ -1,7 +1,16 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {CommentWithAuthor, DatedObj, PostObj, ProjectObj, ReactionObj, SnippetObj, UserObj} from "../../../utils/types";
+import {
+    CommentWithAuthor,
+    DatedObj,
+    PostObj,
+    PostObjGraph,
+    ProjectObj,
+    ReactionObj,
+    SnippetObj,
+    UserObj
+} from "../../../utils/types";
 import {useRouter} from "next/router";
 import React, {useContext, useEffect, useState} from "react";
 import showdown from "showdown";
@@ -52,7 +61,7 @@ export default function PublicPost(props: {
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
 
-    const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
+    const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObjGraph>[]}, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${props.postData._id}&iter=${commentsIteration}`);
@@ -66,8 +75,7 @@ export default function PublicPost(props: {
         extensions: [showdownHtmlEscape],
     });
 
-    const latestPostsReady = latestPosts && latestPosts.posts && latestPosts.authors;
-    const filteredPosts = latestPostsReady ? latestPosts.posts.filter(post => post.privacy === "public" && post._id !== props.postData._id) : [];
+    const latestPostsReady = latestPosts && latestPosts.posts;
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -286,11 +294,9 @@ export default function PublicPost(props: {
                     </a>
                 </Link>
             </h3>
-            {latestPostsReady ? filteredPosts.length ? filteredPosts.map(post => (
+            {latestPostsReady ? latestPosts.posts.length ? latestPosts.posts.map(post => (
                 <PublicPostItem
                     post={post}
-                    author={latestPosts.authors.find(d => d._id === post.userId)}
-                    urlPrefix={`/@${props.thisOwner.username}/${props.projectData.urlName}`}
                 />
             )) : (
                 <p className="my-4">No other posts in this project</p>

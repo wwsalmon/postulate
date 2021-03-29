@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, ProjectObjWithCounts, UserObj} from "../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
 import React, {useState} from "react";
 import {format} from "date-fns";
@@ -13,12 +13,15 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiStar, FiTrash, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
+import UpModal from "../../components/up-modal";
+import ProfileAddFeaturedPost from "../../components/profile-add-featured-post";
+import axios from "axios";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -30,13 +33,18 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObj>[], count: number, projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}`, fetcher);
+    const [isSearch, setIsSearch] = useState<boolean>(false);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [addPostOpen, setAddPostOpen] = useState<boolean>(false);
+    const [featuredPostsIter, setFeaturedPostsIter] = useState<number>(0);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
+    const {data: featuredPosts, error: featuredPostsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&featured=true&iter=${featuredPostsIter}`);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
-    const postsReady = posts && posts.posts && posts.projects && posts.owners;
-    const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
+    const postsReady = posts && posts.posts;
+    const featuredPostsReady = featuredPosts && featuredPosts.posts;
     const isOwner = session && session.userId === thisUser._id;
 
     const snippetDates = arrToDict(thisUser.snippetsArr);
@@ -46,6 +54,20 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const numLinkedSnippets = !!thisUser.linkedSnippetsArr.length ? thisUser.linkedSnippetsArr[0].count : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / snippetsCount * 100) : 0;
     const numGraphDays = 30;
+
+    const featuredPostIds = featuredPostsReady ? featuredPosts.posts.map(d => d._id) : [];
+
+    function deleteFeaturedPost(id: string) {
+        axios.delete(`/api/post/feature`, {
+            data: {
+                id: id,
+            },
+        }).then(() => {
+            setFeaturedPostsIter(featuredPostsIter + 1);
+        }).catch(e => {
+            console.log(e);
+        });
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-4 pb-16">
@@ -167,6 +189,56 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                         <Skeleton count={10}/>
                     )}
                     <hr className="my-10"/>
+                    <div className="flex mb-8 items-center">
+                        <div className="mr-4">
+                            <FiStar/>
+                        </div>
+                        <h3 className="up-ui-title">Featured posts</h3>
+                        {isOwner && (
+                            <>
+                                <button className="ml-auto up-button small text" onClick={() => setAddPostOpen(true)} disabled={!featuredPostsReady}>
+                                    <FiPlus/>
+                                </button>
+                                <UpModal isOpen={addPostOpen} setIsOpen={setAddPostOpen} wide={true}>
+                                    <ProfileAddFeaturedPost
+                                        iteration={featuredPostsIter}
+                                        setIteration={setFeaturedPostsIter}
+                                        thisUser={thisUser}
+                                        setOpen={setAddPostOpen}
+                                        featuredPostIds={featuredPostIds}
+                                    />
+                                </UpModal>
+                            </>
+                        )}
+                    </div>
+                    {featuredPostsReady && featuredPosts.posts.length ? (
+                        <>
+                            {featuredPosts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
+                                <>
+                                    <div className="flex">
+                                        <PublicPostItem
+                                            post={post}
+                                            showProject={true}
+                                            showLine={false}
+                                        />
+                                        <button
+                                            className="up-button text small ml-auto opacity-25 hover:opacity-100"
+                                            onClick={() => deleteFeaturedPost(post._id)}
+                                        >
+                                            <FiX/>
+                                        </button>
+                                    </div>
+                                    <hr className="my-10"/>
+                                </>
+                            ))}
+                            <hr className="my-6 invisible"/>
+                        </>
+                    ) : (
+                        <>
+                            <p className="opacity-50">{isOwner ? "Press the + button to feature a post." : "This user has not featured any posts."}</p>
+                            <hr className="my-10"/>
+                        </>
+                    )}
                     {tag && (
                         <UpBanner className="mb-8">
                             <div className="md:flex items-center w-full">
@@ -178,16 +250,49 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             </div>
                         </UpBanner>
                     )}
-                    <h3 className="up-ui-title mb-8">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
-                        -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
-                    {postsReady ? filteredPosts.length > 0 ? (
+                    <div className="flex items-center mb-8">
+                        {isSearch ? (
+                            <input
+                                type="text"
+                                className="border-b py-2 flex-grow w-full"
+                                placeholder="Search"
+                                value={searchQuery}
+                                onChange={e => {
+                                    setPage(1);
+                                    setSearchQuery(e.target.value);
+                                }}
+                            />
+                        ) : (
+                            <h3 className="up-ui-title">Public posts ({postsReady ? !!posts.count ? <>showing {(page - 1) * 10 + 1}
+                                -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}</> : 0 : "Loading..."})</h3>
+                        )}
+                        <div className="ml-auto">
+                            <button className="up-button text small" onClick={() => {
+                                if (isSearch) setSearchQuery("");
+                                setIsSearch(!isSearch)
+                            }}>
+                                {isSearch ? (
+                                    <FiX/>
+                                ) : (
+                                    <FiSearch/>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isSearch && postsReady && (
+                        <p className="opacity-25 mb-12 -mt-4">
+                            Showing posts {(page - 1) * 10 + 1}
+                            -{(page < Math.floor(posts.count / 10)) ? page * 10 : posts.count} of {posts.count}
+                        </p>
+                    )}
+
+                    {postsReady ? posts.posts.length > 0 ? (
                         <>
-                            {filteredPosts.map(post => (
+                            {posts.posts.map(post => (
                                 <PublicPostItem
                                     post={post}
-                                    author={thisUser}
-                                    project={posts.projects.find(d => d._id === post.projectId)}
-                                    urlPrefix={`/@${posts.owners.find(d => d._id === posts.projects.find(d => d._id === post.projectId).userId).username}/${posts.projects.find(d => d._id === post.projectId).urlName}`}
+                                    showProject={true}
                                 />
                             ))}
                             
@@ -210,7 +315,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                             )}
                         </>
                     ) : (
-                        <p>No public posts have been published in this project yet.</p>
+                        <p>No public posts have been published by this user yet.</p>
                     ) : (
                         <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
                     )}

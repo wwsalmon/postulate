@@ -1,19 +1,21 @@
 import React from 'react';
-import {DatedObj, PostObj, ProjectObj, UserObj} from "../utils/types";
+import {DatedObj, PostObj, PostObjGraph, ProjectObj, UserObj} from "../utils/types";
 import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PublicPostItem({post, author, project = null, urlPrefix}: {
-    post: DatedObj<PostObj>,
-    author: DatedObj<UserObj>,
-    project?: DatedObj<ProjectObj>,
-    urlPrefix: string,
+export default function PublicPostItem({post, showProject = false, showLine = true}: {
+    post: DatedObj<PostObjGraph>,
+    showProject?: boolean,
+    showLine?: boolean,
 }) {
     const imgUrl = post.body.match(/!\[.*?\]\((.*?)\)/) ? post.body.match(/!\[.*?\]\((.*?)\)/)[1] : null;
+    const author = post.authorArr[0];
+    const project = post.projectArr[0];
+    const owner = project.ownerArr[0];
 
     return (
-        <div className="opacity-75 hover:opacity-100 transition" key={post._id}>
+        <div className="opacity-75 hover:opacity-100 transition w-full" key={post._id}>
             <div className="flex">
                 <div>
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
@@ -33,8 +35,8 @@ export default function PublicPostItem({post, author, project = null, urlPrefix}
                             </>
                         )}
                     </p>
-                    {project ? (
-                        <Link href={`${urlPrefix}`}>
+                    {showProject ? (
+                        <Link href={`/@${owner.username}/${project.urlName}`}>
                             <a className="block mt-4 opacity-50 hover:opacity-75 transition underline">
                                 {project.name}
                             </a>
@@ -60,7 +62,9 @@ export default function PublicPostItem({post, author, project = null, urlPrefix}
                     </Link>
                 )}
             </div>
-            <hr className="my-10"/>
+            {showLine && (
+                <hr className="my-10"/>
+            )}
         </div>
     );
 }

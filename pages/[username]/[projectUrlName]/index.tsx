@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObj, ProjectObj, UserObj} from "../../../utils/types";
+import {DatedObj, PostObj, PostObjGraph, ProjectObj, UserObj} from "../../../utils/types";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
@@ -21,9 +21,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: posts, error: postsError}: responseInterface<{posts: DatedObj<PostObj>[], authors: DatedObj<UserObj>[] }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
 
-    const postsReady = posts && posts.posts && posts.authors;
+    const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
     return (
@@ -66,8 +66,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                     <PublicPostItem
                         post={post}
-                        author={posts.authors.find(d => d._id === post.userId)}
-                        urlPrefix={`/@${props.thisUser.username}/${urlName}`}
+                        showProject={false}
                     />
                 )) : (
                     <p>No public posts have been published in this project yet.</p>

@@ -11,10 +11,6 @@ import {PostModel} from "../../models/post";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getSession({ req });
 
-    if (!session || !session.userId) {
-        return res.status(403).json({message: "You must be logged in to access this endpoint."});
-    }
-
     switch (req.method) {
         case "GET":
             try {
@@ -60,6 +56,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(500).json({message: e});
             }
         case "DELETE":
+            if (!session || !session.userId) {
+                return res.status(403).json({message: "You must be logged in to access this endpoint."});
+            }
+
             // ensure necessary post params are present
             if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
 

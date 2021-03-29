@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/client";
-import {FiBell, FiGrid, FiUser} from "react-icons/fi";
+import {FiBell, FiGrid, FiSearch, FiUser} from "react-icons/fi";
 import MoreMenu from "./more-menu";
 import MoreMenuItem from "./more-menu-item";
 import {responseInterface} from "swr";
@@ -8,12 +8,15 @@ import {DatedObj, NotificationWithAuthorAndTarget} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import {format} from "date-fns";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import {NotifsContext} from "../pages/_app";
+import UpModal from "./up-modal";
+import NavbarSearchModal from "./navbar-search-modal";
 
 export default function Navbar() {
     const [session, loading] = useSession();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
+    const [searchOpen, setSearchOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
 
     const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
@@ -34,7 +37,7 @@ export default function Navbar() {
                             </a>
                         </Link>
                         <Link href={`/@${session.username}`}>
-                            <a className="hidden md:flex items-center opacity-50 hover:opacity-100">
+                            <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
                                 <div className="mr-3">
                                     <FiUser/>
                                 </div>
@@ -44,6 +47,13 @@ export default function Navbar() {
                     </>
                 )}
                 <div className="ml-auto flex items-center h-full">
+                    <button className="up-button text small mr-4" onClick={() => setSearchOpen(true)}>
+                        <FiSearch/>
+                    </button>
+                    <UpModal isOpen={searchOpen} setIsOpen={setSearchOpen}>
+                        <NavbarSearchModal setOpen={setSearchOpen}/>
+                        <button className="up-button text mt-4" onClick={() => setSearchOpen(false)}>Close</button>
+                    </UpModal>
                     {session ? (
                         <>
                             {notifications && (
@@ -89,15 +99,18 @@ export default function Navbar() {
                                     )}
                                 </button>
                             )}
-                            <MoreMenu className="ml-6" customButton={<img src={session ? session.user.image : ""} className="w-8 rounded-full"/>}>
-                                {session.username && (
-                                    <>
-                                        <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
-                                        <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
-                                    </>
-                                )}
-                                <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
-                            </MoreMenu>
+                            <button className="up-hover-button ml-6 relative">
+                                <img src={session ? session.user.image : ""} className="w-8 rounded-full"/>
+                                <div className="up-hover-dropdown mt-8">
+                                    {session.username && (
+                                        <>
+                                            <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
+                                            <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
+                                        </>
+                                    )}
+                                    <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
+                                </div>
+                            </button>
                         </>
                     ) : loading ? (
                         <p>Loading...</p>
