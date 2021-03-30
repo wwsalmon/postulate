@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             name: req.body.name,
             urlName: req.body.urlName,
             userId: session.userId,
-            description: req.body.description || "",
+            description: req.body.description || null,
             stars: null,
             collaborators: [],
             availableTags: [],
