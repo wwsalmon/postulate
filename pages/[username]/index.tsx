@@ -221,12 +221,14 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                                             showProject={true}
                                             showLine={false}
                                         />
-                                        <button
-                                            className="up-button text small ml-auto opacity-25 hover:opacity-100"
-                                            onClick={() => deleteFeaturedPost(post._id)}
-                                        >
-                                            <FiX/>
-                                        </button>
+                                        {isOwner && (
+                                            <button
+                                                className="up-button text small ml-auto opacity-25 hover:opacity-100"
+                                                onClick={() => deleteFeaturedPost(post._id)}
+                                            >
+                                                <FiX/>
+                                            </button>
+                                        )}
                                     </div>
                                     <hr className="my-10"/>
                                 </>
