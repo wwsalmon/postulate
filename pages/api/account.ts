@@ -20,6 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
         await dbConnect();
 
+        const nameSplit = session.user.name.split(" ");
+        const firstName = nameSplit.slice(0, nameSplit.length - 1).join(" ");
+        const lastName = nameSplit.slice(nameSplit.length - 1, nameSplit.length);
+
         try {
             await axios.get(`https://api.sendinblue.com/v3/contacts/${encodeURIComponent(session.user.email)}`, {
                 headers: { "api-key": process.env.SENDINBLUE_API_KEY },
@@ -28,14 +32,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             await axios.put(`https://api.sendinblue.com/v3/contacts/${encodeURIComponent(session.user.email)}`, {
                 listIds: [2], // add to users list
                 unlinkListIds: [5], // remove from waitlist
+                attributes: {
+                    FIRSTNAME: firstName,
+                    LASTNAME: lastName,
+                },
             }, {
                 headers: { "api-key": process.env.SENDINBLUE_API_KEY },
             });
         } catch (e) {
             if (e.message === "Request failed with status code 404") {
-                const nameSplit = session.user.name.split(" ");
-                const firstName = nameSplit.slice(0, nameSplit.length - 1).join(" ");
-                const lastName = nameSplit.slice(nameSplit.length - 1, nameSplit.length);
 
                 await axios.post("https://api.sendinblue.com/v3/contacts", {
                     email: session.user.email,
