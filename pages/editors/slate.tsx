@@ -1,4 +1,35 @@
-import {SlatePlugins} from '@udecode/slate-plugins';
+import {
+    createBasicElementPlugins,
+    createBoldPlugin,
+    createCodePlugin,
+    createItalicPlugin,
+    createKbdPlugin,
+    createReactPlugin,
+    createSlatePluginsComponents,
+    createSlatePluginsOptions,
+    createStrikethroughPlugin,
+    createSubscriptPlugin,
+    createSuperscriptPlugin,
+    MARK_BOLD,
+    MARK_ITALIC,
+    MARK_UNDERLINE,
+    SlatePlugins,
+} from '@udecode/slate-plugins';
+
+const components = createSlatePluginsComponents();
+const options = createSlatePluginsOptions();
+
+const plugins = [
+    createReactPlugin(),
+    ...createBasicElementPlugins(),
+    createBoldPlugin(),
+    createItalicPlugin(),
+    createCodePlugin(),
+    createStrikethroughPlugin(),
+    createSuperscriptPlugin(),
+    createSubscriptPlugin(),
+    createKbdPlugin(),
+];
 
 export default function SlateDemo() {
     return (
@@ -9,9 +40,17 @@ export default function SlateDemo() {
                     initialValue={[
                         {
                             type: 'paragraph',
-                            children: [{ text: 'A line of text in a paragraph.' }],
+                            children: [{
+                                text: 'A line of text in a paragraph.',
+                                [options[MARK_BOLD].type]: true,
+                                [options[MARK_ITALIC].type]: true,
+                                [options[MARK_UNDERLINE].type]: true,
+                            }],
                         },
                     ]}
+                    plugins={plugins}
+                    components={components}
+                    options={options}
                 />
             </div>
         </div>
