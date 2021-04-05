@@ -3,7 +3,8 @@ import {
     createAutoformatPlugin,
     createBasicElementPlugins,
     createBasicMarkPlugins,
-    createExitBreakPlugin, createHistoryPlugin,
+    createExitBreakPlugin,
+    createHistoryPlugin,
     createReactPlugin,
     createResetNodePlugin,
     createSlatePluginsComponents,
@@ -17,13 +18,18 @@ import {
     ELEMENT_H4,
     ELEMENT_H5,
     ELEMENT_H6,
+    ELEMENT_IMAGE,
     ELEMENT_LI,
+    ELEMENT_LINK,
+    ELEMENT_MEDIA_EMBED,
     ELEMENT_OL,
     ELEMENT_PARAGRAPH,
+    ELEMENT_TABLE,
     ELEMENT_TD,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
-    ExitBreakPluginOptions,
+    ExitBreakPluginOptions, getComponent,
+    getSelectableElement,
     insertCodeBlock,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
@@ -32,17 +38,60 @@ import {
     MARK_CODE,
     MARK_ITALIC,
     MARK_STRIKETHROUGH,
-    MARK_UNDERLINE,
     ResetBlockTypePluginOptions,
     SlatePlugins,
     SoftBreakPluginOptions,
-    SPEditor,
+    SPEditor, StyledElement,
     toggleList,
     unwrapList,
     WithAutoformatOptions,
 } from '@udecode/slate-plugins';
+import {DndProvider} from "react-dnd";
+import {HTML5Backend} from "react-dnd-html5-backend";
 
 const components = createSlatePluginsComponents();
+
+// Object.keys(components).forEach((key) => {
+//     if (
+//         [
+//             ELEMENT_PARAGRAPH,
+//             ELEMENT_BLOCKQUOTE,
+//             ELEMENT_TODO_LI,
+//             ELEMENT_H1,
+//             ELEMENT_H2,
+//             ELEMENT_H3,
+//             ELEMENT_H4,
+//             ELEMENT_H5,
+//             ELEMENT_H6,
+//             ELEMENT_IMAGE,
+//             ELEMENT_LINK,
+//             ELEMENT_OL,
+//             ELEMENT_UL,
+//             ELEMENT_TABLE,
+//             ELEMENT_MEDIA_EMBED,
+//             ELEMENT_CODE_BLOCK,
+//         ].includes(key)
+//     ) {
+//         const rootKeys = [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL];
+//
+//         components[key] = getSelectableElement({
+//             component: components[key],
+//             level: rootKeys.includes(key) ? 0 : undefined,
+//             dragIcon: (
+//                 <span>drag</span>
+//             ),
+//             styles: {
+//                 blockAndGutter: {
+//                     padding: '4px 0',
+//                 },
+//                 blockToolbarWrapper: {
+//                     height: '1.5em',
+//                 },
+//             },
+//         });
+//     }
+// });
+
 const options = createSlatePluginsOptions();
 
 const preFormat: AutoformatRule['preFormat'] = (editor) =>
@@ -226,22 +275,23 @@ export default function SlateDemo() {
         <div className="max-w-4xl mx-auto px-4">
             <h3 className="up-ui-title">Slate</h3>
             <div className="prose content">
-                <SlatePlugins
-                    initialValue={[
-                        {
-                            type: 'paragraph',
-                            children: [{
-                                text: 'A line of text in a paragraph.',
-                                [options[MARK_BOLD].type]: true,
-                                [options[MARK_ITALIC].type]: true,
-                                [options[MARK_UNDERLINE].type]: true,
-                            }],
-                        },
-                    ]}
-                    plugins={plugins}
-                    components={components}
-                    options={options}
-                />
+                <DndProvider backend={HTML5Backend}>
+                    <SlatePlugins
+                        id="testId"
+                        initialValue={[
+                            {
+                                type: 'paragraph',
+                                children: [{
+                                    text: 'A line of text in a paragraph.',
+                                    [options[MARK_ITALIC].type]: true,
+                                }],
+                            },
+                        ]}
+                        plugins={plugins}
+                        components={components}
+                        options={options}
+                    />
+                </DndProvider>
             </div>
         </div>
     );
