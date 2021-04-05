@@ -30,7 +30,7 @@ export default function Home() {
     return (
         <>
             <UpSEO/>
-            <div className="w-full bg-white sticky top-0">
+            <div className="w-full bg-white sticky top-0 z-50">
                 <div className="px-4 mx-auto max-w-5xl flex h-16 items-center">
                     <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
                     <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
