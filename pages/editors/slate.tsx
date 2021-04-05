@@ -2,7 +2,7 @@ import {
     AutoformatRule,
     createAutoformatPlugin,
     createBasicElementPlugins,
-    createBasicMarkPlugins,
+    createBasicMarkPlugins, createDeserializeHTMLPlugin, createDeserializeMDPlugin,
     createExitBreakPlugin,
     createHistoryPlugin,
     createReactPlugin,
@@ -48,7 +48,7 @@ import {
 } from '@udecode/slate-plugins';
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import markdown from "remark-parse";
 import slate from "remark-slate";
 import unified from "unified";
@@ -263,17 +263,6 @@ const optionsExitBreakPlugin: ExitBreakPluginOptions = {
     ],
 };
 
-const plugins = [
-    createReactPlugin(),
-    createHistoryPlugin(),
-    ...createBasicElementPlugins(),
-    ...createBasicMarkPlugins(),
-    createAutoformatPlugin(optionsAutoformat),
-    createResetNodePlugin(optionsResetBlockTypePlugin),
-    createSoftBreakPlugin(optionsSoftBreakPlugin),
-    createExitBreakPlugin(optionsExitBreakPlugin),
-];
-
 const markdownString = `
 # Heading one
 
@@ -321,6 +310,24 @@ export default function SlateDemo() {
         },
     ]);
 
+    const pluginsMemo = useMemo(() => {
+        const plugins = [
+            createReactPlugin(),
+            createHistoryPlugin(),
+            ...createBasicElementPlugins(),
+            ...createBasicMarkPlugins(),
+            createAutoformatPlugin(optionsAutoformat),
+            createResetNodePlugin(optionsResetBlockTypePlugin),
+            createSoftBreakPlugin(optionsSoftBreakPlugin),
+            createExitBreakPlugin(optionsExitBreakPlugin),
+            createDeserializeMDPlugin(),
+        ];
+
+        plugins.push(createDeserializeHTMLPlugin({ plugins }));
+
+        return plugins;
+    }, []);
+
     return (
         <div className="max-w-4xl mx-auto px-4">
             <h3 className="up-ui-title">Slate</h3>
@@ -330,7 +337,7 @@ export default function SlateDemo() {
                         id="testId"
                         value={body}
                         onChange={newValue => setBody(newValue)}
-                        plugins={plugins}
+                        plugins={pluginsMemo}
                         components={components}
                         options={options}
                     />
