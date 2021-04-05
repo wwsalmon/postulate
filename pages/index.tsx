@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {FiBookOpen, FiHeart, FiUsers} from "react-icons/fi";
+import {FiBookOpen, FiEdit, FiGlobe} from "react-icons/fi";
 import HomeStep from "../components/home-step";
 import axios from "axios";
 import {WaitlistAPIRes} from "../utils/types";
@@ -7,7 +7,7 @@ import UpSEO from "../components/up-seo";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
-    const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0";
+    const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0 opacity-75 hover:opacity-100 transition";
     const thirdContainerStyling = "md:flex -mx-4";
     const [email, setEmail] = useState<string>("");
     const [submitted, setSubmitted] = useState<WaitlistAPIRes>(null);
@@ -25,26 +25,29 @@ export default function Home() {
         });
     }
 
+    const containerClasses = "px-4 mx-auto max-w-5xl py-8";
+
     return (
         <>
             <UpSEO/>
-            <div className="px-4 mx-auto max-w-5xl flex h-16 items-center sticky top-0">
-                <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
-                <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
+            <div className="w-full bg-white sticky top-0 z-50">
+                <div className="px-4 mx-auto max-w-5xl flex h-16 items-center">
+                    <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
+                    <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
+                </div>
             </div>
-            <div className="px-4 mx-auto max-w-5xl sm:flex items-center py-16">
-                <div className="sm:w-1/2 sm:pr-8 pb-8 sm:pb-0">
-                    <h1 className="md:text-5xl text-4xl up-font-display font-bold leading-tight md:leading-tight mb-4">Supercharge your learning and creativity</h1>
-                    <p className="md:text-2xl text-xl leading-normal md:leading-normal">Postulate is an <strong>all-in-one tool</strong> for <strong>collecting and publishing your knowledge</strong>.</p>
-                </div>
-                <div className="sm:w-1/2">
-                    <img src="/hero-diagram.svg" alt="Supercharge your learning and creativity with Postulate" className="mx-auto"/>
-                </div>
+            <div className="px-4 mx-auto max-w-5xl py-16 text-center">
+                <h1 className="max-w-2xl mx-auto md:text-5xl text-4xl up-font-display leading-tight md:leading-tight mb-8">
+                    <code className="text-2xl md:text-4xl bg-gray-200 p-2 rounded-md font-bold">10x</code> your <b>learning and writing output</b> by <b>taking public notes</b>
+                </h1>
+                {/*<hr className="my-10 max-w-sm mx-auto"/>*/}
+                <p className="max-w-xl mx-auto md:text-2xl text-xl leading-normal md:leading-normal">Postulate is a a notetaking platform that helps you <b>publish your ideas instead of forgetting them.</b></p>
+                <img src="/sc1.jpg" alt="" className="max-w-xl mx-auto block shadow-xl my-10 w-full"/>
             </div>
             <div className="w-full up-primary" id="waitlist">
-                <div className="px-4 mx-auto max-w-5xl py-8">
+                <div className={containerClasses}>
                     <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Sign up for the waitlist</h2>
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Currently in closed beta</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
@@ -67,34 +70,49 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <div className="px-4 mx-auto max-w-5xl py-8">
+            <div className={containerClasses}>
+                <h2 className="up-ui-item-title mb-8">What users say</h2>
+                <script type="text/javascript" src="https://testimonial.to/js/iframeResizer.min.js"/>
+                <iframe
+                    id="testimonialto-postulate-homepage-light"
+                    src="https://embed.testimonial.to/w/postulate-homepage?theme=light&card=small"
+                    frameBorder="0"
+                    scrolling="no"
+                    width="100%"
+                />
+                <script type="text/javascript" dangerouslySetInnerHTML={{__html: `
+                    iFrameResize({log: false, checkOrigin: false}, "#testimonialto-postulate-homepage-light");
+                `}}/>
+            </div>
+            <hr className="my-8"/>
+            <div className={containerClasses}>
                 <h2 className="up-ui-item-title mb-8">Postulate is...</h2>
                 <div className={thirdContainerStyling}>
                     <div className={thirdStyling}>
                         <div className={badgeStyling}>
+                            <FiEdit/>
+                        </div>
+                        <h3 className="text-xl mb-2 font-bold">Your catch-all notetaking tool</h3>
+                        <p className="up-ui-subtitle">Record your ideas, work, reading, or anything else</p>
+                    </div>
+                    <div className={thirdStyling}>
+                        <div className={badgeStyling}>
+                            <FiGlobe/>
+                        </div>
+                        <h3 className="text-xl mb-2 font-bold">An effortless blogging platform</h3>
+                        <p className="up-ui-subtitle">Beautiful, shareable posts, minus any hassle</p>
+                    </div>
+                    <div className={thirdStyling}>
+                        <div className={badgeStyling}>
                             <FiBookOpen/>
                         </div>
-                        <h3 className="content mb-2">An effortless knowledge base</h3>
-                        <p className="up-ui-subtitle">All your thoughts, links, and work in one place</p>
-                    </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiUsers/>
-                        </div>
-                        <h3 className="content mb-2">A versatile collaboration tool</h3>
-                        <p className="up-ui-subtitle">Share knowledge and stay in sync with your team</p>
-                    </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiHeart/>
-                        </div>
-                        <h3 className="content mb-2">An authentic publishing platform</h3>
-                        <p className="up-ui-subtitle">The best way to show off your projects and personal growth</p>
+                        <h3 className="text-xl mb-2 font-bold">The world's comprehensive knowledge base</h3>
+                        <p className="up-ui-subtitle">A home for everything you - and everyone else on earth - have learned</p>
                     </div>
                 </div>
             </div>
             <hr className="my-8"/>
-            <div className="px-4 mx-auto max-w-5xl py-8">
+            <div className={containerClasses}>
                 <h2 className="up-ui-item-title mb-8">The Postulate manifesto</h2>
                 <p className="up-font-display text-3xl leading-normal my-8">"...among all notetaking strategies, the <b>only one that actually simplifies knowledge management</b> and makes it more effective is to <b>publish your learning, experiences, and insights in public.</b>"</p>
                 <p className="content">Read founder Samson Zhang's blog post <a href="https://www.samsonzhang.com/2021/01/27/how-i-use-learning-in-public-as-my-personal-knowledge-management-strategy.html" className="underline">How I Use Learning in Public as My Personal Knowledge Management Strategy</a></p>
@@ -194,10 +212,50 @@ export default function Home() {
                     </div>
                 </HomeStep>
             </div>
+            <hr className="my-8"/>
+            <div className={containerClasses}>
+                <h2 className="up-ui-item-title mb-8">Pricing</h2>
+                <div className={thirdContainerStyling}>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Free</h3>
+                        <div className="prose">
+                            <p>Free forever</p>
+                            <ul>
+                                <li>Unlimited snippets</li>
+                                <li>Unlimited posts</li>
+                                <li>Up to 5 projects</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Professional</h3>
+                        <div className="prose">
+                            <p>$5 / month</p>
+                            <ul>
+                                <li>Everything in Free, plus...</li>
+                                <li>Unlimited projects</li>
+                                <li>Share projects with collaborators</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Creator</h3>
+                        <div className="prose">
+                            <p>$10 / month</p>
+                            <ul>
+                                <li>Everything in Professional, plus...</li>
+                                <li>Customize project page</li>
+                                <li>Email subscriptions for projects</li>
+                                <li>Monetize your content</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="w-full up-primary" id="waitlist">
-                <div className="px-4 mx-auto max-w-5xl py-8">
+                <div className={containerClasses}>
                     <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Supercharge your learning and creativity</h2>
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>10x your learning and writing output</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
@@ -220,7 +278,7 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <div className="px-4 mx-auto max-w-5xl py-8">
+            <div className={containerClasses}>
                 <p>
                     Follow <a href="https://twitter.com/postulateapp" className="underline">Postulate on Twitter</a>.
                     Built with ♥ by <a href="https://twitter.com/wwsalmon" className="underline">Samson Zhang</a>
