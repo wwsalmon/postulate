@@ -4,7 +4,7 @@ import {
     createBasicElementPlugins,
     createBasicMarkPlugins, createDeserializeHTMLPlugin, createDeserializeMDPlugin,
     createExitBreakPlugin,
-    createHistoryPlugin,
+    createHistoryPlugin, createImagePlugin,
     createReactPlugin,
     createResetNodePlugin,
     createSlatePluginsComponents,
@@ -321,6 +321,7 @@ export default function SlateDemo() {
             createSoftBreakPlugin(optionsSoftBreakPlugin),
             createExitBreakPlugin(optionsExitBreakPlugin),
             createDeserializeMDPlugin(),
+            createImagePlugin(),
         ];
 
         plugins.push(createDeserializeHTMLPlugin({ plugins }));
