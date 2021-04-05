@@ -49,6 +49,9 @@ import {
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import {useState} from "react";
+import markdown from "remark-parse";
+import slate from "remark-slate";
+import unified from "unified";
 
 const components = createSlatePluginsComponents();
 
@@ -270,6 +273,42 @@ const plugins = [
     createSoftBreakPlugin(optionsSoftBreakPlugin),
     createExitBreakPlugin(optionsExitBreakPlugin),
 ];
+
+const markdownString = `
+# Heading one
+
+## Heading two
+
+### Heading three
+
+#### Heading four
+
+##### Heading five
+
+###### Heading six
+
+Normal paragraph
+
+_italic text_
+
+**bold text**
+
+~~strike through text~~
+
+[hyperlink](https://jackhanford.com)
+
+![image](https://jackhanford.com/test.png)
+
+> A block quote.
+
+- bullet list item 1
+- bullet list item 2
+
+1. ordered list item 1
+2. ordered list item 2
+`;
+
+console.log(unified().use(markdown).use(slate).processSync(markdownString).result);
 
 export default function SlateDemo() {
     const [body, setBody] = useState<any[]>([
