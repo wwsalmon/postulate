@@ -212,10 +212,50 @@ export default function Home() {
                     </div>
                 </HomeStep>
             </div>
+            <hr className="my-8"/>
+            <div className={containerClasses}>
+                <h2 className="up-ui-item-title mb-8">Pricing</h2>
+                <div className={thirdContainerStyling}>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Free</h3>
+                        <div className="prose">
+                            <p>Free forever</p>
+                            <ul>
+                                <li>Unlimited snippets</li>
+                                <li>Unlimited posts</li>
+                                <li>Up to 5 projects</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Professional</h3>
+                        <div className="prose">
+                            <p>$5 / month</p>
+                            <ul>
+                                <li>Everything in Free, plus...</li>
+                                <li>Unlimited projects</li>
+                                <li>Share projects with collaborators</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className={thirdStyling}>
+                        <h3 className="text-2xl">Creator</h3>
+                        <div className="prose">
+                            <p>$10 / month</p>
+                            <ul>
+                                <li>Everything in Professional, plus...</li>
+                                <li>Customize project page</li>
+                                <li>Email subscriptions for projects</li>
+                                <li>Monetize your content</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="w-full up-primary" id="waitlist">
                 <div className={containerClasses}>
                     <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0">Supercharge your learning and creativity</h2>
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>10x your learning and writing output</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
