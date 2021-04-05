@@ -48,6 +48,7 @@ import {
 } from '@udecode/slate-plugins';
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
+import {useState} from "react";
 
 const components = createSlatePluginsComponents();
 
@@ -271,6 +272,16 @@ const plugins = [
 ];
 
 export default function SlateDemo() {
+    const [body, setBody] = useState<any[]>([
+        {
+            type: 'paragraph',
+            children: [{
+                text: 'A line of text in a paragraph.',
+                [options[MARK_ITALIC].type]: true,
+            }],
+        },
+    ]);
+
     return (
         <div className="max-w-4xl mx-auto px-4">
             <h3 className="up-ui-title">Slate</h3>
@@ -278,15 +289,8 @@ export default function SlateDemo() {
                 <DndProvider backend={HTML5Backend}>
                     <SlatePlugins
                         id="testId"
-                        initialValue={[
-                            {
-                                type: 'paragraph',
-                                children: [{
-                                    text: 'A line of text in a paragraph.',
-                                    [options[MARK_ITALIC].type]: true,
-                                }],
-                            },
-                        ]}
+                        value={body}
+                        onChange={newValue => setBody(newValue)}
                         plugins={plugins}
                         components={components}
                         options={options}
