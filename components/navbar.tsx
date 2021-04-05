@@ -71,6 +71,7 @@ export default function Navbar() {
                                             {notifications.data.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(notification => (
                                                 <MoreMenuItem
                                                     text={(() => {
+                                                        if (!notification.comment.length && !notification.reaction.length) return "Notification outdated";
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
@@ -86,6 +87,7 @@ export default function Navbar() {
                                                     })()}
                                                     wrapText={true}
                                                     href={(() => {
+                                                        if (!notification.comment.length && !notification.reaction.length) return "";
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
