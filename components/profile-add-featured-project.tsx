@@ -64,7 +64,10 @@ export default function ProfileAddFeaturedProject({iteration, setIteration, setO
                                     className="mr-4 w-4 h-4 flex-shrink-0"
                                     id={project._id}
                                 />
-                                <span>{project.name}</span>
+                                <span><b>{project.name}</b></span>
+                                <span className="opacity-50 inline-block ml-4">
+                                    {project.posts.length ? project.posts[0].count : 0} post{(project.posts.length ? project.posts[0].count : 0) !== 1 ? "s" : ""}
+                                </span>
                             </label>
                         ))}
                     </div>

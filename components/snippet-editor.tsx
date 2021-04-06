@@ -7,7 +7,7 @@ import {format} from "date-fns";
 import short from "short-uuid";
 import EasyMDE from "easymde";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObj>,
     projectId?: string,
@@ -16,6 +16,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     onSaveEdit: (urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) => void,
     onCancelEdit: (urlName: string) => void,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
+    disableSave?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
@@ -30,6 +31,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             window.onbeforeunload = undefined;
         };
     }, [!!body]);
+
+    useEffect(() => {
+        if (!snippet) setIsSnippetState(isSnippet);
+    }, [isSnippet])
 
     return (
         <>
@@ -63,7 +68,11 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or type to create a new one</p>
             <hr className="my-6"/>
             <div className="flex">
-                <SpinnerButton isLoading={isLoading} onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}>
+                <SpinnerButton
+                    isLoading={isLoading}
+                    onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}
+                    isDisabled={disableSave || (isSnippet && !body) || (!isSnippet && !url)}
+                >
                     Save
                 </SpinnerButton>
                 <button className="up-button text" onClick={() => onCancelEdit(urlName)}>Cancel</button>
