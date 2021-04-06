@@ -42,6 +42,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // if update or create, else delete
             if (req.method === "POST") {
+                // moving snippet to a different project, else updating or creating
+                if (req.body.id && req.body.projectId) {
+                    thisSnippet.projectId = req.body.projectId;
+
+                    await thisSnippet.save();
+
+                    return res.status(200).json({message: "Snippet successfully moved."});
+                }
+
                 // ensure necessary post params are present
                 if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
                 if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});

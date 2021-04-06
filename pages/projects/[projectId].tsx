@@ -1,9 +1,9 @@
 import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
-import {aggregatePipeline, arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
+import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
 import {DatedObj, PostObj, PostObjGraph, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
 import axios from "axios";
@@ -34,7 +34,6 @@ import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
-import mongoose from "mongoose";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
@@ -63,6 +62,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [instance, setInstance] = useState<EasyMDE>(null);
     const [tab, setTab] = useState<"home"|"posts"|"stats">("home");
     const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
+    const [statsIter, setStatsIter] = useState<number>(0);
 
     const [{
         _id: projectId,
@@ -74,26 +74,23 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         stars,
         collaborators,
         availableTags,
-        posts: postsCount,
-        snippets: snippetsCount,
-        linkedSnippets: linkedSnippetsCount,
-        snippetDates: snippetDatesArr,
-        postDates: postDatesArr,
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
-
-    const numPosts = postsCount.length ? postsCount[0].count : 0;
-    const numSnippets = snippetsCount.length ? snippetsCount[0].count : 0;
-    const numLinkedSnippets = linkedSnippetsCount.length ? linkedSnippetsCount[0].count : 0;
-    const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const snippetDates = arrToDict(snippetDatesArr);
-    const postDates = arrToDict(postDatesArr);
-    const numGraphDays = 30;
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
+    const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
+
+    const statsReady = stats && stats.postDates && stats.snippetDates;
+    const numPosts = statsReady ? stats.postDates.length : 0;
+    const numSnippets = statsReady ? stats.snippetDates.length : 0;
+    const numLinkedSnippets = statsReady ? stats.linkedSnippetsCount : 0;
+    const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
+    const snippetDates = statsReady ? arrToDict(stats.snippetDates) : {};
+    const postDates = statsReady ? arrToDict(stats.postDates) : {};
+    const numGraphDays = 30;
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
 
@@ -110,6 +107,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             instance.clearAutosavedValue();
+            setStatsIter(statsIter + 1);
             setIsLoading(false);
             setIteration(iteration + 1);
             setIsSnippet(false);
@@ -367,6 +365,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                             setTagsQuery={setTagsQuery}
                                             selectedSnippetIds={selectedSnippetIds}
                                             setSelectedSnippetIds={setSelectedSnippetIds}
+                                            setStatsIter={setStatsIter}
+                                            statsIter={statsIter}
                                         />
                                     </div>
                                 ))}
@@ -409,6 +409,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                             setTagsQuery={setTagsQuery}
                                             selectedSnippetIds={selectedSnippetIds}
                                             setSelectedSnippetIds={setSelectedSnippetIds}
+                                            setStatsIter={setStatsIter}
+                                            statsIter={statsIter}
                                         />
                                     </div>
                                 ))}
@@ -586,34 +588,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // any typing to avoid ts error
         const projectId: any = context.params.projectId;
 
-        const thisProjectArr = await ProjectModel.aggregate([
-            { $match: {_id: mongoose.Types.ObjectId(projectId)} },
-            ...aggregatePipeline,
-            {
-                $lookup: {
-                    from: "posts",
-                    let: {"projectId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
-                        {$project: {"createdAt": 1}},
-                    ],
-                    as: "postDates"
-                }
-            },
-            {
-                $lookup: {
-                    from: "snippets",
-                    let: {"projectId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"] }}},
-                        {$project: {"createdAt": 1}},
-                    ],
-                    as: "snippetDates"
-                }
-            },
-        ]);
-
-        const thisProject = thisProjectArr.length ? thisProjectArr[0] : null;
+        const thisProject = await ProjectModel.findById(projectId);
 
         // check auth
         if (!thisProject || ![thisProject.userId.toString(), ...(thisProject.collaborators.map(d => d.toString()))].includes(session.userId)) {

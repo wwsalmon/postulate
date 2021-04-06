@@ -4,7 +4,7 @@ import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
 import MoreMenuItem from "./more-menu-item";
-import {FiEdit2, FiTrash} from "react-icons/fi";
+import {FiArrowRightCircle, FiEdit2, FiTrash} from "react-icons/fi";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import SpinnerButton from "./spinner-button";
@@ -18,8 +18,9 @@ import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
 import Linkify from "react-linkify";
+import ProjectBrowser from "./project-browser";
 
-export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
+export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
     posts: DatedObj<PostObj>[],
@@ -32,11 +33,14 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
     setTagsQuery: (tagsQuery: string[]) => void,
     selectedSnippetIds: string[],
     setSelectedSnippetIds: Dispatch<SetStateAction<string[]>>,
+    setStatsIter?: Dispatch<SetStateAction<number>>,
+    statsIter?: number,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
+    const [isMove, setIsMove] = useState<boolean>(false);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
     const [instance, setInstance] = useState<EasyMDE>(null);
@@ -60,6 +64,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         }).then(() => {
             setIsLoading(false);
             setIsDeleteOpen(false);
+            if (setStatsIter && (statsIter !== undefined)) setStatsIter(statsIter + 1);
             setIteration(iteration + 1);
         }).catch(e => {
             setIsLoading(false);
@@ -90,6 +95,20 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         }).catch(e => {
             console.log(e);
             setIsEditLoading(false);
+        });
+    }
+
+    function onMoveSnippet(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
+        setIsLoading(true);
+
+        axios.post(`/api/snippet`, {id: snippet._id, projectId: selectedProjectId}).then(() => {
+            setIsLoading(false);
+            setIteration(iteration + 1);
+            setStatsIter(statsIter + 1);
+            setIsMove(false);
+        }).catch(e => {
+            setIsLoading(false);
+            console.log(e);
         });
     }
 
@@ -131,6 +150,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                             <div className="ml-auto">
                                 <MoreMenu>
                                     <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
+                                    <MoreMenuItem text="Move" icon={<FiArrowRightCircle/>} onClick={() => setIsMove(true)}/>
                                     <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
                                 </MoreMenu>
                                 <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
@@ -141,6 +161,15 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                         </SpinnerButton>
                                         <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
                                     </div>
+                                </UpModal>
+                                <UpModal isOpen={isMove} setIsOpen={setIsMove} wide={true}>
+                                    <h3 className="up-ui-title mb-4">Select a project to move this snippet to</h3>
+                                    <ProjectBrowser
+                                        setOpen={setIsMove}
+                                        featuredProjectIds={[projectData._id]}
+                                        buttonText="Move"
+                                        onSubmit={onMoveSnippet}
+                                    />
                                 </UpModal>
                             </div>
                         )}
