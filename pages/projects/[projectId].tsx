@@ -123,6 +123,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     function onCancelSnippetOrResource(urlName: string) {
         setIsSnippet(false);
         setIsResource(false);
+        instance.clearAutosavedValue();
         axios.post("/api/cancel-delete-images", {urlName: urlName}).catch(e => console.log(e));
     }
 
