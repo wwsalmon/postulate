@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }},
             ]);
 
-            const brokenNotifications = notifications.filter(d => !d.comments.length && !d.reactions.length);
+            const brokenNotifications = notifications.filter(d => !d.comment.length && !d.reaction.length);
             const brokenNotificationIds = brokenNotifications.map(d => d._id.toString());
             if (brokenNotificationIds.length) {
                 await NotificationModel.deleteMany({_id: {$in: brokenNotificationIds}});
