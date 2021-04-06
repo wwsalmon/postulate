@@ -19,7 +19,7 @@ import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
 import Linkify from "react-linkify";
 
-export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
+export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {
     snippet: DatedObj<SnippetObj>,
     authors: DatedObj<UserObj>[],
     posts: DatedObj<PostObj>[],
@@ -32,6 +32,8 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
     setTagsQuery: (tagsQuery: string[]) => void,
     selectedSnippetIds: string[],
     setSelectedSnippetIds: Dispatch<SetStateAction<string[]>>,
+    setStatsIter?: Dispatch<SetStateAction<number>>,
+    statsIter?: number,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -60,6 +62,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         }).then(() => {
             setIsLoading(false);
             setIsDeleteOpen(false);
+            if (setStatsIter && (statsIter !== undefined)) setStatsIter(statsIter + 1);
             setIteration(iteration + 1);
         }).catch(e => {
             setIsLoading(false);
