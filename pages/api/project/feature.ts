@@ -5,13 +5,12 @@ import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST") return res.status(405);
+    if (req.method !== "POST" && req.method !== "DELETE") return res.status(405);
     const session = await getSession({req});
 
-    if (!session || !session.userId) return res.status(403).json({message: "You must be logged in to feature a project."});
+    if (!session || !session.userId) return res.status(403).json({message: "Unauthed"});
 
     if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
-    if (!req.body.addOrRemove) return res.status(406).json({message: "No action specified in request."});
 
     try {
         await dbConnect();
@@ -20,9 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!thisProject) return res.status(404).json({message: "No project found for given ID"});
 
-        if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.includes(session.userId)) return res.status(403).json({message: "Not authorized"});
+        if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.includes(session.userId)) return res.status(403).json({message: "Unauthed"});
 
-        const modificationObj = (req.body.addOrRemove === "remove") ? { $pull: { featuredProjects: thisProject._id }} : { $push: { featuredProjects: thisProject._id }};
+        const modificationObj = (req.method === "DELETE") ? { $pull: { featuredProjects: thisProject._id }} : { $push: { featuredProjects: thisProject._id }};
 
         await UserModel.updateOne({ _id: session.userId }, modificationObj);
 
