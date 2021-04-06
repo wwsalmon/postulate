@@ -7,11 +7,11 @@ import Skeleton from "react-loading-skeleton";
 import axios from "axios";
 import SpinnerButton from "./spinner-button";
 
-export default function ProfileAddFeaturedProject({iteration, setIteration, setOpen, featuredProjectIds}: {
-    iteration: number,
-    setIteration: Dispatch<SetStateAction<number>>,
+export default function ProjectBrowser({setOpen, featuredProjectIds, buttonText, onSubmit}: {
     setOpen: Dispatch<SetStateAction<boolean>>,
     featuredProjectIds: string[],
+    buttonText: string,
+    onSubmit: (selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>) => any,
 }) {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [page, setPage] = useState<number>(1);
@@ -23,22 +23,8 @@ export default function ProfileAddFeaturedProject({iteration, setIteration, setO
     const projectsReady = projects && projects.projects;
     const filteredProjects = projectsReady ? projects.projects.filter(d => !featuredProjectIds.includes(d._id)) : [];
 
-    function onSubmit(){
-        setIsLoading(true);
-
-        axios.post(`/api/project/feature`, {id: selectedProjectId}).then(() => {
-            setIsLoading(false);
-            setIteration(iteration + 1);
-            setOpen(false);
-        }).catch(e => {
-            setIsLoading(false);
-            console.log(e);
-        });
-    }
-
     return (
         <>
-            <h3 className="up-ui-title mb-4">Select a project to feature</h3>
             <input
                 type="text"
                 className="border-b py-2 mb-8 w-full"
@@ -96,7 +82,7 @@ export default function ProfileAddFeaturedProject({iteration, setIteration, setO
                 <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
             )}
             <div className="mt-4 flex items-center">
-                <SpinnerButton onClick={onSubmit} isLoading={isLoading} isDisabled={!selectedProjectId}>Add</SpinnerButton>
+                <SpinnerButton onClick={() => onSubmit(selectedProjectId, setIsLoading)} isLoading={isLoading} isDisabled={!selectedProjectId}>{buttonText}</SpinnerButton>
                 <button className="up-button text" onClick={() => setOpen(false)}>Cancel</button>
             </div>
         </>

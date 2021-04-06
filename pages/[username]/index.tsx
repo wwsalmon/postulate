@@ -4,7 +4,7 @@ import {UserModel} from "../../models/user";
 import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {DatedObj, PostObjGraph, ProjectObjWithCounts, UserObj} from "../../utils/types";
 import UpSEO from "../../components/up-seo";
-import React, {useState} from "react";
+import React, {Dispatch, SetStateAction, useState} from "react";
 import {format} from "date-fns";
 import useSWR, {responseInterface} from "swr";
 import PublicPostItem from "../../components/public-post-item";
@@ -22,7 +22,7 @@ import ReactFrappeChart from "../../components/frappe-chart";
 import UpModal from "../../components/up-modal";
 import ProfileAddFeaturedPost from "../../components/profile-add-featured-post";
 import axios from "axios";
-import ProfileAddFeaturedProject from "../../components/profile-add-featured-project";
+import ProjectBrowser from "../../components/project-browser";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -82,6 +82,19 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
         }).then(() => {
             setFeaturedProjectsIter(featuredProjectsIter + 1);
         }).catch(e => {
+            console.log(e);
+        });
+    }
+
+    function onSubmitFeaturedProject(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
+        setIsLoading(true);
+
+        axios.post(`/api/project/feature`, {id: selectedProjectId}).then(() => {
+            setIsLoading(false);
+            setFeaturedProjectsIter(featuredProjectsIter + 1);
+            setAddProjectOpen(false);
+        }).catch(e => {
+            setIsLoading(false);
             console.log(e);
         });
     }
@@ -204,11 +217,12 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                                     <FiPlus/>
                                 </button>
                                 <UpModal isOpen={addProjectOpen} setIsOpen={setAddProjectOpen} wide={true}>
-                                    <ProfileAddFeaturedProject
-                                        iteration={featuredProjectsIter}
-                                        setIteration={setFeaturedProjectsIter}
+                                    <h3 className="up-ui-title mb-4">Select a project to feature</h3>
+                                    <ProjectBrowser
                                         setOpen={setAddProjectOpen}
                                         featuredProjectIds={featuredProjectIds}
+                                        buttonText="Add"
+                                        onSubmit={onSubmitFeaturedProject}
                                     />
                                 </UpModal>
                             </>
