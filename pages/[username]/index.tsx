@@ -13,7 +13,7 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiGrid, FiMessageSquare, FiPlus, FiSearch, FiStar, FiTrash, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiGrid, FiMessageSquare, FiPlus, FiSearch, FiStar, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";

@@ -16,8 +16,8 @@ import Link from "next/link";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
-import project from "../pages/api/project";
 import EasyMDE from "easymde";
+import Linkify from "react-linkify";
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
@@ -213,7 +213,9 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                 </Link>
                             )}
                             <div className="prose break-words">
-                                {Parser(markdownConverter.makeHtml(snippet.body))}
+                                <Linkify>
+                                    {Parser(markdownConverter.makeHtml(snippet.body))}
+                                </Linkify>
                             </div>
                             <div className="flex mt-4">
                                 {snippet.tags && snippet.tags.map(tag => (
