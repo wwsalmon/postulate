@@ -55,46 +55,46 @@ import unified from "unified";
 
 const components = createSlatePluginsComponents();
 
-// Object.keys(components).forEach((key) => {
-//     if (
-//         [
-//             ELEMENT_PARAGRAPH,
-//             ELEMENT_BLOCKQUOTE,
-//             ELEMENT_TODO_LI,
-//             ELEMENT_H1,
-//             ELEMENT_H2,
-//             ELEMENT_H3,
-//             ELEMENT_H4,
-//             ELEMENT_H5,
-//             ELEMENT_H6,
-//             ELEMENT_IMAGE,
-//             ELEMENT_LINK,
-//             ELEMENT_OL,
-//             ELEMENT_UL,
-//             ELEMENT_TABLE,
-//             ELEMENT_MEDIA_EMBED,
-//             ELEMENT_CODE_BLOCK,
-//         ].includes(key)
-//     ) {
-//         const rootKeys = [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL];
-//
-//         components[key] = getSelectableElement({
-//             component: components[key],
-//             level: rootKeys.includes(key) ? 0 : undefined,
-//             dragIcon: (
-//                 <span>drag</span>
-//             ),
-//             styles: {
-//                 blockAndGutter: {
-//                     padding: '4px 0',
-//                 },
-//                 blockToolbarWrapper: {
-//                     height: '1.5em',
-//                 },
-//             },
-//         });
-//     }
-// });
+Object.keys(components).forEach((key) => {
+    if (
+        [
+            ELEMENT_PARAGRAPH,
+            ELEMENT_BLOCKQUOTE,
+            ELEMENT_TODO_LI,
+            ELEMENT_H1,
+            ELEMENT_H2,
+            ELEMENT_H3,
+            ELEMENT_H4,
+            ELEMENT_H5,
+            ELEMENT_H6,
+            ELEMENT_IMAGE,
+            ELEMENT_LINK,
+            ELEMENT_OL,
+            ELEMENT_UL,
+            ELEMENT_TABLE,
+            ELEMENT_MEDIA_EMBED,
+            ELEMENT_CODE_BLOCK,
+        ].includes(key)
+    ) {
+        const rootKeys = [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL];
+
+        components[key] = getSelectableElement({
+            component: components[key],
+            level: rootKeys.includes(key) ? 0 : undefined,
+            dragIcon: (
+                <span>drag</span>
+            ),
+            styles: {
+                blockAndGutter: {
+                    padding: '4px 0',
+                },
+                blockToolbarWrapper: {
+                    height: '1.5em',
+                },
+            },
+        });
+    }
+});
 
 const options = createSlatePluginsOptions();
 
@@ -308,6 +308,14 @@ export default function SlateDemo() {
                 [options[MARK_ITALIC].type]: true,
             }],
         },
+        {
+            type: "h1",
+            children: [
+                {
+                    text: "A line of text in a heading."
+                }
+            ]
+        }
     ]);
 
     const pluginsMemo = useMemo(() => {
