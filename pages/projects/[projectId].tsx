@@ -381,9 +381,12 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 </div>
                             </div>
                         )}
+                        <p className="mt-8 opacity-25">
+                            Snippets are only visible to project owners and collaborators.
+                        </p>
                         {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
                             <>
-                                <p className="opacity-25 mt-8">
+                                <p className="opacity-50">
                                     Showing snippets {(snippetPage - 1) * 10 + 1}
                                     -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
                                 </p>
@@ -408,7 +411,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                         />
                                     </div>
                                 ))}
-                                <p className="opacity-25 mt-8">
+                                <p className="opacity-25">
                                     Showing snippets {(snippetPage - 1) * 10 + 1}
                                     -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
                                 </p>
@@ -425,7 +428,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 )}
                             </>
                         ) : (
-                            <p className="mt-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
+                            <p>{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
                         ) : (
                             <div className="mt-4">
                                 <Skeleton count={10}/>

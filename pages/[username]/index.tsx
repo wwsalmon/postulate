@@ -13,7 +13,7 @@ import ProjectItem from "../../components/project-item";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
-import {FiEdit, FiEdit2, FiMessageSquare, FiPlus, FiSearch, FiStar, FiTrash, FiX} from "react-icons/fi";
+import {FiEdit, FiEdit2, FiGrid, FiMessageSquare, FiPlus, FiSearch, FiStar, FiTrash, FiX} from "react-icons/fi";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import UpBanner from "../../components/UpBanner";
@@ -22,6 +22,7 @@ import ReactFrappeChart from "../../components/frappe-chart";
 import UpModal from "../../components/up-modal";
 import ProfileAddFeaturedPost from "../../components/profile-add-featured-post";
 import axios from "axios";
+import ProfileAddFeaturedProject from "../../components/profile-add-featured-project";
 
 interface DatedUserObjWithCounts extends DatedObj<UserObj> {
     snippetsArr: {createdAt: string}[],
@@ -36,15 +37,18 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const [isSearch, setIsSearch] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [addPostOpen, setAddPostOpen] = useState<boolean>(false);
+    const [addProjectOpen, setAddProjectOpen] = useState<boolean>(false);
     const [featuredPostsIter, setFeaturedPostsIter] = useState<number>(0);
+    const [featuredProjectsIter, setFeaturedProjectsIter] = useState<number>(0);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
-    const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}`, fetcher);
+    const {data: projects, error: projectsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR(`/api/project?userId=${thisUser._id}&iter=${featuredProjectsIter}`, fetcher);
     const {data: featuredPosts, error: featuredPostsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&featured=true&iter=${featuredPostsIter}`);
     const {data: tags, error: tagsError}: responseInterface<{ data: any }, any> = useSWR(`/api/tag?userId=${thisUser._id}`, fetcher);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
 
     const postsReady = posts && posts.posts;
     const featuredPostsReady = featuredPosts && featuredPosts.posts;
+    const featuredProjectsReady = projects && projects.projects;
     const isOwner = session && session.userId === thisUser._id;
 
     const snippetDates = arrToDict(thisUser.snippetsArr);
@@ -56,6 +60,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
     const numGraphDays = 30;
 
     const featuredPostIds = featuredPostsReady ? featuredPosts.posts.map(d => d._id) : [];
+    const featuredProjectIds = featuredProjectsReady ? projects.projects.map(d => d._id) : [];
 
     function deleteFeaturedPost(id: string) {
         axios.delete(`/api/post/feature`, {
@@ -64,6 +69,18 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
             },
         }).then(() => {
             setFeaturedPostsIter(featuredPostsIter + 1);
+        }).catch(e => {
+            console.log(e);
+        });
+    }
+
+    function deleteFeaturedProject(id: string) {
+        axios.delete(`/api/project/feature`, {
+            data: {
+                id: id,
+            },
+        }).then(() => {
+            setFeaturedProjectsIter(featuredProjectsIter + 1);
         }).catch(e => {
             console.log(e);
         });
@@ -176,13 +193,39 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                 </div>
                 <div className="lg:w-2/3 lg:pl-12">
                     <hr className="my-10 lg:hidden"/>
-                    <h3 className="up-ui-title mb-8">Featured projects</h3>
+                    <div className="flex mb-8 items-center">
+                        <div className="mr-4">
+                            <FiGrid/>
+                        </div>
+                        <h3 className="up-ui-title">Featured projects</h3>
+                        {isOwner && (
+                            <>
+                                <button className="ml-auto up-button small text" onClick={() => setAddProjectOpen(true)} disabled={!featuredProjectsReady}>
+                                    <FiPlus/>
+                                </button>
+                                <UpModal isOpen={addProjectOpen} setIsOpen={setAddProjectOpen} wide={true}>
+                                    <ProfileAddFeaturedProject
+                                        iteration={featuredProjectsIter}
+                                        setIteration={setFeaturedProjectsIter}
+                                        setOpen={setAddProjectOpen}
+                                        featuredProjectIds={featuredProjectIds}
+                                    />
+                                </UpModal>
+                            </>
+                        )}
+                    </div>
                     {(projects && projects.projects && projects.owners) ? projects.projects.length === 0 ? (
                         <p className="opacity-50">No featured projects. {isOwner ? "Go to a project and press \"Display project on profile\" to feature a project." : ""}</p>
                     ) : (
                         <div className="-mx-2 flex-wrap md:flex">
                             {projects.projects.map(project => (
-                                <ProjectItem project={project} owners={projects.owners} sessionUserId={thisUser._id}/>
+                                <ProjectItem
+                                    project={project}
+                                    owners={projects.owners}
+                                    sessionUserId={thisUser._id}
+                                    unpinProject={() => deleteFeaturedProject(project._id)}
+                                    isOwner={isOwner}
+                                />
                             ))}
                         </div>
                     ) : (
@@ -221,12 +264,14 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                                             showProject={true}
                                             showLine={false}
                                         />
-                                        <button
-                                            className="up-button text small ml-auto opacity-25 hover:opacity-100"
-                                            onClick={() => deleteFeaturedPost(post._id)}
-                                        >
-                                            <FiX/>
-                                        </button>
+                                        {isOwner && (
+                                            <button
+                                                className="up-button text small ml-auto opacity-25 hover:opacity-100"
+                                                onClick={() => deleteFeaturedPost(post._id)}
+                                            >
+                                                <FiX/>
+                                            </button>
+                                        )}
                                     </div>
                                     <hr className="my-10"/>
                                 </>

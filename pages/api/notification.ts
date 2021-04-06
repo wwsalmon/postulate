@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }},
             ];
 
-            const notifications = await NotificationModel.aggregate([
+            let notifications = await NotificationModel.aggregate([
                 {$match: {userId: mongoose.Types.ObjectId(session.userId)}},
                 {$lookup: {
                     from: "comments",
@@ -57,6 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     as: "reaction",
                 }},
             ]);
+
+            const brokenNotifications = notifications.filter(d => !d.comment.length && !d.reaction.length);
+            const brokenNotificationIds = brokenNotifications.map(d => d._id.toString());
+            if (brokenNotificationIds.length) {
+                await NotificationModel.deleteMany({_id: {$in: brokenNotificationIds}});
+                notifications = notifications.filter(d => !brokenNotificationIds.includes(d._id.toString()))
+            }
 
             return res.status(200).json({data: notifications});
         } else if (req.method === "POST") {
