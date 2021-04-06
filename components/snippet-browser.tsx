@@ -65,11 +65,13 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
                     />
                     <Select
                         className="flex-grow sm:mr-4 mt-4 sm:mt-0"
-                        options={[...(projects ? projects.projects : []), ...(sharedProjects ? sharedProjects.projects : [])]
-                            .find(d => d._id === snippetProjectId)
-                            .availableTags
-                            .map(d => ({label: d, value: d}))
-                        }
+                        options={(() => {
+                            const availableTags = [...(projects ? projects.projects : []), ...(sharedProjects ? sharedProjects.projects : [])]
+                                .find(d => d._id === snippetProjectId)
+                                .availableTags;
+
+                            return availableTags ? availableTags.map(d => ({label: d, value: d})) : [];
+                        })()}
                         value={tagsQuery.map(d => ({label: d, value: d}))}
                         onChange={(newValue) => {
                             setSnippetPage(1);
