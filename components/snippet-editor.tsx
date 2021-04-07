@@ -71,7 +71,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 <SpinnerButton
                     isLoading={isLoading}
                     onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}
-                    isDisabled={disableSave || (isSnippet && !body) || (!isSnippet && !url)}
+                    isDisabled={disableSave || (isSnippetState && !body) || (!isSnippetState && !url)}
                 >
                     Save
                 </SpinnerButton>
