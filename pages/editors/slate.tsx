@@ -2,9 +2,12 @@ import {
     AutoformatRule,
     createAutoformatPlugin,
     createBasicElementPlugins,
-    createBasicMarkPlugins, createDeserializeHTMLPlugin, createDeserializeMDPlugin,
+    createBasicMarkPlugins,
+    createDeserializeHTMLPlugin,
+    createDeserializeMDPlugin,
     createExitBreakPlugin,
-    createHistoryPlugin, createImagePlugin,
+    createHistoryPlugin,
+    createImagePlugin,
     createReactPlugin,
     createResetNodePlugin,
     createSlatePluginsComponents,
@@ -28,8 +31,8 @@ import {
     ELEMENT_TD,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
-    ExitBreakPluginOptions, getComponent,
-    getSelectableElement,
+    ExitBreakPluginOptions,
+    withDraggables,
     insertCodeBlock,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
@@ -41,7 +44,7 @@ import {
     ResetBlockTypePluginOptions,
     SlatePlugins,
     SoftBreakPluginOptions,
-    SPEditor, StyledElement,
+    SPEditor,
     toggleList,
     unwrapList,
     WithAutoformatOptions,
@@ -52,12 +55,16 @@ import {useMemo, useState} from "react";
 import markdown from "remark-parse";
 import slate from "remark-slate";
 import unified from "unified";
+import {BiGridVertical} from "react-icons/bi";
 
 const components = createSlatePluginsComponents();
-
-Object.keys(components).forEach((key) => {
-    if (
-        [
+const draggableComponents = withDraggables(components, [
+    {
+        keys: [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL],
+        level: 0,
+    },
+    {
+        keys: [
             ELEMENT_PARAGRAPH,
             ELEMENT_BLOCKQUOTE,
             ELEMENT_TODO_LI,
@@ -74,27 +81,12 @@ Object.keys(components).forEach((key) => {
             ELEMENT_TABLE,
             ELEMENT_MEDIA_EMBED,
             ELEMENT_CODE_BLOCK,
-        ].includes(key)
-    ) {
-        const rootKeys = [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL];
-
-        components[key] = getSelectableElement({
-            component: components[key],
-            level: rootKeys.includes(key) ? 0 : undefined,
-            dragIcon: (
-                <span>drag</span>
-            ),
-            styles: {
-                blockAndGutter: {
-                    padding: '4px 0',
-                },
-                blockToolbarWrapper: {
-                    height: '1.5em',
-                },
-            },
-        });
-    }
-});
+        ],
+        dragIcon: (
+            <BiGridVertical/>
+        ),
+    },
+]);
 
 const options = createSlatePluginsOptions();
 
@@ -347,7 +339,7 @@ export default function SlateDemo() {
                         value={body}
                         onChange={newValue => setBody(newValue)}
                         plugins={pluginsMemo}
-                        components={components}
+                        components={draggableComponents}
                         options={options}
                     />
                 </DndProvider>
