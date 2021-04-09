@@ -48,6 +48,9 @@ import {
     toggleList,
     unwrapList,
     WithAutoformatOptions,
+    createNodeIdPlugin,
+    createListPlugin,
+    createLinkPlugin,
 } from '@udecode/slate-plugins';
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
@@ -292,23 +295,17 @@ _italic text_
 console.log(unified().use(markdown).use(slate).processSync(markdownString).result);
 
 export default function SlateDemo() {
-    const [body, setBody] = useState<any[]>([
-        {
-            type: 'paragraph',
-            children: [{
-                text: 'A line of text in a paragraph.',
-                [options[MARK_ITALIC].type]: true,
-            }],
-        },
-        {
-            type: "h1",
-            children: [
-                {
-                    text: "A line of text in a heading."
-                }
-            ]
-        }
-    ]);
+    const [body, setBody] = useState<any[]>([{"type": "p", "id": 1618006912384, "children": [{"text": "A line of text in a paragraph. yuh"}]}, {
+        "type": "p",
+        "id": 1618006935286,
+        "children": [{"text": "this "}]
+    }, {"type": "p", "children": [{"text": "ba"}], "id": 1618006944869}, {
+        "type": "p",
+        "children": [{"text": "there's literally no difference"}],
+        "id": 1618006951028
+    }]);
+
+
 
     const pluginsMemo = useMemo(() => {
         const plugins = [
@@ -322,6 +319,9 @@ export default function SlateDemo() {
             createExitBreakPlugin(optionsExitBreakPlugin),
             createDeserializeMDPlugin(),
             createImagePlugin(),
+            createNodeIdPlugin(),
+            createListPlugin(),
+            createLinkPlugin(),
         ];
 
         plugins.push(createDeserializeHTMLPlugin({ plugins }));
