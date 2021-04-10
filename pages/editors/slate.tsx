@@ -78,7 +78,6 @@ const draggableComponents = withDraggables(components, [
             ELEMENT_H5,
             ELEMENT_H6,
             ELEMENT_IMAGE,
-            ELEMENT_LINK,
             ELEMENT_OL,
             ELEMENT_UL,
             ELEMENT_TABLE,
