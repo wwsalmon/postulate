@@ -1,12 +1,14 @@
 import {
     BalloonToolbar,
+    ELEMENT_H2,
     MARK_BOLD,
     MARK_ITALIC,
-    MARK_STRIKETHROUGH, ToolbarLink,
+    ToolbarElement,
+    ToolbarLink,
     ToolbarMark,
     useSlatePluginType
 } from "@udecode/slate-plugins";
-import {BiBold, BiItalic, BiLink, BiStrikethrough} from "react-icons/bi";
+import {BiBold, BiHeading, BiItalic, BiLink} from "react-icons/bi";
 
 export default function SlateBalloon() {
     return (
@@ -19,11 +21,8 @@ export default function SlateBalloon() {
                 type={useSlatePluginType(MARK_ITALIC)}
                 icon={<BiItalic/>}
             />
-            <ToolbarMark
-                type={useSlatePluginType(MARK_STRIKETHROUGH)}
-                icon={<BiStrikethrough/>}
-            />
             <ToolbarLink icon={<BiLink/>}/>
+            <ToolbarElement type={useSlatePluginType(ELEMENT_H2)} icon={<BiHeading/>}/>
         </BalloonToolbar>
     )
 }
