@@ -35,7 +35,6 @@ import {
     unwrapList,
     WithAutoformatOptions
 } from "@udecode/slate-plugins";
-import {useMemo} from "react";
 
 export const options = createSlatePluginsOptions();
 

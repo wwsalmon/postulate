@@ -7,6 +7,7 @@ import slate from "remark-slate";
 import unified from "unified";
 import draggableComponents from "../../utils/slateDraggables";
 import {options, pluginsFactory} from "../../utils/slatePlugins";
+import SlateBalloon from "../../components/slateBalloon";
 
 const markdownString = `
 # Heading one
@@ -69,7 +70,9 @@ export default function SlateDemo() {
                         plugins={pluginsMemo}
                         components={draggableComponents}
                         options={options}
-                    />
+                    >
+                        <SlateBalloon/>
+                    </SlatePlugins>
                 </DndProvider>
             </div>
         </div>
