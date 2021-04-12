@@ -71,7 +71,6 @@ const draggableComponents = withDraggables(components, [
             ELEMENT_PARAGRAPH,
             ELEMENT_BLOCKQUOTE,
             ELEMENT_TODO_LI,
-            ELEMENT_H1,
             ELEMENT_H2,
             ELEMENT_H3,
             ELEMENT_H4,
@@ -98,33 +97,28 @@ const preFormat: AutoformatRule['preFormat'] = (editor) =>
 const optionsAutoformat: WithAutoformatOptions = {
     rules: [
         {
-            type: options[ELEMENT_H1].type,
+            type: options[ELEMENT_H2].type,
             markup: '#',
             preFormat,
         },
         {
-            type: options[ELEMENT_H2].type,
+            type: options[ELEMENT_H3].type,
             markup: '##',
             preFormat,
         },
         {
-            type: options[ELEMENT_H3].type,
+            type: options[ELEMENT_H4].type,
             markup: '###',
             preFormat,
         },
         {
-            type: options[ELEMENT_H4].type,
+            type: options[ELEMENT_H5].type,
             markup: '####',
             preFormat,
         },
         {
-            type: options[ELEMENT_H5].type,
-            markup: '#####',
-            preFormat,
-        },
-        {
             type: options[ELEMENT_H6].type,
-            markup: '######',
+            markup: '#####',
             preFormat,
         },
         {
