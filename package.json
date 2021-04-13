@@ -33,6 +33,7 @@
     "next-auth": "^3.11.2",
     "next-seo": "^4.19.0",
     "next-transpile-modules": "^6.3.0",
+    "normalize-url": "^4.5.0",
     "nprogress": "^0.2.0",
     "postcss": "^8.2.4",
     "react": "17.0.2",

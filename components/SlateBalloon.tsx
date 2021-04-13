@@ -20,6 +20,7 @@ import {
 import {BiBold, BiCheck, BiHeading, BiItalic, BiLink, BiPencil, BiUnlink, BiX} from "react-icons/bi";
 import ellipsize from "ellipsize";
 import {Editor, Transforms} from "slate";
+import normalizeUrl from "normalize-url";
 
 export default function SlateBalloon() {
     const ref = useRef<HTMLDivElement>(null);
@@ -79,17 +80,18 @@ export default function SlateBalloon() {
     }
 
     function saveLink(newUrl: string) {
+        const processedUrl = normalizeUrl(newUrl);
         const linkType = getSlatePluginType(editor, ELEMENT_LINK);
         const [, inlinePath] = Editor.leaf(editor, linkPosition);
         // select text that's about to be unlinked (making the path itself unusable)
         Transforms.select(editor, inlinePath);
         // unlink and re-link selected texts
         unwrapNodes(editor, {at: linkPosition, match: {type: linkType}});
-        wrapLink(editor, { at: editor.selection, url: newUrl });
+        wrapLink(editor, { at: editor.selection, url: processedUrl });
         // collapse cursor back to single point
         Transforms.collapse(editor, { edge: 'end' });
         // set balloon state vars
-        setLinkUrl(newUrl);
+        setLinkUrl(processedUrl);
         setLinkEdit(false);
     }
 
