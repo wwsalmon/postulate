@@ -150,3 +150,7 @@ a.up-button.small:not(.primary):not(.text) {
 .prose .task-list-item:before {
     display: none;
 }
+
+.prose li > p, .prose blockquote > p {
+    padding: 0;
+}
