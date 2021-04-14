@@ -232,7 +232,6 @@ export const pluginsFactory = () => {
                     const form = new FormData();
                     form.append("image", file);
                     const res = await axios.post(`/api/upload?projectId=60495b802beda615482755d6&attachedType=post&attachedUrlName=neweditor`, form);
-                    console.log(res);
                     return res.data.data.filePath;
                 } catch (e) {
                     console.log(e);

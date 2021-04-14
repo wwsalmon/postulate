@@ -25,16 +25,21 @@ export const customWithImageUpload = ({
                 const [mime] = file.type.split('/');
 
                 if (mime === 'image') {
-                    insertNodes(editor, {
-                        type: "loading",
-                        children: [{text: ""}],
-                    });
+                    // if greater than 2 MB
+                    if ((file.size / 1024 / 1024) > 2) {
+                        window.alert("Maximum allowed filesize is 2MB");
+                    } else {
+                        insertNodes(editor, {
+                            type: "loading",
+                            children: [{text: ""}],
+                        });
 
-                    uploadImage(file).then(url => {
-                        // @ts-ignore bc node.type threw error
-                        Transforms.removeNodes(editor, { match: (node) => node.type === "loading" });
-                        insertImage(editor, url);
-                    });
+                        uploadImage(file).then(url => {
+                            // @ts-ignore bc node.type threw error
+                            Transforms.removeNodes(editor, { match: (node) => node.type === "loading" });
+                            insertImage(editor, url);
+                        });
+                    }
                 }
             }
         } else {
