@@ -17,14 +17,10 @@ import {
     withDraggables
 } from "@udecode/slate-plugins";
 import {BiGridVertical} from "react-icons/bi";
+import {slateLoadingComponent} from "./slateLoadingComponent";
 
 let components = createSlatePluginsComponents();
-components["loading"] = props => (
-    <div style={{padding: "0.5rem", backgroundColor: "#e2e2e2", userSelect: "none"}} contentEditable={false}>
-        <span>Loading...</span>
-        {props.children}
-    </div>
-);
+components["loading"] = slateLoadingComponent;
 
 const draggableComponents = withDraggables(components, [
     {
