@@ -13,13 +13,13 @@ import {
     ELEMENT_H4,
     ELEMENT_H5,
     ELEMENT_H6,
-    ELEMENT_LI,
+    ELEMENT_LI, ELEMENT_LINK,
     ELEMENT_OL,
     ELEMENT_PARAGRAPH,
     ELEMENT_TD,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
-    ExitBreakPluginOptions,
+    ExitBreakPluginOptions, getSlatePluginType,
     insertCodeBlock,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
@@ -29,12 +29,14 @@ import {
     MARK_ITALIC,
     MARK_STRIKETHROUGH,
     ResetBlockTypePluginOptions,
-    SoftBreakPluginOptions,
+    SoftBreakPluginOptions, someNode,
     SPEditor,
     toggleList,
-    unwrapList,
+    unwrapList, unwrapNodes, upsertLinkAtSelection,
     WithAutoformatOptions
 } from "@udecode/slate-plugins";
+import isHotkey from "is-hotkey";
+import normalizeUrl from "normalize-url";
 
 export const options = createSlatePluginsOptions();
 
@@ -213,6 +215,27 @@ export const pluginsFactory = () => {
         createNodeIdPlugin(),
         createListPlugin(),
         createLinkPlugin(),
+        {
+            onKeyDown: editor => e => {
+                if (isHotkey("mod+k", e)) {
+                    e.preventDefault();
+
+                    const type = getSlatePluginType(editor, ELEMENT_LINK);
+                    const isLink = someNode(editor, { match: { type } });
+
+                    // if there is a link at the cursor, get rid of the link
+                    if (isLink) unwrapNodes(editor, {at: editor.selection, match: {type: getSlatePluginType(editor, ELEMENT_LINK)}});
+                    // else if there is a selection, not just a point, create a link on that selection
+                    else if (editor.selection.anchor !== editor.selection.focus) {
+                        // taken from ToolbarLink.tsx with modifications
+                        const url = normalizeUrl(window.prompt(`Enter the URL of the link:`));
+                        if (url) {
+                            upsertLinkAtSelection(editor, { url, wrap: true });
+                        }
+                    }
+                }
+            }
+        }
     ];
 
     plugins.push(createDeserializeHTMLPlugin({ plugins }));
