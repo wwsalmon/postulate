@@ -7,7 +7,7 @@ import {getRenderElement, getSlatePluginTypes, SlatePlugin} from "@udecode/slate
 import {customWithImageUpload} from "./customWithImageUpload";
 
 export const createCustomImagePlugin = (
-    options?: WithImageUploadOptions
+    options: {uploadImage: (file: File) => Promise<string>}
 ): SlatePlugin => ({
     pluginKeys: ELEMENT_IMAGE,
     renderElement: getRenderElement(ELEMENT_IMAGE),

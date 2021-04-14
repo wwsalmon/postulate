@@ -58,13 +58,11 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
             await ImageModel.create(imageObj);
 
-            res.status(200).json({data: {filePath: process.env.CLOUDFRONT_URL + fileKey}});
+            return res.status(200).json({data: {filePath: process.env.CLOUDFRONT_URL + fileKey}});
         } catch (e) {
             console.log(e);
-            res.status(500).json({message: e});
+            return res.status(500).json({message: e});
         }
-
-        return;
     });
 }
 

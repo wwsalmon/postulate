@@ -7,39 +7,36 @@
 import {insertImage, isImageUrl, WithImageUploadOptions} from "@udecode/slate-plugins-image";
 import {SPEditor, WithOverride} from "@udecode/slate-plugins-core";
 import {ReactEditor} from "slate-react";
+import {insertNodes} from "@udecode/slate-plugins-common";
+import {Transforms} from "slate";
+import upload from "../../pages/api/upload";
 
 export const customWithImageUpload = ({
     uploadImage,
-}: WithImageUploadOptions = {}): WithOverride<ReactEditor & SPEditor> => (
+}: {uploadImage: (file: File) => Promise<string>}): WithOverride<ReactEditor & SPEditor> => (
     editor
 ) => {
     const { insertData } = editor;
 
     editor.insertData = (data: DataTransfer) => {
-        const text = data.getData('text/plain');
         const { files } = data;
         if (files && files.length > 0) {
             for (const file of files) {
-                const reader = new FileReader();
                 const [mime] = file.type.split('/');
 
                 if (mime === 'image') {
-                    reader.addEventListener('load', async () => {
-                        if (!reader.result) {
-                            return;
-                        }
-                        const uploadedUrl = uploadImage
-                            ? await uploadImage(reader.result)
-                            : reader.result;
-
-                        insertImage(editor, uploadedUrl);
+                    insertNodes(editor, {
+                        type: "loading",
+                        children: [{text: ""}],
                     });
 
-                    reader.readAsDataURL(file);
+                    uploadImage(file).then(url => {
+                        // @ts-ignore bc node.type threw error
+                        Transforms.removeNodes(editor, { match: (node) => node.type === "loading" });
+                        insertImage(editor, url);
+                    });
                 }
             }
-        } else if (isImageUrl(text)) {
-            insertImage(editor, text);
         } else {
             insertData(data);
         }

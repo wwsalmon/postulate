@@ -51,6 +51,7 @@ import {
 import isHotkey from "is-hotkey";
 import normalizeUrl from "normalize-url";
 import {createCustomImagePlugin} from "./createCustomImagePlugin";
+import axios from "axios";
 
 export const options = createSlatePluginsOptions();
 
@@ -225,7 +226,19 @@ export const pluginsFactory = () => {
         createSoftBreakPlugin(optionsSoftBreakPlugin),
         createExitBreakPlugin(optionsExitBreakPlugin),
         createDeserializeMDPlugin(),
-        createCustomImagePlugin(),
+        createCustomImagePlugin({
+            uploadImage: async file => {
+                try {
+                    const form = new FormData();
+                    form.append("image", file);
+                    const res = await axios.post(`/api/upload?projectId=60495b802beda615482755d6&attachedType=post&attachedUrlName=neweditor`, form);
+                    console.log(res);
+                    return res.data.data.filePath;
+                } catch (e) {
+                    console.log(e);
+                }
+            },
+        }),
         createNodeIdPlugin(),
         createListPlugin(),
         createLinkPlugin(),
@@ -254,15 +267,6 @@ export const pluginsFactory = () => {
             pluginKeys: "loading",
             renderElement: getRenderElement("loading"),
             voidTypes: () => ["div"],
-            onKeyDown: editor => e => {
-                if (isHotkey("mod+l", e)) {
-                    e.preventDefault();
-                    insertNodes(editor, {
-                        type: "loading",
-                        children: [{text: ""}],
-                    })
-                }
-            }
         }
     ];
 
