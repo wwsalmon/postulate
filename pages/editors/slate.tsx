@@ -5,8 +5,8 @@ import {useMemo, useState} from "react";
 import markdown from "remark-parse";
 import slate from "remark-slate";
 import unified from "unified";
-import draggableComponents from "../../utils/slateDraggables";
-import {options, pluginsFactory} from "../../utils/slatePlugins";
+import draggableComponents from "../../utils/slate/slateDraggables";
+import {options, pluginsFactory} from "../../utils/slate/slatePlugins";
 import SlateBalloon from "../../components/SlateBalloon";
 
 const markdownString = `
