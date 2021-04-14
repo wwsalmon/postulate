@@ -9,41 +9,41 @@ import draggableComponents from "../../utils/slate/slateDraggables";
 import {options, pluginsFactory} from "../../utils/slate/slatePlugins";
 import SlateBalloon from "../../components/SlateBalloon";
 
-const markdownString = `
-# Heading one
-
-## Heading two
-
-### Heading three
-
-#### Heading four
-
-##### Heading five
-
-###### Heading six
-
-Normal paragraph
-
-_italic text_
-
-**bold text**
-
-~~strike through text~~
-
-[hyperlink](https://jackhanford.com)
-
-![image](https://jackhanford.com/test.png)
-
-> A block quote.
-
-- bullet list item 1
-- bullet list item 2
-
-1. ordered list item 1
-2. ordered list item 2
-`;
-
-console.log(unified().use(markdown).use(slate).processSync(markdownString).result);
+// const markdownString = `
+// # Heading one
+//
+// ## Heading two
+//
+// ### Heading three
+//
+// #### Heading four
+//
+// ##### Heading five
+//
+// ###### Heading six
+//
+// Normal paragraph
+//
+// _italic text_
+//
+// **bold text**
+//
+// ~~strike through text~~
+//
+// [hyperlink](https://jackhanford.com)
+//
+// ![image](https://jackhanford.com/test.png)
+//
+// > A block quote.
+//
+// - bullet list item 1
+// - bullet list item 2
+//
+// 1. ordered list item 1
+// 2. ordered list item 2
+// `;
+//
+// console.log(unified().use(markdown).use(slate).processSync(markdownString).result);
 
 export default function SlateDemo() {
     const [body, setBody] = useState<any[]>([{"type": "p", "id": 1618006912384, "children": [{"text": "A line of text in a paragraph. yuh"}]}, {
@@ -54,7 +54,7 @@ export default function SlateDemo() {
         "type": "p",
         "children": [{"text": "there's literally no difference"}],
         "id": 1618006951028
-    }]);
+    }, {"type": "loading", "id": 1618006944880, children: [{"text": ""}]},]);
 
     const pluginsMemo = useMemo(pluginsFactory, []);
 

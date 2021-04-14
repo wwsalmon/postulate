@@ -1,21 +1,31 @@
 import {
     createSlatePluginsComponents,
-    ELEMENT_BLOCKQUOTE, ELEMENT_CODE_BLOCK,
+    ELEMENT_BLOCKQUOTE,
+    ELEMENT_CODE_BLOCK,
     ELEMENT_H2,
     ELEMENT_H3,
     ELEMENT_H4,
     ELEMENT_H5,
     ELEMENT_H6,
-    ELEMENT_IMAGE, ELEMENT_MEDIA_EMBED,
+    ELEMENT_IMAGE,
+    ELEMENT_MEDIA_EMBED,
     ELEMENT_OL,
-    ELEMENT_PARAGRAPH, ELEMENT_TABLE,
+    ELEMENT_PARAGRAPH,
+    ELEMENT_TABLE,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
     withDraggables
 } from "@udecode/slate-plugins";
 import {BiGridVertical} from "react-icons/bi";
 
-const components = createSlatePluginsComponents();
+let components = createSlatePluginsComponents();
+components["loading"] = props => (
+    <div style={{padding: "0.5rem", backgroundColor: "#e2e2e2", userSelect: "none"}} contentEditable={false}>
+        <span>Loading...</span>
+        {props.children}
+    </div>
+);
+
 const draggableComponents = withDraggables(components, [
     {
         keys: [ELEMENT_PARAGRAPH, ELEMENT_UL, ELEMENT_OL],

@@ -28,9 +28,9 @@ import {
     ELEMENT_TD,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
-    ExitBreakPluginOptions,
+    ExitBreakPluginOptions, getRenderElement,
     getSlatePluginType,
-    insertCodeBlock,
+    insertCodeBlock, insertNodes,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
     KEYS_HEADING,
@@ -247,6 +247,20 @@ export const pluginsFactory = () => {
                             upsertLinkAtSelection(editor, { url, wrap: true });
                         }
                     }
+                }
+            }
+        },
+        {
+            pluginKeys: "loading",
+            renderElement: getRenderElement("loading"),
+            voidTypes: () => ["div"],
+            onKeyDown: editor => e => {
+                if (isHotkey("mod+l", e)) {
+                    e.preventDefault();
+                    insertNodes(editor, {
+                        type: "loading",
+                        children: [{text: ""}],
+                    })
                 }
             }
         }
