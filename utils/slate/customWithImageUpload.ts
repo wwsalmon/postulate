@@ -38,6 +38,10 @@ export const customWithImageUpload = ({
                             // @ts-ignore bc node.type threw error
                             Transforms.removeNodes(editor, { match: (node) => node.type === "loading" });
                             insertImage(editor, url);
+                        }).catch(e => {
+                            // @ts-ignore bc node.type threw error
+                            Transforms.removeNodes(editor, { match: (node) => node.type === "loading" });
+                            window.alert("Image upload failed: " + e);
                         });
                     }
                 }

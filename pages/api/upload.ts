@@ -26,6 +26,12 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
     form.parse(req, async (e, _, files) => {
         const thisFile = files.image[0];
+
+        // if image bigger than 2MB
+        if (thisFile.size / 1024 / 1024 > 2) {
+            return res.status(500).json({message: "Maximum allowed filesize is 2MB"});
+        }
+
         const newFilename = short.generate() + "-" + thisFile.originalFilename;
         const fileKey = `${session.userId}/${projectId}/${newFilename}`;
 

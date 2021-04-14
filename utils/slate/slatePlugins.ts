@@ -234,7 +234,7 @@ export const pluginsFactory = () => {
                     const res = await axios.post(`/api/upload?projectId=60495b802beda615482755d6&attachedType=post&attachedUrlName=neweditor`, form);
                     return res.data.data.filePath;
                 } catch (e) {
-                    console.log(e);
+                    throw e.response.data.message;
                 }
             },
         }),
