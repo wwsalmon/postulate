@@ -9,9 +9,10 @@ import {
 } from "@udecode/slate-plugins-toolbar";
 import {getSlatePluginType, useTSlate} from "@udecode/slate-plugins-core";
 import {
+    ELEMENT_CODE_BLOCK,
     ELEMENT_H2, ELEMENT_LINK,
     MARK_BOLD,
-    MARK_ITALIC,
+    MARK_ITALIC, someNode,
     ToolbarElement,
     ToolbarLink,
     ToolbarMark, unwrapNodes, upsertLinkAtSelection,
@@ -19,7 +20,7 @@ import {
 } from "@udecode/slate-plugins";
 import {BiBold, BiCheck, BiHeading, BiItalic, BiLink, BiPencil, BiUnlink, BiX} from "react-icons/bi";
 import ellipsize from "ellipsize";
-import {Editor, Transforms} from "slate";
+import {Editor, Node, Transforms} from "slate";
 import normalizeUrl from "normalize-url";
 
 export default function SlateBalloon() {
@@ -30,6 +31,7 @@ export default function SlateBalloon() {
     const [selectionHidden] = useBalloonShow({editor, ref, hiddenDelay: 0});
     useBalloonMove({editor, ref, direction: "top"});
     const [linkHidden, setLinkHidden] = useState<boolean>(true);
+    const [onCodeBlock, setOnCodeBlock] = useState<boolean>(false);
     const [linkUrl, setLinkUrl] = useState<string>("");
     const [linkUrlEdit, setLinkUrlEdit] = useState<string>("");
     const [linkEdit, setLinkEdit] = useState<boolean>(false);
@@ -42,10 +44,42 @@ export default function SlateBalloon() {
         setLinkPosition(null);
     }
 
+    function checkIfCodeBlock(nodes: any[], indexes: number[]): boolean {
+        if (!indexes.length) return false;
+        const thisIndex = indexes[0];
+        const thisNode = nodes[thisIndex];
+
+        if (thisNode.type === "code_block") return true;
+        if (!thisNode.children || indexes.length === 1) return false;
+
+        const newNodes = thisNode.children;
+        const newIndexes = indexes.slice(1);
+        return checkIfCodeBlock(newNodes, newIndexes);
+    }
+
     // something like useBalloonShow
     useEffect(() => {
         if (editor.selection) {
             const {anchor, focus} = editor.selection;
+            const codeType = getSlatePluginType(editor, ELEMENT_CODE_BLOCK);
+
+            const root = Editor.node(editor, editor.selection);
+            const nodeEntries = Node.nodes(root[0], {from: anchor, to: focus});
+            let isCode = checkIfCodeBlock(editor.children, root[1]);
+
+            if (!isCode) {
+                for (const [node, path] of nodeEntries) {
+                    // @ts-ignore node.type throws error
+                    if (node.type === "code_block") isCode = true;
+                }
+            }
+
+            if (isCode) {
+                setOnCodeBlock(true);
+            } else {
+                setOnCodeBlock(false);
+            }
+
             // if no selection, just cursor
             if (anchor === focus) {
                 let lastNode = editor;
@@ -115,7 +149,7 @@ export default function SlateBalloon() {
                     undefined,
                     undefined,
                     "dark",
-                    (selectionHidden && linkHidden),
+                    ((selectionHidden && linkHidden) || onCodeBlock),
                     0,
                     "top",
                     false
