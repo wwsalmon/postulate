@@ -156,5 +156,5 @@ a.up-button.small:not(.primary):not(.text) {
 }
 
 .prose img {
-    maxHeight: unset;
+    max-height: unset;
 }
