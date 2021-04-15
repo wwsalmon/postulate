@@ -2,59 +2,15 @@ import {SlatePlugins,} from '@udecode/slate-plugins';
 import {DndProvider} from "react-dnd";
 import {HTML5Backend} from "react-dnd-html5-backend";
 import {useMemo, useState} from "react";
-import markdown from "remark-parse";
-import slate from "remark-slate";
-import unified from "unified";
 import draggableComponents from "../../utils/slate/slateDraggables";
 import {options, pluginsFactory} from "../../utils/slate/slatePlugins";
 import SlateBalloon from "../../components/SlateBalloon";
+import customDeserializeMD from "../../utils/slate/customDeserializeMD";
 
-// const markdownString = `
-// # Heading one
-//
-// ## Heading two
-//
-// ### Heading three
-//
-// #### Heading four
-//
-// ##### Heading five
-//
-// ###### Heading six
-//
-// Normal paragraph
-//
-// _italic text_
-//
-// **bold text**
-//
-// ~~strike through text~~
-//
-// [hyperlink](https://jackhanford.com)
-//
-// ![image](https://jackhanford.com/test.png)
-//
-// > A block quote.
-//
-// - bullet list item 1
-// - bullet list item 2
-//
-// 1. ordered list item 1
-// 2. ordered list item 2
-// `;
-//
-// console.log(unified().use(markdown).use(slate).processSync(markdownString).result);
+const markdownString = "Email automation tools are extremely useful, even when you only have a dozen or so users. Emails are a reliable way to send and request information about your app and users, or simply provide updates as a reminder that you're around.\n\nMy go-to email marketing used to be MailerLite. It covers all the basics: a nice drag-and-drop editor, an API to add contacts, automatic sending of emails to newly added contacts. Best of all, it's *completely free* up to 1000 subscribers and 12,000 emails a day. It's what I use to send welcome emails and product updates for [Updately](https://updately.vercel.app/), and for my personal newsletter.\n\nWhether because it's written in PHP, or because of small UI things, though, MailerLite just feels clunky and slow. When looking for an email marketing tool for Postulate, I set off in search of something better.\n\nEventually, I found [Sendinblue](https://www.sendinblue.com/). It has a much more limited free plan, but good enough for me to get started with (2000 contacts and 300 emails a day). It has very similar features to MailerLite: drag-and-drop editor, nice API, automation workflows. Its frontend is much snappier and nice to work in, even though I ran into some bugs and loading hangs as I was setting things up.\n\nHere's how I've set up Sendinblue for Postulate waitlist and onboarding emails.\n\n## Welcome email automation\n\nFirst up: a simple automation, sending a welcome email to every new contact added to a list.\n\nThe \"Create a new workflow\" screen offers a few different wizards to help you quickly create workflows.\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/iKXRSZES96AAHAcDyRBRJM-image.png)\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/qV2hDtfVRg7y5iAEzCx4y5-image.png)\n\nSoon, we're able to set up our email template.\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/amtWBJf1sey8syNbpjUQGE-image.png)\n\nThere are three options for editors: drag and drop, rich text, and HTML.\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/wLNFHH4n8snQgBmn2i6uZq-image.png)\n\nI chose drag and drop, and was brought into an interface very similar to MailerLite's.\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/mAuQobuixRnYZEg6xJgruG-image.png)\n\nIt was easy to create a basic, nice-looking welcome email:\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/sG9B6n1bUcV1sG2SKKNMa3-image.png)\n\nAnd just like that, our workflow has been set up!\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/6PnuSyULrT9WF2USe9Pvuk-image.png)\n\n## API integration with account creation\n\nIt's easy to hook this workflow up with account creation in Postulate through Sendinblue's API. It was easy to test with an API testing client (like Postman):\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/hXipnJFjP41m6rYDfimH1J-image.png)\n\nIn the new account endpoint on Postulate, I add a section checking if a Sendinblue contact exists with the same email, then either updating it (moving it from the waitlist email list to user list) or creating a new one.\n\n```\ntry {\n\t\tawait axios.get(`https://api.sendinblue.com/v3/contacts/${encodeURIComponent(session.user.email)}`, {\n\t\t\t\theaders: { \"api-key\": process.env.SENDINBLUE_API_KEY },\n\t\t});\n\n\t\tawait axios.put(`https://api.sendinblue.com/v3/contacts/${encodeURIComponent(session.user.email)}`, {\n\t\t\t\tlistIds: [2], // add to users list\n\t\t\t\tunlinkListIds: [5], // remove from waitlist\n\t\t}, {\n\t\t\t\theaders: { \"api-key\": process.env.SENDINBLUE_API_KEY },\n\t\t});\n} catch (e) {\n\t\tif (e.message === \"Request failed with status code 404\") {\n\t\t\t\tconst nameSplit = session.user.name.split(\" \");\n\t\t\t\tconst firstName = nameSplit.slice(0, nameSplit.length - 1).join(\" \");\n\t\t\t\tconst lastName = nameSplit.slice(nameSplit.length - 1, nameSplit.length);\n\n\t\t\t\tawait axios.post(\"https://api.sendinblue.com/v3/contacts\", {\n\t\t\t\t\t\temail: session.user.email,\n\t\t\t\t\t\tattributes: {\n\t\t\t\t\t\t\t\tFIRSTNAME: firstName,\n\t\t\t\t\t\t\t\tLASTNAME: lastName,\n\t\t\t\t\t\t},\n\t\t\t\t\t\tlistIds: [2], // add to users list\n\t\t\t\t}, {\n\t\t\t\t\t\theaders: { \"api-key\": process.env.SENDINBLUE_API_KEY },\n\t\t\t\t});\n\t\t} else {\n\t\t\t\tthrow e;\n\t\t}\n}\n```\n\nNow, when a user signs up for Postulate, they'll automatically get a welcome email.\n\n## Sending questionnaire to people on waitlist\n\nLastly, a custom campaign instead of an automation: I had about 100 people on Postulate's [Waitlist API](https://getwaitlist.com/) waitlist, and needed to send them all an email with a beta testing questionnaire.\n\nI was able to export a CSV from Waitlist API, and from there easily import these contacts into a Sendinblue list:\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/vkTL99BtVEhCmFtJLz9DLX-image.png)\n\nCreating the new email design was easy, too; I was able to use an old email design as a starting point, then simply modify it with new content.\n\n![](https://postulate.us/https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/gY9ay8YB9CshK87HJzi2M9-image.png)\n\nWhen I was ready to accept people as beta testers, I did so through the rich text editor instead of the drag and drop editor, providing a much more personal-feeling email. I used the template tag `{{ contact.FIRSTNAME }}` to address recipients by name:\n\n![](https://d30uef581frdjs.cloudfront.net/60146334b31e8c41981e2957/602c17ddd5de9a0009811e53/4ypewAqrfSw2K8QAqyGtLw-image.png)\n";
 
 export default function SlateDemo() {
-    const [body, setBody] = useState<any[]>([{"type": "p", "id": 1618006912384, "children": [{"text": "A line of text in a paragraph. yuh"}]}, {
-        "type": "p",
-        "id": 1618006935286,
-        "children": [{"text": "this "}]
-    }, {"type": "p", "children": [{"text": "ba"}], "id": 1618006944869}, {
-        "type": "p",
-        "children": [{"text": "there's literally no difference"}],
-        "id": 1618006951028
-    }, {"type": "loading", "id": 1618006944880, children: [{"text": ""}]},]);
+    const [body, setBody] = useState<any[]>(customDeserializeMD(markdownString));
 
     const pluginsMemo = useMemo(pluginsFactory, []);
 
