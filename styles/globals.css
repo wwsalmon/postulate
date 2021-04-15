@@ -154,3 +154,7 @@ a.up-button.small:not(.primary):not(.text) {
 .prose li > p, .prose blockquote > p {
     padding: 0;
 }
+
+.prose img {
+    maxHeight: unset;
+}
