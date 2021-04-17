@@ -65,7 +65,8 @@ export interface SnippetObj {
     projectId: string,
     userId: string, // ID
     type: "snippet" | "resource",
-    body: string,
+    body?: string,
+    slateBody?: Node[],
     date: string, // ISO datestring
     url: string,
     tags: string[],

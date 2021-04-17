@@ -8,6 +8,7 @@ import axios from "axios";
 import EasyMDE from "easymde";
 import {Node, Element} from "slate";
 import SlateEditor from "./SlateEditor";
+import {slateInitValue} from "../utils/utils";
 
 export default function NewPostEditor(props: {
     body?: string,
@@ -27,12 +28,7 @@ export default function NewPostEditor(props: {
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
     const [body, setBody] = useState<string>(props.body);
-    const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || [{
-        // @ts-ignore doesn't recognize "type" property in Node
-        type: "p",
-        children: [{text: ""}],
-        id: 0,
-    }]);
+    const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
     const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");

@@ -18,6 +18,9 @@ import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import project from "../pages/api/project";
 import EasyMDE from "easymde";
+import {createEditorPlugins, serializeHTMLFromNodes} from "@udecode/slate-plugins";
+import {pluginsFactory} from "../utils/slate/slatePlugins";
+import {withReact} from "slate-react";
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
@@ -50,6 +53,8 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         extensions: [showdownHtmlEscape],
     });
 
+    const editor = withReact(createEditorPlugins());
+
     function onDelete() {
         setIsLoading(true);
 
@@ -69,7 +74,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
 
     function onCancelEdit(urlName: string) {
         setIsEdit(false);
-        instance.clearAutosavedValue();
+        instance && instance.clearAutosavedValue();
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
@@ -84,7 +89,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
             urlName: snippet.urlName,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
-            instance.clearAutosavedValue();
+            instance && instance.clearAutosavedValue();
             setIteration(iteration + 1);
             setIsEdit(false);
         }).catch(e => {
@@ -213,7 +218,9 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                 </Link>
                             )}
                             <div className="prose break-words">
-                                {Parser(markdownConverter.makeHtml(snippet.body))}
+                                {snippet.slateBody ?
+                                    <div dangerouslySetInnerHTML={{__html: serializeHTMLFromNodes(editor, {plugins: pluginsFactory(), nodes: snippet.slateBody})}}/>
+                                    : Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
                             <div className="flex mt-4">
                                 {snippet.tags && snippet.tags.map(tag => (
