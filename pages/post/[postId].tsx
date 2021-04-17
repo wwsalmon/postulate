@@ -91,6 +91,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                         postId={props.post ? props.post._id : null}
                         title={props.post ? props.post.title : null}
                         body={props.post ? props.post.body : null}
+                        slateBody={props.post ? props.post.slateBody : null}
                         privacy={props.post ? props.post.privacy : null}
                         tags={props.post ? props.post.tags : null}
                         setInstance={setInstance}

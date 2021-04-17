@@ -6,9 +6,12 @@ import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
 import EasyMDE from "easymde";
+import {Node} from "slate";
+import SlateEditor from "./SlateEditor";
 
 export default function NewPostEditor(props: {
     body?: string,
+    slateBody?: Node[],
     title?: string,
     postId?: string,
     privacy?: "public" | "unlisted" | "private",
@@ -24,6 +27,7 @@ export default function NewPostEditor(props: {
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
     const [body, setBody] = useState<string>(props.body);
+    const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || null);
     const [title, setTitle] = useState<string>(props.title);
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
     const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
@@ -125,14 +129,18 @@ export default function NewPostEditor(props: {
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-4">Body</h3>
             <div className="content prose w-full" style={{maxWidth: "unset"}}>
-                <MDEditor
-                    body={body}
-                    setBody={setBody}
-                    imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
-                    placeholder="Turn your snippets into a shareable post!"
-                    id={projectId + (props.postId || "new")}
-                    setInstance={props.setInstance}
-                />
+                {slateBody ? (
+                    <SlateEditor body={slateBody} setBody={setSlateBody}/>
+                ) : (
+                    <MDEditor
+                        body={body}
+                        setBody={setBody}
+                        imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
+                        placeholder="Turn your snippets into a shareable post!"
+                        id={projectId + (props.postId || "new")}
+                        setInstance={props.setInstance}
+                    />
+                )}
             </div>
             <div className="flex mt-4">
                 <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body, privacy, tags)} isDisabled={!body || !title}>
