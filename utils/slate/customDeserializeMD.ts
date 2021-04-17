@@ -1,7 +1,7 @@
 const t = 0;
 export default t;
 /* commented out bc references out-of-repo version of remark-slate, once my PRs are merged (for images and inline code) the published version should work fine
-// use dist/customDeserializerMD.js, the compiled version of this file
+// use dist/customDeserializeMD.js, the compiled version of this file
 import unified from "unified";
 import markdown from "remark-parse";
 import slate from "../../../remark-slate";
