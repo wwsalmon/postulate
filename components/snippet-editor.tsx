@@ -16,7 +16,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     projectId?: string,
     availableTags: string[],
     isLoading: boolean,
-    onSaveEdit: (urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) => void,
+    onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) => void,
     onCancelEdit: (urlName: string) => void,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
@@ -78,7 +78,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or type to create a new one</p>
             <hr className="my-6"/>
             <div className="flex">
-                <SpinnerButton isLoading={isLoading} onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}>
+                <SpinnerButton
+                    isLoading={isLoading}
+                    onClick={() => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody))}
+                >
                     Save
                 </SpinnerButton>
                 <button className="up-button text" onClick={() => onCancelEdit(urlName)}>Cancel</button>

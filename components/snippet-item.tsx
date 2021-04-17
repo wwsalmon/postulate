@@ -21,6 +21,7 @@ import EasyMDE from "easymde";
 import {createEditorPlugins, serializeHTMLFromNodes} from "@udecode/slate-plugins";
 import {pluginsFactory} from "../utils/slate/slatePlugins";
 import {withReact} from "slate-react";
+import {Node} from "slate";
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
@@ -78,7 +79,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
-    function onSaveEdit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
+    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/snippet", {
@@ -87,6 +88,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
             url: url || "",
             tags: tags || [],
             urlName: snippet.urlName,
+            isSlate: !!isSlate,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             instance && instance.clearAutosavedValue();

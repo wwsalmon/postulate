@@ -39,6 +39,7 @@ import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
 import {BiLink, BiUnlink} from "react-icons/bi";
+import {Node} from "slate";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -97,7 +98,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
 
-    function onSubmit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
+    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
         setIsLoading(true);
 
         axios.post("/api/snippet", {
@@ -107,9 +108,10 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             body: body || "",
             url: url || "",
             tags: tags || [],
+            isSlate: !!isSlate,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
-            instance.clearAutosavedValue();
+            instance && instance.clearAutosavedValue();
             setIsLoading(false);
             setIteration(iteration + 1);
             setIsSnippet(false);
