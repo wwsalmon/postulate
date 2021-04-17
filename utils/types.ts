@@ -1,4 +1,5 @@
 import {SessionBase} from "next-auth/_utils";
+import {Node} from "slate";
 
 export interface WaitlistAPIRes {
     data: {
@@ -77,6 +78,7 @@ export interface PostObj {
     userId: string, // ID
     title: string,
     body: string,
+    slateBody?: Node[],
     tags?: string[],
     privacy: "public" | "private" | "unlisted",
 }
