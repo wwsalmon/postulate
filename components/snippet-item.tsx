@@ -16,12 +16,9 @@ import Link from "next/link";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
-import project from "../pages/api/project";
 import EasyMDE from "easymde";
-import {createEditorPlugins, serializeHTMLFromNodes} from "@udecode/slate-plugins";
-import {pluginsFactory} from "../utils/slate/slatePlugins";
-import {withReact} from "slate-react";
 import {Node} from "slate";
+import SlateReadOnly from "./SlateReadOnly";
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds}: {
     snippet: DatedObj<SnippetObj>,
@@ -53,8 +50,6 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
         tables: true,
         extensions: [showdownHtmlEscape],
     });
-
-    const editor = withReact(createEditorPlugins());
 
     function onDelete() {
         setIsLoading(true);
@@ -221,7 +216,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                             )}
                             <div className="prose break-words">
                                 {snippet.slateBody ?
-                                    <div dangerouslySetInnerHTML={{__html: serializeHTMLFromNodes(editor, {plugins: pluginsFactory(), nodes: snippet.slateBody})}}/>
+                                    <SlateReadOnly nodes={snippet.slateBody}/>
                                     : Parser(markdownConverter.makeHtml(snippet.body))}
                             </div>
                             <div className="flex mt-4">

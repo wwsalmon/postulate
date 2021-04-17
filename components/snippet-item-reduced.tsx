@@ -6,9 +6,9 @@ import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
-import {FiCode, FiEye} from "react-icons/fi";
+import {FiCode, FiCopy, FiEye} from "react-icons/fi";
 import SimpleMDEEditor from "react-simplemde-editor";
-import {simpleMDEToolbar} from "../utils/utils";
+import SlateReadOnly from "./SlateReadOnly";
 
 export default function SnippetItemReduced({snippet, authors, selectedSnippetIds = null, setSelectedSnippetIds = null, isPostPage = false}: {
     snippet: DatedObj<SnippetObj>,
@@ -60,7 +60,7 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                     <div className="opacity-25">
                         {format(new Date(snippet.createdAt), "h:mm a")}
                     </div>
-                    {!isPostPage && (
+                    {!isPostPage && !snippet.slateBody && (
                         <button className="up-button text ml-auto opacity-50" onClick={() => setIsMarkdown(!isMarkdown)}>
                             {isMarkdown ? <FiEye/> : <FiCode/>}
                         </button>
@@ -74,7 +74,9 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
             )}
             <div className="prose" style={{maxWidth: "unset"}}>
                 {(!isMarkdown || isPostPage) ? (
-                    Parser(markdownConverter.makeHtml(snippet.body))
+                    snippet.slateBody ?
+                        <SlateReadOnly nodes={snippet.slateBody}/>
+                        : Parser(markdownConverter.makeHtml(snippet.body))
                 ) : (
                     <div className="border rounded-md bg-white p-2">
                         <SimpleMDEEditor
