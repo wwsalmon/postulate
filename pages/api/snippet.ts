@@ -8,6 +8,8 @@ import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
 import {PostModel} from "../../models/post";
 import dbConnect from "../../utils/dbConnect";
+import getIsEmpty from "../../utils/slate/getIsEmpty";
+import {serialize} from "remark-slate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -53,8 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 // ensure necessary post params are present
                 if (!req.body.urlName) return res.status(406).json({message: "No snippet urlName found in request."});
-                if (req.body.type === "snippet" && !req.body.body) return res.status(406).json({message: "No snippet body found in request."});
+                if (req.body.type === "snippet" && (!req.body.body || (req.body.isSlate && getIsEmpty(req.body.body)))) return res.status(406).json({message: "No snippet body found in request."});
                 if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
+
+                const body = req.body.isSlate ? serialize({
+                    type: "div",
+                    children: req.body.body,
+                }) : req.body.body;
 
                 // delete any images that have been removed
                 const attachedImages = await ImageModel.find({attachedUrlName: req.body.urlName});
@@ -74,17 +81,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 // if update, else new
                 if (req.body.id) {
-                    thisSnippet.body = req.body.body || "";
+                    thisSnippet.body = body;
+                    if (req.body.isSlate) thisSnippet.slateBody = req.body.body;
                     thisSnippet.url = req.body.url || "";
                     thisSnippet.tags = req.body.tags || [];
 
                     await thisSnippet.save();
                 } else {
+                    // assume isSlate always true
                     const newSnippet: SnippetObj = {
                         urlName: req.body.urlName,
                         projectId: req.body.projectId,
                         type: req.body.type,
-                        body: req.body.body || "",
+                        body: body,
+                        slateBody: req.body.body,
                         date: new Date().toISOString(),
                         url: req.body.url || "",
                         tags: req.body.tags,

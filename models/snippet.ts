@@ -7,6 +7,7 @@ const SnippetSchema = new mongoose.Schema({
     urlName: {type: String, required: true},
     type: {type: String, required: true},
     body: {type: String, required: false},
+    slateBody: {type: Object, required: false},
     date: {type: String, required: true},
     url: {type: String, required: false},
     tags: [{type: String, required: true}],

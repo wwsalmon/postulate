@@ -17,6 +17,8 @@ import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
+import {Node} from "slate";
+import SlateReadOnly from "./SlateReadOnly";
 import Linkify from "react-linkify";
 import ProjectBrowser from "./project-browser";
 
@@ -74,11 +76,11 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
 
     function onCancelEdit(urlName: string) {
         setIsEdit(false);
-        instance.clearAutosavedValue();
+        instance && instance.clearAutosavedValue();
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
-    function onSaveEdit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
+    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/snippet", {
@@ -87,9 +89,10 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
             url: url || "",
             tags: tags || [],
             urlName: snippet.urlName,
+            isSlate: !!isSlate,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
-            instance.clearAutosavedValue();
+            instance && instance.clearAutosavedValue();
             setIteration(iteration + 1);
             setIsEdit(false);
         }).catch(e => {
@@ -242,9 +245,14 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                 </Link>
                             )}
                             <div className="prose break-words">
-                                <Linkify>
-                                    {Parser(markdownConverter.makeHtml(snippet.body))}
-                                </Linkify>
+                                {snippet.slateBody ? (
+                                        <SlateReadOnly nodes={snippet.slateBody}/>
+                                    ) : (
+                                        <Linkify>
+                                            {Parser(markdownConverter.makeHtml(snippet.body))}
+                                        </Linkify>
+                                    )
+                                }
                             </div>
                             <div className="flex mt-4">
                                 {snippet.tags && snippet.tags.map(tag => (

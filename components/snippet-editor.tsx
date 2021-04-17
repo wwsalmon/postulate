@@ -6,6 +6,9 @@ import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
 import EasyMDE from "easymde";
+import {Node} from "slate";
+import {slateInitValue} from "../utils/utils";
+import SlateEditor from "./SlateEditor";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
@@ -13,12 +16,13 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     projectId?: string,
     availableTags: string[],
     isLoading: boolean,
-    onSaveEdit: (urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) => void,
+    onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) => void,
     onCancelEdit: (urlName: string) => void,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
     disableSave?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : slateInitValue);
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
@@ -47,15 +51,26 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     placeholder="Resource URL"
                 />
             )}
-            <div className="content prose w-full">
-                <MDEditor
-                    body={body}
-                    setBody={setBody}
-                    imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
-                    placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
-                    id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
-                    setInstance={setInstance}
-                />
+            <div className="content prose w-full" style={{minHeight: 200}}>
+                {/* if snippet with slateBody or new snippet */}
+                {(!snippet || snippet.slateBody) ? (
+                    <SlateEditor
+                        body={slateBody}
+                        setBody={setSlateBody}
+                        projectId={snippet ? snippet.projectId : projectId}
+                        urlName={urlName}
+                        isPost={false}
+                    />
+                ) : (
+                    <MDEditor
+                        body={body}
+                        setBody={setBody}
+                        imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
+                        placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
+                        id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
+                        setInstance={setInstance}
+                    />
+                )}
             </div>
             <hr className="my-6"/>
             <p className="up-ui-title mb-4">Tags</p>
@@ -70,7 +85,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             <div className="flex">
                 <SpinnerButton
                     isLoading={isLoading}
-                    onClick={() => onSaveEdit(urlName, isSnippetState, body, url, tags)}
+                    onClick={() => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody))}
                     isDisabled={disableSave || (isSnippetState && !body) || (!isSnippetState && !url)}
                 >
                     Save

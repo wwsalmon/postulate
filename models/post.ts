@@ -7,6 +7,7 @@ const PostSchema = new mongoose.Schema({
     urlName: {type: String, required: true},
     title: {type: String, required: true},
     body: {type: String, required: true},
+    slateBody: {type: Object, required: false},
     tags: [{type: String, required: true}],
     privacy: {type: String, required: true}, // "public", "private", "unlisted"
 }, {

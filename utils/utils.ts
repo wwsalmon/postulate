@@ -1,5 +1,6 @@
 import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
 import {format} from "date-fns";
+import {Node} from "slate";
 
 export function cleanForJSON(input: any): any {
     return JSON.parse(JSON.stringify(input));
@@ -117,3 +118,10 @@ export function arrGraphGenerator(datesObj: {[key: string]: number}, numGraphDay
         return datesObj[thisDateFormatted] || 0;
     })
 }
+
+export const slateInitValue: Node[] = [{
+    // @ts-ignore doesn't recognize "type" property in Node
+    type: "p",
+    children: [{text: ""}],
+    id: 0,
+}];

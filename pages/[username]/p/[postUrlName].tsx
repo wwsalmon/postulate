@@ -38,6 +38,9 @@ import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import CommentItem from "../../../components/comment-item";
 import CommentContainerItem from "../../../components/comment-container-item";
 import {NotifsContext} from "../../_app";
+import {createEditorPlugins} from "@udecode/slate-plugins";
+import {withReact} from "slate-react";
+import SlateReadOnly from "../../../components/SlateReadOnly";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -255,7 +258,10 @@ export default function PublicPost(props: {
             )}
             <hr className="my-8"/>
             <div className="content prose">
-                {Parser(markdownConverter.makeHtml(body))}
+                {props.postData.slateBody ?
+                    <SlateReadOnly nodes={props.postData.slateBody}/>
+                    : Parser(markdownConverter.makeHtml(body))
+                }
             </div>
             {!session && (
                 <>
