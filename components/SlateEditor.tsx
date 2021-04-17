@@ -6,6 +6,7 @@ import {HTML5Backend} from "react-dnd-html5-backend";
 import {SlatePlugins} from "@udecode/slate-plugins";
 import draggableComponents from "../utils/slate/slateDraggables";
 import SlateBalloon from "./SlateBalloon";
+import SlatePlaceholder from "./SlatePlaceholder";
 
 export default function SlateEditor({body, setBody}: {
     body: Node[],
@@ -24,6 +25,7 @@ export default function SlateEditor({body, setBody}: {
                 options={options}
             >
                 <SlateBalloon/>
+                <SlatePlaceholder/>
             </SlatePlugins>
         </DndProvider>
     );

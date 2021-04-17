@@ -21,6 +21,7 @@ import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
 import EasyMDE from "easymde";
 import {FiChevronLeft, FiX} from "react-icons/fi";
+import {Node} from "slate";
 
 export default function NewPost(props: {post: DatedObj<PostObj>, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
@@ -45,7 +46,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private", tags: string[]) {
+    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/post", {
@@ -57,13 +58,14 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             tags: tags,
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
+            isSlate: !!isSlate,
         }).then(res => {
-            instance.clearAutosavedValue();
+            instance && instance.clearAutosavedValue();
             router.push(res.data.url);
         }).catch(e => {
             console.log(e);
             setIsEditLoading(false);
-        })
+        });
     }
 
     async function onCancelEdit() {
@@ -77,8 +79,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             <UpBackLink link={!router.query.back || (Array.isArray(router.query.back)) ? "/projects" : router.query.back} text="project" className="mb-8 pt-12 lg:pt-0"/>
             <div className="lg:flex">
                 <div className="lg:w-2/3 lg:pr-4 lg:border-r">
-                    <h1 className="up-h1 mb-8">{props.post ? "Edit" : "New"} post</h1>
-                    <hr className="my-8"/>
+                    <h1 className="up-ui-title mb-8">{props.post ? "Edit" : "New"} post</h1>
                     <NewPostEditor
                         tempId={tempId}
                         startProjectId={startProjectId}

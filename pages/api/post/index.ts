@@ -12,7 +12,7 @@ import {SnippetModel} from "../../../models/snippet";
 import dbConnect from "../../../utils/dbConnect";
 import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
-import {pipe} from "next/dist/build/webpack/config/utils";
+import {serialize} from "remark-slate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -30,6 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
                 if (req.body.privacy !== "public" && req.body.privacy !== "private" && req.body.privacy !== "unlisted") return res.status(406).json({message: "Missing or invalid privacy setting"});
+
+                const body = req.body.isSlate ? serialize({
+                    type: "div",
+                    children: req.body.body,
+                }) : req.body.body;
 
                 try {
                     await dbConnect();
@@ -50,7 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         if (!thisPost) return res.status(500).json({message: "No post exists for given ID"});
 
                         thisPost.title = req.body.title;
-                        thisPost.body = req.body.body;
+                        thisPost.body = body;
+                        if (req.body.isSlate) thisPost.slateBody = req.body.body;
                         thisPost.projectId = req.body.projectId;
                         thisPost.privacy = req.body.privacy;
                         thisPost.tags = req.body.tags;
@@ -61,7 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
 
                         if (attachedImages.length) {
-                            const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                            const bodyString = JSON.stringify(req.body.body);
+                            const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));
                             await deleteImages(unusedImages);
                         }
 
@@ -94,12 +101,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             "-" + encodeURIComponent(req.body.title.split(" ").slice(0, 5).join("-")) +
                             "-" + short.generate();
 
+                        // assume isSlate always true
                         const newPost: PostObj = {
                             urlName: urlName,
                             projectId: req.body.projectId,
                             userId: session.userId,
                             title: req.body.title,
-                            body: req.body.body,
+                            body: body,
+                            slateBody: req.body.body,
                             privacy: req.body.privacy,
                             tags: req.body.tags,
                         }
@@ -110,10 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const attachedImages = await ImageModel.find({ attachedUrlName: req.body.tempId });
 
                         if (attachedImages.length) {
-                            const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                            const bodyString = JSON.stringify(req.body.body);
+                            const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));
                             await deleteImages(unusedImages);
 
-                            const usedImageIds = attachedImages.filter(d => req.body.body.includes(d.key)).map(d => d._id.toString());
+                            const usedImageIds = attachedImages.filter(d => bodyString.includes(d.key)).map(d => d._id.toString());
                             await ImageModel.updateMany({_id: {$in: usedImageIds}}, {
                                 attachedUrlName: urlName,
                             });

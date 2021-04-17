@@ -266,7 +266,7 @@ export const pluginsFactory = () => {
             pluginKeys: "loading",
             renderElement: getRenderElement("loading"),
             voidTypes: () => ["div"],
-        }
+        },
     ];
 
     plugins.push(createDeserializeHTMLPlugin({ plugins }));
