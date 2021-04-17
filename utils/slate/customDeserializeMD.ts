@@ -1,5 +1,6 @@
 import unified from "unified";
 import markdown from "remark-parse";
+// references out-of-repo version of remark-slate, once my PRs are merged (for images and inline code) the published version should work fine
 import slate from "../../../remark-slate";
 
 function addIds(children: any[], lastId: number): number {
