@@ -66,6 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
 
+                        console.log(thisPost.urlName, attachedImages);
+
                         if (attachedImages.length) {
                             const bodyString = JSON.stringify(req.body.body);
                             const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));

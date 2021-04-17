@@ -79,7 +79,13 @@ export default function NewPostEditor(props: {
             <div className="content prose w-full" style={{maxWidth: "unset", minHeight: 300}}>
                 {/* if post being edited has slateBody or if new post */}
                 {(slateBody || !props.title) ? (
-                    <SlateEditor body={slateBody} setBody={setSlateBody}/>
+                    <SlateEditor
+                        body={slateBody}
+                        setBody={setSlateBody}
+                        projectId={projectId}
+                        urlName={props.tempId}
+                        isPost={true}
+                    />
                 ) : (
                     <MDEditor
                         body={body}

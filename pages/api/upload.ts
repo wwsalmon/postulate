@@ -19,7 +19,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     if (Array.isArray(req.query.attachedType) || (req.query.attachedType !== "snippet" && req.query.attachedType !== "post")) return res.status(406).json({message: "Missing attachedType query param"});
 
     const attachedType = req.query.attachedType;
-    const attachedUrlName = req.query.attachedUrlName;
+    const attachedUrlName = encodeURIComponent(req.query.attachedUrlName);
     const projectId = req.query.projectId;
 
     const form = new multiparty.Form();

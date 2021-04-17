@@ -8,11 +8,14 @@ import draggableComponents from "../utils/slate/slateDraggables";
 import SlateBalloon from "./SlateBalloon";
 import SlatePlaceholder from "./SlatePlaceholder";
 
-export default function SlateEditor({body, setBody}: {
+export default function SlateEditor({body, setBody, projectId, urlName, isPost}: {
     body: Node[],
-    setBody: Dispatch<SetStateAction<Node[]>>
+    setBody: Dispatch<SetStateAction<Node[]>>,
+    projectId: string,
+    urlName: string,
+    isPost: boolean,
 }) {
-    const pluginsMemo = useMemo(pluginsFactory, []);
+    const pluginsMemo = useMemo(() => pluginsFactory(projectId, urlName, isPost), []);
 
     return (
         <DndProvider backend={HTML5Backend}>

@@ -215,7 +215,7 @@ const optionsExitBreakPlugin: ExitBreakPluginOptions = {
     ],
 };
 
-export const pluginsFactory = () => {
+export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: boolean) => {
     const plugins = [
         createReactPlugin(),
         createHistoryPlugin(),
@@ -227,16 +227,16 @@ export const pluginsFactory = () => {
         createExitBreakPlugin(optionsExitBreakPlugin),
         createDeserializeMDPlugin(),
         createCustomImagePlugin({
-            uploadImage: async file => {
+            uploadImage: (projectId && urlName && isPost !== undefined) ? async file => {
                 try {
                     const form = new FormData();
                     form.append("image", file);
-                    const res = await axios.post(`/api/upload?projectId=60495b802beda615482755d6&attachedType=post&attachedUrlName=neweditor`, form);
+                    const res = await axios.post(`/api/upload?projectId=${projectId}&attachedType=${isPost ? "post" : "snippet"}&attachedUrlName=${urlName}`, form);
                     return res.data.data.filePath;
                 } catch (e) {
                     throw e.response.data.message;
                 }
-            },
+            } : () => null,
         }),
         createNodeIdPlugin(),
         createListPlugin(),
