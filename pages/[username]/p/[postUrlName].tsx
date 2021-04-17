@@ -12,7 +12,7 @@ import {
     UserObj
 } from "../../../utils/types";
 import {useRouter} from "next/router";
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useMemo, useState} from "react";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import Parser from "html-react-parser";
@@ -38,6 +38,15 @@ import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import CommentItem from "../../../components/comment-item";
 import CommentContainerItem from "../../../components/comment-container-item";
 import {NotifsContext} from "../../_app";
+import {
+    createEditorPlugins,
+    createSlatePluginsComponents,
+    serializeHTMLFromNodes,
+    SlatePlugins
+} from "@udecode/slate-plugins";
+import {options, pluginsFactory} from "../../../utils/slate/slatePlugins";
+import {withReact} from "slate-react";
+import {createEditor} from "slate";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -76,6 +85,8 @@ export default function PublicPost(props: {
     });
 
     const latestPostsReady = latestPosts && latestPosts.posts;
+
+    const editor = withReact(createEditorPlugins());
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -253,7 +264,10 @@ export default function PublicPost(props: {
             )}
             <hr className="my-8"/>
             <div className="content prose">
-                {Parser(markdownConverter.makeHtml(body))}
+                {props.postData.slateBody ?
+                    <div dangerouslySetInnerHTML={{__html: serializeHTMLFromNodes(editor, {plugins: pluginsFactory(), nodes: props.postData.slateBody})}}/>
+                    : Parser(markdownConverter.makeHtml(body))
+                }
             </div>
             {!session && (
                 <>
