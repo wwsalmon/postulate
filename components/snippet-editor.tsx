@@ -10,7 +10,7 @@ import {Node} from "slate";
 import {slateInitValue} from "../utils/utils";
 import SlateEditor from "./SlateEditor";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObj>,
     projectId?: string,
@@ -19,6 +19,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) => void,
     onCancelEdit: (urlName: string) => void,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
+    disableSave?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
     const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : slateInitValue);
@@ -34,6 +35,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             window.onbeforeunload = undefined;
         };
     }, [!!body]);
+
+    useEffect(() => {
+        if (!snippet) setIsSnippetState(isSnippet);
+    }, [isSnippet])
 
     return (
         <>
@@ -81,6 +86,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 <SpinnerButton
                     isLoading={isLoading}
                     onClick={() => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody))}
+                    isDisabled={disableSave || (isSnippetState && !body) || (!isSnippetState && !url)}
                 >
                     Save
                 </SpinnerButton>

@@ -243,6 +243,8 @@ export default function PublicPost(props: {
                         openState={viewLinkedSnippetsOpen}
                         setOpenState={setViewLinkedSnippetsOpen}
                     >
+                        <p className="mt-4 opacity-25">Only you (the author of this post) can see linked snippets. Public viewers will only be able to see the count of linked snippets.</p>
+                        <hr className="my-8"/>
                         {linkedSnippetsReady && linkedSnippets.snippets.map((snippet, i, a) => (
                             <div key={snippet._id}>
                                 {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (

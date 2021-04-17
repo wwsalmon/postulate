@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/client";
-import {FiBell, FiGrid, FiSearch, FiUser} from "react-icons/fi";
+import {FiBell, FiEdit2, FiGrid, FiSearch, FiUser} from "react-icons/fi";
 import MoreMenu from "./more-menu";
 import MoreMenuItem from "./more-menu-item";
 import {responseInterface} from "swr";
@@ -12,11 +12,13 @@ import {useContext, useState} from "react";
 import {NotifsContext} from "../pages/_app";
 import UpModal from "./up-modal";
 import NavbarSearchModal from "./navbar-search-modal";
+import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
 
 export default function Navbar() {
     const [session, loading] = useSession();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
     const [searchOpen, setSearchOpen] = useState<boolean>(false);
+    const [quickSnippetOpen, setQuickSnippetOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
 
     const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
@@ -47,7 +49,17 @@ export default function Navbar() {
                     </>
                 )}
                 <div className="ml-auto flex items-center h-full">
-                    <button className="up-button text small mr-4" onClick={() => setSearchOpen(true)}>
+                    {session && (
+                        <>
+                            <button className="up-button text small mr-2" onClick={() => setQuickSnippetOpen(true)}>
+                                <FiEdit2/>
+                            </button>
+                            <UpModal isOpen={quickSnippetOpen} setIsOpen={setQuickSnippetOpen} wide={true}>
+                                <NavbarQuickSnippetModal setOpen={setQuickSnippetOpen}/>
+                            </UpModal>
+                        </>
+                    )}
+                    <button className="up-button text small mr-2" onClick={() => setSearchOpen(true)}>
                         <FiSearch/>
                     </button>
                     <UpModal isOpen={searchOpen} setIsOpen={setSearchOpen}>
@@ -57,7 +69,7 @@ export default function Navbar() {
                     {session ? (
                         <>
                             {notifications && (
-                                <button className="up-hover-button relative h-10 px-2">
+                                <button className="up-hover-button relative h-10 px-4">
                                     <FiBell/>
                                     {!!unreadCount && (
                                         <div className="rounded-full w-3 h-3 top-0 right-0 absolute text-white font-bold" style={{backgroundColor: "#0026ff"}}>
@@ -71,6 +83,7 @@ export default function Navbar() {
                                             {notifications.data.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(notification => (
                                                 <MoreMenuItem
                                                     text={(() => {
+                                                        if (!notification.comment.length && !notification.reaction.length) return "Notification outdated";
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
@@ -86,6 +99,7 @@ export default function Navbar() {
                                                     })()}
                                                     wrapText={true}
                                                     href={(() => {
+                                                        if (!notification.comment.length && !notification.reaction.length) return "";
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {GetServerSideProps} from "next";
-import {getSession, useSession} from "next-auth/client";
+import {getSession, signIn, useSession} from "next-auth/client";
 import axios from "axios";
 import {useRouter} from "next/router";
 import Skeleton from "react-loading-skeleton";
@@ -25,7 +25,7 @@ export default function NewAccount() {
                 setIsLoading(false);
             } else {
                 console.log("redirecting...");
-                router.push("/projects");
+                signIn("google").then(() => router.push("/projects")).catch(e => console.log(e));
             }
         }).catch(e => {
             setIsLoading(false);

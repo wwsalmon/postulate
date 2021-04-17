@@ -137,6 +137,10 @@ a.up-button.small:not(.primary):not(.text) {
     background-color: white;
 }
 
+.modal-editor .EasyMDEContainer .editor-toolbar {
+    top: 0;
+}
+
 .EasyMDEContainer div.CodeMirror {
     border: 0;
     padding-left: 0;

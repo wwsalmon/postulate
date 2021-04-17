@@ -134,8 +134,8 @@ export interface PostWithAuthor extends PostObj {
 }
 
 export interface NotificationWithAuthorAndTarget extends NotificationObj {
-    comment: DatedObj<CommentObj> & {post: PostWithAuthor[], author: DatedObj<UserObj>[]},
-    reaction: DatedObj<ReactionObj> & {post: PostWithAuthor[], author: DatedObj<UserObj>[]},
+    comment: (DatedObj<CommentObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
+    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
 }
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript

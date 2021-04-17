@@ -42,13 +42,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
                     res.status(200).json({projects: projects, owners: owners});
                 } else {
+                    let matchConditions = { userId: new mongoose.Types.ObjectId(session.userId) };
+                    if (req.query.search) matchConditions["$text"] = {$search: req.query.search};
+
+                    let paginationConditions = req.query.page ? [
+                        {$skip: (+req.query.page - 1) * 10},
+                        {$limit: 10},
+                    ] : [];
+
                     const projects = await ProjectModel.aggregate([
                         {
-                            $match: { userId: new mongoose.Types.ObjectId(session.userId) },
+                            $match: matchConditions,
                         },
                         ...aggregatePipeline,
-                    ])
-                    res.status(200).json({projects: projects});
+                        ...paginationConditions,
+                    ]);
+
+                    const count = await ProjectModel.find(matchConditions).count();
+
+                    res.status(200).json({projects: projects, count: count});
                 }
 
                 return;
