@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
@@ -9,6 +9,7 @@ import EasyMDE from "easymde";
 import {Node, Element} from "slate";
 import SlateEditor from "./SlateEditor";
 import {slateInitValue} from "../utils/utils";
+import {stripHtml} from "string-strip-html";
 
 export default function NewPostEditor(props: {
     body?: string,
@@ -30,6 +31,7 @@ export default function NewPostEditor(props: {
     const [body, setBody] = useState<string>(props.body);
     const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
+    const titleElem = useRef<HTMLHeadingElement>(null)
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
     const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
@@ -63,15 +65,42 @@ export default function NewPostEditor(props: {
         };
     }, [!!body]);
 
+    useEffect(() => {
+        function pasteListener(e) {
+            e.preventDefault();
+            let paste = (e.clipboardData).getData("text");
+            paste = stripHtml(paste).result;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return false;
+            selection.deleteFromDocument();
+            selection.getRangeAt(0).insertNode(document.createTextNode(paste));
+        }
+
+        if (titleElem.current) {
+            titleElem.current.addEventListener("paste", pasteListener);
+        }
+
+        return () => titleElem.current && titleElem.current.removeEventListener("paste", pasteListener);
+    }, [titleElem.current]);
+
     return (
         <>
-            <input
-                type="text"
-                className="w-full up-h1 h-16 mb-4"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Add a title"
-            />
+            <div className="relative">
+                <h1
+                    className="w-full up-h1 mb-4 py-2 relative z-10"
+                    contentEditable
+                    onInput={e => setTitle(e.currentTarget.textContent)}
+                    ref={titleElem}
+                    suppressContentEditableWarning
+                >
+                    {props.title}
+                </h1>
+                {!title && (
+                    <h1 className="up-h1 py-2 opacity-25 absolute top-0">
+                        Add a title
+                    </h1>
+                )}
+            </div>
             <div className="content prose w-full" style={{maxWidth: "unset", minHeight: 300}}>
                 {/* if post being edited has slateBody or if new post */}
                 {(slateBody || !props.title) ? (

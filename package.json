@@ -58,6 +58,7 @@
     "slate": "^0.62.0",
     "slate-hyperscript": "^0.62.0",
     "slate-react": "^0.62.0",
+    "string-strip-html": "^8.2.13",
     "swr": "^0.4.1",
     "tailwindcss": "^2.0.2",
     "typescript": "^4.1.3",
