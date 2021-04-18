@@ -9,6 +9,7 @@ import EasyMDE from "easymde";
 import {Node} from "slate";
 import {slateInitValue} from "../utils/utils";
 import SlateEditor from "./SlateEditor";
+import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
@@ -86,7 +87,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 <SpinnerButton
                     isLoading={isLoading}
                     onClick={() => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody))}
-                    isDisabled={disableSave || (isSnippetState && !body) || (!isSnippetState && !url)}
+                    isDisabled={disableSave || (isSnippetState && !(body || !slateBody.every(d => getIsEmpty(d)))) || (!isSnippetState && !url)}
                 >
                     Save
                 </SpinnerButton>
