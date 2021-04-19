@@ -155,7 +155,7 @@ a.up-button.small:not(.primary):not(.text) {
     display: none;
 }
 
-.prose li > p, .prose blockquote > p {
+.prose li p, .prose blockquote p {
     padding: 0;
 }
 

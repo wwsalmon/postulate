@@ -226,7 +226,7 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
         createResetNodePlugin(optionsResetBlockTypePlugin),
         createSoftBreakPlugin(optionsSoftBreakPlugin),
         createExitBreakPlugin(optionsExitBreakPlugin),
-        // createDeserializeMDPlugin(),
+        createDeserializeMDPlugin(),
         createCustomImagePlugin({
             uploadImage: (projectId && urlName && isPost !== undefined) ? async file => {
                 try {
