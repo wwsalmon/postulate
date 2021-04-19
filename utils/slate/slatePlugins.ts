@@ -52,6 +52,7 @@ import isHotkey from "is-hotkey";
 import normalizeUrl from "normalize-url";
 import {createCustomImagePlugin} from "./createCustomImagePlugin";
 import axios from "axios";
+import {createCustomDeserializeHTMLPlugin} from "./createCustomDeserializeHTMLPlugin";
 
 export const options = createSlatePluginsOptions();
 
@@ -225,7 +226,7 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
         createResetNodePlugin(optionsResetBlockTypePlugin),
         createSoftBreakPlugin(optionsSoftBreakPlugin),
         createExitBreakPlugin(optionsExitBreakPlugin),
-        createDeserializeMDPlugin(),
+        // createDeserializeMDPlugin(),
         createCustomImagePlugin({
             uploadImage: (projectId && urlName && isPost !== undefined) ? async file => {
                 try {
@@ -269,7 +270,7 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
         },
     ];
 
-    plugins.push(createDeserializeHTMLPlugin({ plugins }));
+    plugins.push(createCustomDeserializeHTMLPlugin({ plugins }));
 
     return plugins;
 };
