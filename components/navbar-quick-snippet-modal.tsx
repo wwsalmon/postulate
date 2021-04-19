@@ -7,12 +7,10 @@ import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import Select from "react-select";
 import axios from "axios";
-import {useRouter} from "next/router";
+import {Node} from "slate";
 
 export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<SetStateAction<boolean>> }) {
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [instance, setInstance] = useState<EasyMDE>(null);
     const [isSnippet, setIsSnippet] = useState<boolean>(true);
     const [projectId, setProjectId] = useState<string>("none");
 
@@ -34,7 +32,7 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
         return thisProject ? thisProject.availableTags : [];
     }
 
-    function onSubmit(urlName: string, isSnippet: boolean, body: string, url: string, tags: string[]) {
+    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) {
         setIsLoading(true);
 
         axios.post("/api/snippet", {
@@ -44,8 +42,8 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
             body: body || "",
             url: url || "",
             tags: tags || [],
-        }).then(res => {
-            instance.clearAutosavedValue();
+            isSlate: isSlate,
+        }).then(() => {
             setIsLoading(false);
             setIsSnippet(true);
             setOpen(false);
@@ -56,7 +54,6 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
     }
 
     function onCancelSnippetOrResource(urlName: string) {
-        instance.clearAutosavedValue();
         setIsSnippet(true);
         axios.post("/api/cancel-delete-images", {urlName: urlName}).catch(e => console.log(e));
         setOpen(false);
@@ -103,7 +100,6 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
                 isLoading={isLoading}
                 onSaveEdit={onSubmit}
                 onCancelEdit={onCancelSnippetOrResource}
-                setInstance={setInstance}
                 disableSave={projectId === "none"}
             />
         </div>
