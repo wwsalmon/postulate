@@ -3,8 +3,6 @@ import {
     createAutoformatPlugin,
     createBasicElementPlugins,
     createBasicMarkPlugins,
-    createDeserializeHTMLPlugin,
-    createDeserializeMDPlugin,
     createExitBreakPlugin,
     createHistoryPlugin,
     createLinkPlugin,
@@ -28,9 +26,10 @@ import {
     ELEMENT_TD,
     ELEMENT_TODO_LI,
     ELEMENT_UL,
-    ExitBreakPluginOptions, getRenderElement,
+    ExitBreakPluginOptions,
+    getRenderElement,
     getSlatePluginType,
-    insertCodeBlock, insertNodes,
+    insertCodeBlock,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
     KEYS_HEADING,
@@ -53,6 +52,7 @@ import normalizeUrl from "normalize-url";
 import {createCustomImagePlugin} from "./createCustomImagePlugin";
 import axios from "axios";
 import {createCustomDeserializeHTMLPlugin} from "./createCustomDeserializeHTMLPlugin";
+import {createCustomDeserializeMDPlugin} from "./createCustomDeserializeMDPlugin";
 
 export const options = createSlatePluginsOptions();
 
@@ -226,7 +226,7 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
         createResetNodePlugin(optionsResetBlockTypePlugin),
         createSoftBreakPlugin(optionsSoftBreakPlugin),
         createExitBreakPlugin(optionsExitBreakPlugin),
-        createDeserializeMDPlugin(),
+        createCustomDeserializeMDPlugin(),
         createCustomImagePlugin({
             uploadImage: (projectId && urlName && isPost !== undefined) ? async file => {
                 try {

@@ -10,6 +10,7 @@ import {ReactEditor} from "slate-react";
 import {insertNodes} from "@udecode/slate-plugins-common";
 import {Transforms} from "slate";
 import upload from "../../pages/api/upload";
+import {ELEMENT_CODE_BLOCK, getSlatePluginType, someNode} from "@udecode/slate-plugins";
 
 export const customWithImageUpload = ({
     uploadImage,
@@ -19,8 +20,12 @@ export const customWithImageUpload = ({
     const { insertData } = editor;
 
     editor.insertData = (data: DataTransfer) => {
+        const type = getSlatePluginType(editor, ELEMENT_CODE_BLOCK);
+        const isCodeBlock = someNode(editor, { match: { type } });
         const { files } = data;
+
         if (files && files.length > 0) {
+            if (isCodeBlock) return;
             for (const file of files) {
                 const [mime] = file.type.split('/');
 
