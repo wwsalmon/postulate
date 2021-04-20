@@ -4,6 +4,7 @@ import HomeStep from "../components/home-step";
 import axios from "axios";
 import {WaitlistAPIRes} from "../utils/types";
 import UpSEO from "../components/up-seo";
+import Head from "next/head";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
@@ -30,6 +31,16 @@ export default function Home() {
     return (
         <>
             <UpSEO/>
+            <Head>
+                <script async src="https://www.googletagmanager.com/gtag/js?id=G-PN2PEJYJES"/>
+                <script dangerouslySetInnerHTML={{__html: `
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    
+                    gtag('config', 'G-PN2PEJYJES');
+                `}}/>
+            </Head>
             <div className="w-full bg-white sticky top-0 z-50">
                 <div className="px-4 mx-auto max-w-5xl flex h-16 items-center">
                     <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
