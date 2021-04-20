@@ -1,7 +1,8 @@
 import {Node} from "slate";
 import {withReact} from "slate-react";
-import {createEditorPlugins, serializeHTMLFromNodes} from "@udecode/slate-plugins";
+import {createEditorPlugins} from "@udecode/slate-plugins";
 import {pluginsFactory} from "../utils/slate/slatePlugins";
+import {customSerializeHTMLFromNodes} from "../utils/slate/customSerializeHTMLFromNodes";
 
 export default function SlateReadOnly({nodes}: { nodes: Node[] }) {
     const editor = withReact(createEditorPlugins());
@@ -9,7 +10,7 @@ export default function SlateReadOnly({nodes}: { nodes: Node[] }) {
     return (
         <div
             dangerouslySetInnerHTML={{
-                __html: serializeHTMLFromNodes(editor, {
+                __html: customSerializeHTMLFromNodes(editor, {
                     plugins: pluginsFactory(),
                     nodes: nodes,
                 })

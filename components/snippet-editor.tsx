@@ -19,7 +19,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     isLoading: boolean,
     onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) => void,
     onCancelEdit: (urlName: string) => void,
-    setInstance: Dispatch<SetStateAction<EasyMDE>>,
+    setInstance?: Dispatch<SetStateAction<EasyMDE>>,
     disableSave?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
