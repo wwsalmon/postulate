@@ -244,8 +244,6 @@ export const customSerializeHTMLFromNodes = (
 
     result = decodeURIComponent(result);
 
-    console.log(result);
-
     if (stripDataAttributes) {
         result = stripSlateDataAttributes(result);
     }

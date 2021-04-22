@@ -24,6 +24,8 @@ export default function Navbar() {
     const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
     const unreadCount = (notifications && notifications.data) ? notifications.data.filter(d => !d.read).length : 0;
 
+    console.log(notifications)
+
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="max-w-7xl mx-auto h-16 flex items-center px-4">
@@ -88,7 +90,11 @@ export default function Navbar() {
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target.author[0];
+                                                        const targetAuthor = target && target.author[0];
+
+                                                        if (!targetAuthor) {
+                                                            return "Invalid notification";
+                                                        }
 
                                                         if (type === "postReaction" || type === "postComment") {
                                                             return <span><b>{author.name}</b> {type === "postReaction" ? "liked" : "commented on"} your {format(new Date(target.createdAt), "M/d/y")} post</span>
@@ -103,7 +109,8 @@ export default function Navbar() {
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target.author[0];
+                                                        const targetAuthor = target && target.author[0];
+                                                        if (!targetAuthor) return "";
                                                         return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
                                                     })()}
                                                     className={notification.read ? "opacity-25" : ""}

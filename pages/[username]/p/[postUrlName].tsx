@@ -113,9 +113,8 @@ export default function PublicPost(props: {
         if (router.query.notif) {
             axios.post("/api/notification", {
                 id: router.query.notif,
-            }).then(res => {
+            }).then(() => {
                 setNotifsIteration(notifsIteration + 1);
-                console.log(res);
             }).catch(e => {
                 console.log(e);
             })
