@@ -9,7 +9,7 @@ export default function MDEditor({body, setBody, imageUploadEndpoint, placeholde
     imageUploadEndpoint: string,
     placeholder: string,
     id: string,
-    setInstance: Dispatch<SetStateAction<EasyMDE>>,
+    setInstance?: Dispatch<SetStateAction<EasyMDE>>,
 }) {
 
     return (
@@ -25,7 +25,7 @@ export default function MDEditor({body, setBody, imageUploadEndpoint, placeholde
                 imageUploadEndpoint: imageUploadEndpoint,
                 autosave: {enabled: true, uniqueId: id},
             }}
-            getMdeInstance={instance => setInstance(instance)}
+            getMdeInstance={instance => setInstance && setInstance(instance)}
         />
     );
 }

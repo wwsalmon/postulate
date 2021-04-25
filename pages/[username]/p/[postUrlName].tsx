@@ -38,6 +38,8 @@ import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import CommentItem from "../../../components/comment-item";
 import CommentContainerItem from "../../../components/comment-container-item";
 import {NotifsContext} from "../../_app";
+import SlateReadOnly from "../../../components/SlateReadOnly";
+import Linkify from "react-linkify";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -111,9 +113,8 @@ export default function PublicPost(props: {
         if (router.query.notif) {
             axios.post("/api/notification", {
                 id: router.query.notif,
-            }).then(res => {
+            }).then(() => {
                 setNotifsIteration(notifsIteration + 1);
-                console.log(res);
             }).catch(e => {
                 console.log(e);
             })
@@ -255,7 +256,10 @@ export default function PublicPost(props: {
             )}
             <hr className="my-8"/>
             <div className="content prose">
-                {Parser(markdownConverter.makeHtml(body))}
+                {props.postData.slateBody ?
+                    <SlateReadOnly nodes={props.postData.slateBody}/>
+                    : Parser(markdownConverter.makeHtml(body))
+                }
             </div>
             {!session && (
                 <>
@@ -263,6 +267,21 @@ export default function PublicPost(props: {
                     <InlineCTA/>
                 </>
             )}
+            <hr className="my-8"/>
+            <h3 className="up-ui-title mb-8">Post author</h3>
+            <div className="flex items-center opacity-50 hover:opacity-100 transition">
+                <Link href={`/@${props.thisAuthor.username}`}>
+                    <a>
+                        <img src={props.thisAuthor.image} alt={`Profile picture of ${props.thisAuthor.name}`} className="w-12 h-12 rounded-full mr-4"/>
+                    </a>
+                </Link>
+                <div>
+                    <Link href={`/@${props.thisAuthor.username}`}>
+                        <a className="up-ui-title">{props.thisAuthor.name}</a>
+                    </Link>
+                    <p><Linkify>{props.thisAuthor.bio}</Linkify></p>
+                </div>
+            </div>
             <hr className="my-8"/>
             <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
             {session ? (
@@ -287,15 +306,13 @@ export default function PublicPost(props: {
                 </div>
             ))}
             <hr className="my-8"/>
-            <h3 className="up-ui-title mb-10">
+            <h3 className="up-ui-title">
                 Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
-                    <a className="underline">{projectName}</a>
-                </Link> by <Link href={`/@${props.thisOwner.username}`}>
-                    <a className="underline">
-                        {props.thisOwner.name}
-                    </a>
-                </Link>
+                <a className="underline">{projectName}</a></Link>
             </h3>
+            <p className="mb-10 opacity-50">
+                {props.projectData.description}
+            </p>
             {latestPostsReady ? latestPosts.posts.length ? latestPosts.posts.map(post => (
                 <PublicPostItem
                     post={post}

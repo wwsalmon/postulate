@@ -14,8 +14,6 @@ export default function Projects({}: {  }) {
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObjWithCounts>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
     const [session, loading] = useSession();
 
-    console.log(sharedProjects);
-
     return (
         <div className="max-w-4xl mx-auto px-4">
             <UpSEO title="Projects"/>

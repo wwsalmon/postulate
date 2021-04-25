@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
@@ -6,9 +6,14 @@ import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
 import EasyMDE from "easymde";
+import {Node, Element} from "slate";
+import SlateEditor from "./SlateEditor";
+import {slateInitValue} from "../utils/utils";
+import {stripHtml} from "string-strip-html";
 
 export default function NewPostEditor(props: {
     body?: string,
+    slateBody?: Node[],
     title?: string,
     postId?: string,
     privacy?: "public" | "unlisted" | "private",
@@ -17,14 +22,16 @@ export default function NewPostEditor(props: {
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string, privacy: "public" | "unlisted" | "private", tags: string[]) => void,
+    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate: boolean) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
     const [body, setBody] = useState<string>(props.body);
+    const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
+    const titleElem = useRef<HTMLHeadingElement>(null)
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
     const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
@@ -58,16 +65,64 @@ export default function NewPostEditor(props: {
         };
     }, [!!body]);
 
+    useEffect(() => {
+        function pasteListener(e) {
+            e.preventDefault();
+            let paste = (e.clipboardData).getData("text");
+            paste = stripHtml(paste).result;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return false;
+            selection.deleteFromDocument();
+            selection.getRangeAt(0).insertNode(document.createTextNode(paste));
+        }
+
+        if (titleElem.current) {
+            titleElem.current.addEventListener("paste", pasteListener);
+        }
+
+        return () => titleElem.current && titleElem.current.removeEventListener("paste", pasteListener);
+    }, [titleElem.current]);
+
     return (
         <>
-            <h3 className="up-ui-title mb-4">Title</h3>
-            <input
-                type="text"
-                className="w-full text-xl h-12"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Add a title"
-            />
+            <div className="relative">
+                <h1
+                    className="w-full up-h1 mb-4 py-2 relative z-10"
+                    contentEditable
+                    onInput={e => setTitle(e.currentTarget.textContent)}
+                    ref={titleElem}
+                    suppressContentEditableWarning
+                >
+                    {props.title}
+                </h1>
+                {!title && (
+                    <h1 className="up-h1 py-2 opacity-25 absolute top-0">
+                        Add a title
+                    </h1>
+                )}
+            </div>
+            <div className="content prose w-full" style={{maxWidth: "unset", minHeight: 300}}>
+                {/* if post being edited has slateBody or if new post */}
+                {(slateBody || !props.title) ? (
+                    <SlateEditor
+                        body={slateBody}
+                        setBody={setSlateBody}
+                        projectId={projectId}
+                        urlName={props.tempId}
+                        isPost={true}
+                    />
+                ) : (
+                    <MDEditor
+                        body={body}
+                        setBody={setBody}
+                        imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
+                        placeholder="Turn your snippets into a shareable post!"
+                        id={projectId + (props.postId || "new")}
+                        setInstance={props.setInstance}
+                    />
+                )}
+            </div>
+
             <hr className="my-8"/>
             <div className="flex -mx-4 w-full">
                 <div className="mx-4 w-1/2">
@@ -122,20 +177,12 @@ export default function NewPostEditor(props: {
                 <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag or type to create a new one</p>
             </div>
 
-            <hr className="my-8"/>
-            <h3 className="up-ui-title mb-4">Body</h3>
-            <div className="content prose w-full" style={{maxWidth: "unset"}}>
-                <MDEditor
-                    body={body}
-                    setBody={setBody}
-                    imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
-                    placeholder="Turn your snippets into a shareable post!"
-                    id={projectId + (props.postId || "new")}
-                    setInstance={props.setInstance}
-                />
-            </div>
             <div className="flex mt-4">
-                <SpinnerButton isLoading={props.isEditLoading} onClick={() => props.onSaveEdit(projectId, title, body, privacy, tags)} isDisabled={!body || !title}>
+                <SpinnerButton
+                    isLoading={props.isEditLoading}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody)}
+                    isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
+                >
                     {props.title ? "Save" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>
