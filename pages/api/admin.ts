@@ -2,6 +2,8 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
+import {SnippetModel} from "../../models/snippet";
+import {PostModel} from "../../models/post";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "GET") return res.status(405).json({message: "wrong method"});
@@ -48,7 +50,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             {$project: {"name": 1, "email": 1, "username": 1, "image": 1, "createdAt": 1, "postsArr": 1, "snippetsArr": 1, "projects": 1}}
         ]);
 
-        return res.status(200).json({data: users});
+        const snippetTexts = await SnippetModel.aggregate([
+            {$project: {"body": 1}}
+        ]);
+
+        const postTexts = await PostModel.aggregate([
+            {$project: {"body": 1}}
+        ]);
+
+        const snippetTextLength = snippetTexts.reduce((a, b) => a + b.body.split(" ").length, 0);
+        const postTextLength = snippetTexts.reduce((a, b) => a + b.body.split(" ").length, 0);
+
+        return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength});
     } catch (e) {
         return res.status(500).json({message: e});
     }

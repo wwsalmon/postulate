@@ -66,7 +66,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                     <PublicPostItem
                         post={post}
-                        showProject={false}
+                        showAuthor
                     />
                 )) : (
                     <p>No public posts have been published in this project yet.</p>

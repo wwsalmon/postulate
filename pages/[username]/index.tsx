@@ -272,20 +272,20 @@ export default function UserProfile({thisUser}: { thisUser: DatedUserObjWithCoun
                         <>
                             {featuredPosts.posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(post => (
                                 <>
-                                    <div className="flex">
-                                        <PublicPostItem
-                                            post={post}
-                                            showProject={true}
-                                            showLine={false}
-                                        />
+                                    <div className="flex items-center">
                                         {isOwner && (
                                             <button
-                                                className="up-button text small ml-auto opacity-25 hover:opacity-100"
+                                                className="up-button text small opacity-25 hover:opacity-100 mr-4"
                                                 onClick={() => deleteFeaturedPost(post._id)}
                                             >
                                                 <FiX/>
                                             </button>
                                         )}
+                                        <PublicPostItem
+                                            post={post}
+                                            showProject={true}
+                                            showLine={false}
+                                        />
                                     </div>
                                     <hr className="my-10"/>
                                 </>

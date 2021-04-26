@@ -10,10 +10,21 @@ import Link from "next/link";
 export default function AdminPortal() {
     const {data, error} = useSWR("/api/admin", fetcher);
 
+    function getIsActive(tester: any, days: number) {
+        const posts = tester.postsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
+        const snippets = tester.snippetsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
+        return (posts || snippets);
+    }
+
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
             <UpSEO title="Admin dashboard" noindex={true}/>
             <h1 className="up-h1">Admin dashboard</h1>
+            <hr className="my-8"/>
+            <p><b>Active in last 24 hours:</b> {data && data.data && data.data.filter(d => getIsActive(d, 1)).length}</p>
+            <p><b>Active in last 48 hours:</b> {data && data.data && data.data.filter(d => getIsActive(d, 2)).length}</p>
+            <p><b>Active in last week:</b> {data && data.data && data.data.filter(d => getIsActive(d, 7)).length}</p>
+            <p><b>Words written: </b> {data && data.wordCount}</p>
             <hr className="my-8"/>
             <div className="w-full overflow-x-auto">
                 <table className="whitespace-nowrap">
