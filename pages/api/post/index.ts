@@ -177,7 +177,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case "GET":
             if (
-                !(req.query.projectId || req.query.userId) ||
+                !(req.query.projectId || req.query.userId || req.query.publicFeed) ||
                 (Array.isArray(req.query.projectId) || Array.isArray(req.query.userId))
             ){
                 return res.status(406).json({message: "No project ID or user ID found in request."});
@@ -232,7 +232,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     {$sort: {createdAt: -1}},
                 ];
 
-                let conditions: any = req.query.projectId ? { projectId: mongoose.Types.ObjectId(req.query.projectId) } : { userId: mongoose.Types.ObjectId(req.query.userId) };
+                let conditions: any = req.query.publicFeed ? {} : (
+                    req.query.projectId ?
+                        { projectId: mongoose.Types.ObjectId(req.query.projectId) }
+                        :
+                        { userId: mongoose.Types.ObjectId(req.query.userId) }
+                );
 
                 if (req.query.private) {
                     const session = await getSession({req});
