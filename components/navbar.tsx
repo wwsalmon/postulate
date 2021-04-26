@@ -11,13 +11,11 @@ import {format} from "date-fns";
 import {useContext, useState} from "react";
 import {NotifsContext} from "../pages/_app";
 import UpModal from "./up-modal";
-import NavbarSearchModal from "./navbar-search-modal";
 import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
 
 export default function Navbar() {
     const [session, loading] = useSession();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
-    const [searchOpen, setSearchOpen] = useState<boolean>(false);
     const [quickSnippetOpen, setQuickSnippetOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
 
@@ -40,12 +38,12 @@ export default function Navbar() {
                                 Projects
                             </a>
                         </Link>
-                        <Link href={`/@${session.username}`}>
+                        <Link href="/explore">
                             <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
                                 <div className="mr-3">
-                                    <FiUser/>
+                                    <FiSearch/>
                                 </div>
-                                Profile
+                                Explore
                             </a>
                         </Link>
                     </>
@@ -61,13 +59,6 @@ export default function Navbar() {
                             </UpModal>
                         </>
                     )}
-                    <button className="up-button text small mr-2" onClick={() => setSearchOpen(true)}>
-                        <FiSearch/>
-                    </button>
-                    <UpModal isOpen={searchOpen} setIsOpen={setSearchOpen}>
-                        <NavbarSearchModal setOpen={setSearchOpen}/>
-                        <button className="up-button text mt-4" onClick={() => setSearchOpen(false)}>Close</button>
-                    </UpModal>
                     {session ? (
                         <>
                             {notifications && (
@@ -126,6 +117,7 @@ export default function Navbar() {
                                     {session.username && (
                                         <>
                                             <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
+                                            <MoreMenuItem text="Explore" icon={<FiSearch/>} href="/explore"/>
                                             <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
                                         </>
                                     )}

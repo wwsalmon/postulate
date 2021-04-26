@@ -5,16 +5,19 @@ import PublicPostItem from "../components/public-post-item";
 import React, {useState} from "react";
 import {DatedObj, PostObjGraph} from "../utils/types";
 import UpBanner from "../components/UpBanner";
+import UserSearch from "../components/UserSearch";
 
-export default function Feed({}: {  }) {
+export default function Explore({}: {  }) {
     const [page, setPage] = useState<number>(1);
     const {data, error}: responseInterface<{posts: DatedObj<PostObjGraph>[], count: number}, any> = useSWR(`/api/post?publicFeed=true&page=${page}`, fetcher);
 
     return (
         <div className="px-4 mx-auto max-w-4xl">
-            <UpH1 className="mb-4">Feed</UpH1>
-            <p className="up-gray-500">The latest posts from users and projects you follow</p>
-            <hr className="my-16"/>
+            <UpH1 className="mb-4">Explore</UpH1>
+            <p className="up-gray-500">The latest public posts from users across the platform</p>
+            <hr className="my-8"/>
+            <UserSearch/>
+            <hr className="mt-8 mb-16"/>
             {page > 1 && (
                 <UpBanner className="-mt-8 mb-12 flex items-center">
                     <span>Showing <b>page {page}</b> of posts</span>
