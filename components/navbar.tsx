@@ -116,9 +116,9 @@ export default function Navbar() {
                                 <div className="up-hover-dropdown mt-8">
                                     {session.username && (
                                         <>
-                                            <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
-                                            <MoreMenuItem text="Explore" icon={<FiSearch/>} href="/explore"/>
                                             <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
+                                            <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
+                                            <MoreMenuItem text="Explore" icon={<FiSearch/>} href="/explore" className="md:hidden"/>
                                         </>
                                     )}
                                     <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
