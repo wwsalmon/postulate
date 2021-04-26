@@ -4,6 +4,35 @@
 
 body, div.chart-container {
     font-family: "IBM Plex Sans", sans-serif;
+    color: #3F3F46;
+}
+
+.up-gray-50 {
+    color: #FAFAFA;
+}
+
+.up-gray-100 {
+    color: #F4F4F5;
+}
+
+.up-gray-200 {
+    color: #E4E4E7;
+}
+
+.up-gray-300 {
+    color: #D4D4D8;
+}
+
+.up-gray-400 {
+    color: #A1A1AA;
+}
+
+.up-gray-500 {
+    color: #71717A;
+}
+
+.up-gray-700 {
+    color: #3F3F46;
 }
 
 .content {
