@@ -35,6 +35,90 @@ body, div.chart-container {
     color: #3F3F46;
 }
 
+.hover\:up-gray-50:hover {
+    color: #FAFAFA;
+}
+
+.hover\:up-gray-100:hover {
+    color: #F4F4F5;
+}
+
+.hover\:up-gray-200:hover {
+    color: #E4E4E7;
+}
+
+.hover\:up-gray-300:hover {
+    color: #D4D4D8;
+}
+
+.hover\:up-gray-400:hover {
+    color: #A1A1AA;
+}
+
+.hover\:up-gray-500:hover {
+    color: #71717A;
+}
+
+.hover\:up-gray-700:hover {
+    color: #3F3F46;
+}
+
+.up-bg-gray-50 {
+    background-color: #FAFAFA;
+}
+
+.up-bg-gray-100 {
+    background-color: #F4F4F5;
+}
+
+.up-bg-gray-200 {
+    background-color: #E4E4E7;
+}
+
+.up-bg-gray-300 {
+    background-color: #D4D4D8;
+}
+
+.up-bg-gray-400 {
+    background-color: #A1A1AA;
+}
+
+.up-bg-gray-500 {
+    background-color: #71717A;
+}
+
+.up-bg-gray-700 {
+    background-color: #3F3F46;
+}
+
+.hover\:up-bg-gray-50:hover {
+    background-color: #FAFAFA;
+}
+
+.hover\:up-bg-gray-100:hover {
+    background-color: #F4F4F5;
+}
+
+.hover\:up-bg-gray-200:hover {
+    background-color: #E4E4E7;
+}
+
+.hover\:up-bg-gray-300:hover {
+    background-color: #D4D4D8;
+}
+
+.hover\:up-bg-gray-400:hover {
+    background-color: #A1A1AA;
+}
+
+.hover\:up-bg-gray-500:hover {
+    background-color: #71717A;
+}
+
+.hover\:up-bg-gray-700:hover {
+    background-color: #3F3F46;
+}
+
 .content {
     font-size: 20px;
 }

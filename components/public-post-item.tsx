@@ -3,10 +3,12 @@ import {DatedObj, PostObj, PostObjGraph, ProjectObj, UserObj} from "../utils/typ
 import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
+import UpInlineButton from "./style/UpInlineButton";
 
-export default function PublicPostItem({post, showProject = false, showLine = true}: {
+export default function PublicPostItem({post, showProject, showAuthor, showLine = true}: {
     post: DatedObj<PostObjGraph>,
     showProject?: boolean,
+    showAuthor?: boolean,
     showLine?: boolean,
 }) {
     const imgUrl = post.body.match(/!\[.*?\]\((.*?)\)/) ? post.body.match(/!\[.*?\]\((.*?)\)/)[1] : null;
@@ -15,55 +17,83 @@ export default function PublicPostItem({post, showProject = false, showLine = tr
     const owner = project.ownerArr[0];
 
     return (
-        <div className="opacity-75 hover:opacity-100 transition w-full" key={post._id}>
-            <div className="flex">
+        <div className="w-full" key={post._id}>
+            <div className="flex items-center">
                 <div>
+                    <div className="md:hidden flex items-center mb-4 flex-wrap">
+                        <span className="up-gray-400">{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
+                        <span className="mx-2 up-gray-300">|</span>
+                        <span className="up-gray-400">{readingTime(post.body).text}</span>
+                    </div>
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
                         <a>
-                            <p className="up-ui-item-title mb-2">{post.title}</p>
+                            <h3 className="up-ui-item-title mb-4">{post.title}</h3>
                         </a>
                     </Link>
-                    <p>
-                        <span>{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
-                        <span className="opacity-50"> | {readingTime(post.body).text}</span>
+                    <div className="flex items-center flex-wrap">
+                        {showAuthor && (
+                            <UpInlineButton href={`/@${author.username}`}>
+                                <div className="flex items-center">
+                                    <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-6 h-6 rounded-full mr-3 opacity-75"/>
+                                    <div>
+                                        <span>{author.name}</span>
+                                    </div>
+                                </div>
+                            </UpInlineButton>
+                        )}
+                        {showProject && (
+                            <>
+                                {showAuthor && (
+                                    <span className="up-gray-400 mx-2">in</span>
+                                )}
+                                <UpInlineButton
+                                    href={`/@${owner.username}/${project.urlName}`}
+                                >
+                                    {project.name}
+                                </UpInlineButton>
+                            </>
+                        )}
+                        {imgUrl && (
+                            <>
+                                {(showAuthor || showProject) && (
+                                    <span className="up-gray-400 mx-2 hidden md:block">on</span>
+                                )}
+                                <span className="up-gray-400 hidden md:block">{format(new Date(post.createdAt), "MMMM d, yyyy")}</span>
+                            </>
+                        )}
                         {!!post.tags.length && (
                             <>
-                                <span className="opacity-50"> | </span>
+                                {(showAuthor || showProject) && (
+                                    <span className="up-gray-300 mx-2">|</span>
+                                )}
                                 {post.tags.map(tag => (
-                                    <button className="opacity-50">#{tag} </button>
+                                    <button className="up-gray-500 font-bold">#{tag} </button>
                                 ))}
                             </>
                         )}
-                    </p>
-                    {showProject ? (
-                        <Link href={`/@${owner.username}/${project.urlName}`}>
-                            <a className="block mt-4 opacity-50 hover:opacity-75 transition underline">
-                                {project.name}
-                            </a>
-                        </Link>
-                    ) : (
-                        <Link href={`/@${author.username}`}>
-                            <a>
-                                <div className="mt-4 flex items-center opacity-50 hover:opacity-75 transition">
-                                    <img src={author.image} alt={`Profile picture of ${author.name}`} className="w-8 h-8 rounded-full mr-4"/>
-                                    <div>
-                                        <p className="font-bold">{author.name}</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </Link>
-                    )}
+                        {imgUrl && (
+                            <>
+                                <span className="up-gray-300 mx-2 hidden md:block">|</span>
+                                <span className="up-gray-400 hidden md:block">{readingTime(post.body).text}</span>
+                            </>
+                        )}
+                    </div>
                 </div>
-                {imgUrl && (
+                {imgUrl ? (
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
-                        <a className="w-32 md:w-48 ml-auto pl-4 flex-shrink-0 block">
-                            <img className="w-full shadow-md" src={imgUrl} alt="Preview image for post"/>
+                        <a className="w-32 pl-6 flex-shrink-0 block ml-auto">
+                            <img className="max-w-full shadow-md max-h-48" src={imgUrl} alt="Preview image for post"/>
                         </a>
                     </Link>
+                ) : (
+                    <div className={`${imgUrl ? "ml-auto" : "ml-auto"} flex-shrink-0 text-right pl-6 hidden md:block`}>
+                        <p>{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
+                        <p className="up-gray-400">{readingTime(post.body).text}</p>
+                    </div>
                 )}
             </div>
             {showLine && (
-                <hr className="my-10"/>
+                <hr className="my-12"/>
             )}
         </div>
     );
