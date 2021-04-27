@@ -18,9 +18,10 @@ import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
 import {Node} from "slate";
-import SlateReadOnly from "./SlateReadOnly";
 import Linkify from "react-linkify";
 import ProjectBrowser from "./project-browser";
+import dynamic from "next/dynamic";
+const SlateReadOnly = dynamic(() => import("./SlateReadOnly"));
 
 export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {
     snippet: DatedObj<SnippetObj>,

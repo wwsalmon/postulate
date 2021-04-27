@@ -119,6 +119,62 @@ body, div.chart-container {
     background-color: #3F3F46;
 }
 
+.up-border-gray-50 {
+    border-color: #FAFAFA;
+}
+
+.up-border-gray-100 {
+    border-color: #F4F4F5;
+}
+
+.up-border-gray-200 {
+    border-color: #E4E4E7;
+}
+
+.up-border-gray-300 {
+    border-color: #D4D4D8;
+}
+
+.up-border-gray-400 {
+    border-color: #A1A1AA;
+}
+
+.up-border-gray-500 {
+    border-color: #71717A;
+}
+
+.up-border-gray-700 {
+    border-color: #3F3F46;
+}
+
+.hover\:up-border-gray-50:hover {
+    border-color: #FAFAFA;
+}
+
+.hover\:up-border-gray-100:hover {
+    border-color: #F4F4F5;
+}
+
+.hover\:up-border-gray-200:hover {
+    border-color: #E4E4E7;
+}
+
+.hover\:up-border-gray-300:hover {
+    border-color: #D4D4D8;
+}
+
+.hover\:up-border-gray-400:hover {
+    border-color: #A1A1AA;
+}
+
+.hover\:up-border-gray-500:hover {
+    border-color: #71717A;
+}
+
+.hover\:up-border-gray-700:hover {
+    border-color: #3F3F46;
+}
+
 .content {
     font-size: 20px;
 }
@@ -187,7 +243,7 @@ a.up-button.small:not(.primary):not(.text) {
 }
 
 .up-button:not(.text):not(.primary) {
-    @apply border-2 border-black;
+    @apply border border-black bg-white;
 }
 
 .up-button:not(.text):not(:disabled):hover {
