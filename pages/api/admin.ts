@@ -58,8 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             {$project: {"body": 1}}
         ]);
 
-        const snippetTextLength = snippetTexts.reduce((a, b) => a + b.body ? b.body.split(" ").length : 0, 0);
-        const postTextLength = postTexts.reduce((a, b) => a + b.body ? b.body.split(" ").length : 0, 0);
+        const snippetTextLength = snippetTexts.reduce((a, b) => a + (b.body ? b.body.split(" ").length : 0), 0);
+        const postTextLength = postTexts.reduce((a, b) => a + (b.body ? b.body.split(" ").length : 0), 0);
 
         return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength});
     } catch (e) {
