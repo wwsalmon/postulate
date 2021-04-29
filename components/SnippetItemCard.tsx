@@ -5,8 +5,6 @@ import React, {Dispatch, SetStateAction, useState} from "react";
 import {FiLink} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemInner from "./SnippetItemInner";
-import useSWR from "swr";
-import {fetcher} from "../utils/utils";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 
 export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags}: {
@@ -63,7 +61,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
             <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
                 <div className="md:flex items-center py-4 bg-white">
                     <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
-                    {snippet.tags.map((tag, i) => (
+                    {hasTags && snippet.tags.map((tag, i) => (
                         <button
                             className={`up-gray-400 font-bold ${i === 0 ? "md:ml-auto" : "ml-2"}`}
                             onClick={() => setTagsQuery([tag])}

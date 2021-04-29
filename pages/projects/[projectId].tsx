@@ -50,6 +50,8 @@ import UpBanner from "../../components/UpBanner";
 import {HiViewGrid, HiViewList} from "react-icons/hi";
 import BackToProjects from "../../components/back-to-projects";
 import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
+import PublicPostItem from "../../components/public-post-item";
+import PostItemCard from "../../components/PostItemCard";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -93,6 +95,21 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
+
+    const snippetsReady = snippets && snippets.snippets;
+    const postsReady = posts && posts.posts;
+
+    const displayItems = {
+        home: [...(snippetsReady ? snippets.snippets : []), ...(postsReady ? posts.posts : [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+        posts: postsReady ? posts.posts : [],
+        snippets: snippetsReady ? snippets.snippets : [],
+    }[tab];
+
+    const displayReady = {
+        home: snippetsReady && postsReady,
+        posts: postsReady,
+        snippets: snippetsReady,
+    }[tab];
 
     const statsReady = stats && stats.postDates && stats.snippetDates;
     const numPosts = statsReady ? stats.postDates.length : 0;
@@ -354,46 +371,52 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                     <SearchControl/>
                     <TagControl large={true}/>
                 </div>
-                <div className="flex items-center my-4">
-                    <button className="ml-auto up-button text small" onClick={() => setListView(false)}>
-                        <HiViewGrid/>
-                    </button>
-                    <button className="ml-2 up-button text small" onClick={() => setListView(true)}>
-                        <HiViewList/>
-                    </button>
-                </div>
-                {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
+                {displayReady ? displayItems.length > 0 ? (
                     <>
+                        <div className="flex items-center my-4">
+                            <button className="ml-auto up-button text small" onClick={() => setListView(false)}>
+                                <HiViewGrid/>
+                            </button>
+                            <button className="ml-2 up-button text small" onClick={() => setListView(true)}>
+                                <HiViewList/>
+                            </button>
+                        </div>
                         <div className={listView ? "-mt-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-12"}>
-                            {snippets.snippets.map((snippet, i, a) => (
+                            {displayItems.map((item, i, a) => (
                                 <>
-                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="up-ui-title mt-12 pb-4 col-span-3">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="up-ui-title mt-12 pb-4 col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
                                     )}
-                                    {listView ? (
-                                        <SnippetItem
-                                            snippet={snippet}
-                                            iteration={iteration}
-                                            setIteration={setIteration}
-                                            availableTags={availableTags}
-                                            addNewTags={addNewTags}
-                                            setTagsQuery={setTagsQuery}
-                                            selectedSnippetIds={selectedSnippetIds}
-                                            setSelectedSnippetIds={setSelectedSnippetIds}
-                                            setStatsIter={setStatsIter}
-                                            statsIter={statsIter}
-                                        />
-                                    ) : (
-                                        <SnippetItemCard
-                                            snippet={snippet}
-                                            setTagsQuery={setTagsQuery}
-                                            iteration={iteration}
-                                            setIteration={setIteration}
-                                            statsIter={statsIter}
-                                            setStatsIter={setStatsIter}
-                                            availableTags={availableTags}
-                                            addNewTags={addNewTags}
-                                        />
+                                    {listView ? (item.type ? (
+                                            <SnippetItem
+                                                snippet={item}
+                                                iteration={iteration}
+                                                setIteration={setIteration}
+                                                availableTags={availableTags}
+                                                addNewTags={addNewTags}
+                                                setTagsQuery={setTagsQuery}
+                                                selectedSnippetIds={selectedSnippetIds}
+                                                setSelectedSnippetIds={setSelectedSnippetIds}
+                                                setStatsIter={setStatsIter}
+                                                statsIter={statsIter}
+                                            />
+                                        ) : (
+                                            <PublicPostItem post={item}/>
+                                        )
+                                    ) : (item.type ? (
+                                            <SnippetItemCard
+                                                snippet={item}
+                                                setTagsQuery={setTagsQuery}
+                                                iteration={iteration}
+                                                setIteration={setIteration}
+                                                statsIter={statsIter}
+                                                setStatsIter={setStatsIter}
+                                                availableTags={availableTags}
+                                                addNewTags={addNewTags}
+                                            />
+                                        ) : (
+                                            <PostItemCard post={item}/>
+                                        )
                                     )}
                                 </>
                             ))}
@@ -415,7 +438,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         )}
                     </>
                 ) : (
-                    <p>{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
+                    <p className="up-gray-400 my-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets or posts in this project yet. Press New Snippet or New Post to add some."}</p>
                 ) : (
                     <div className="mt-4">
                         <Skeleton count={10}/>

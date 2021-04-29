@@ -147,6 +147,10 @@ body, div.chart-container {
     border-color: #3F3F46;
 }
 
+.up-border-blue {
+    border-color: #0026FF;
+}
+
 .hover\:up-border-gray-50:hover {
     border-color: #FAFAFA;
 }
