@@ -68,6 +68,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
+    const [itemPage, setItemPage] = useState<number>(1);
+    const [postPage, setPostPage] = useState<number>(1);
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
     const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
@@ -90,25 +92,45 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
+    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}`);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
 
-    const snippetsReady = snippets && snippets.snippets;
+    const itemsReady = items && items.items;
     const postsReady = posts && posts.posts;
+    const snippetsReady = snippets && snippets.snippets;
 
     const displayItems = {
-        home: [...(snippetsReady ? snippets.snippets : []), ...(postsReady ? posts.posts : [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+        home: itemsReady ? items.items : [],
         posts: postsReady ? posts.posts : [],
         snippets: snippetsReady ? snippets.snippets : [],
     }[tab];
 
     const displayReady = {
-        home: snippetsReady && postsReady,
+        home: itemsReady,
         posts: postsReady,
         snippets: snippetsReady,
+    }[tab];
+
+    const displayLabel = {
+        home: "items",
+        posts: "posts",
+        snippets: "snippets",
+    }[tab];
+
+    const displayPage = {
+        home: itemPage,
+        posts: postPage,
+        snippets: snippetPage,
+    }[tab];
+
+    const displayCount = {
+        home: itemsReady ? items.count : 0,
+        posts: postsReady ? posts.count : 0,
+        snippets: snippetsReady ? snippets.count : 0,
     }[tab];
 
     const statsReady = stats && stats.postDates && stats.snippetDates;
@@ -422,16 +444,23 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             ))}
                         </div>
                         <p className="opacity-25 mt-16">
-                            Showing snippets {(snippetPage - 1) * 10 + 1}
-                            -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
+                            Showing {displayLabel} {(displayPage - 1) * 10 + 1}
+                            -{(displayPage < Math.floor(displayCount / 10)) ? displayPage * 10 : displayCount} of {displayCount}
                         </p>
-                        {snippets.count > 10 && (
+                        {displayCount > 10 && (
                             <div className="mt-4">
-                                {Array.from({length: Math.ceil(snippets.count / 10)}, (x, i) => i + 1).map(d => (
+                                {Array.from({length: Math.ceil(displayCount / 10)}, (x, i) => i + 1).map(d => (
                                     <button
-                                        className={"py-2 px-4 rounded-md mr-2 " + (d === snippetPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
-                                        onClick={() => setSnippetPage(d)}
-                                        disabled={+d === +snippetPage}
+                                        className={"py-2 px-4 rounded-md mr-2 " + (d === displayPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
+                                        onClick={() => {
+                                            const setFunction = {
+                                                home: setItemPage,
+                                                posts: setPostPage,
+                                                snippets: setSnippetPage,
+                                            }[tab];
+                                            setFunction(d);
+                                        }}
+                                        disabled={+d === +displayPage}
                                     >{d}</button>
                                 ))}
                             </div>

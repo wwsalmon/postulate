@@ -13,6 +13,7 @@ import dbConnect from "../../../utils/dbConnect";
 import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
 import {serialize} from "remark-slate";
+import {getCursorStages, postGraphStages} from "../../../utils/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -178,41 +179,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case "GET":
             if (
                 !(req.query.projectId || req.query.userId || req.query.publicFeed) ||
-                (Array.isArray(req.query.projectId) || Array.isArray(req.query.userId))
+                (Array.isArray(req.query.projectId) || Array.isArray(req.query.userId) || Array.isArray(req.query.page))
             ){
                 return res.status(406).json({message: "No project ID or user ID found in request."});
             }
 
             try {
                 await dbConnect();
-
-                const userPipeline = [
-                    {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
-                    {$project: {username: 1, image: 1, name: 1}},
-                ];
-
-                const lookupProjectStage = {$lookup: {
-                    from: "projects",
-                    let: {"projectId": "$projectId"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
-                        {$project: {name: 1, urlName: 1, userId: 1, stars: 1,}},
-                        {$lookup: {
-                            from: "users",
-                            let: {"userId": "$userId"},
-                            pipeline: userPipeline,
-                            as: "ownerArr",
-                        }},
-                    ],
-                    as: "projectArr"
-                }};
-
-                const lookupAuthorStage = {$lookup: {
-                    from: "users",
-                    let: {"userId": "$userId"},
-                    pipeline: userPipeline,
-                    as: "authorArr",
-                }};
 
                 const featuredPipeline = [
                     {$match: {_id: mongoose.Types.ObjectId(req.query.userId)}},
@@ -224,8 +197,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 {$in: ["$_id", "$$featuredPostIds"]},
                                 {$eq: ["$privacy", "public"]},
                             ]}}},
-                            lookupProjectStage,
-                            lookupAuthorStage,
+                            ...postGraphStages,
                         ],
                         as: "posts",
                     }},
@@ -252,15 +224,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (req.query.search) conditions["$text"] = {"$search": req.query.search};
                 if (req.query.tag) conditions["tags"] = req.query.tag;
 
-                let cursorStages = [];
-
-                if (!req.query.search) cursorStages.push({$sort: {createdAt: -1}});
-                if (req.query.page) cursorStages.push({$skip: (+req.query.page - 1) * 10}, {$limit: 10});
+                let cursorStages = getCursorStages(req.query.page, !!req.query.search);
 
                 let graphObj = await (req.query.featured ? UserModel.aggregate(featuredPipeline) : PostModel.aggregate([
                     {$match: conditions},
-                    lookupProjectStage,
-                    lookupAuthorStage,
+                    ...postGraphStages,
                     ...cursorStages,
                 ]));
 

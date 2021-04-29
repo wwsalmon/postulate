@@ -3,14 +3,13 @@ import {getSession} from "next-auth/client";
 import {SnippetModel} from "../../models/snippet";
 import {ProjectModel} from "../../models/project";
 import {SnippetObj} from "../../utils/types";
-import {UserModel} from "../../models/user";
 import {ImageModel} from "../../models/image";
 import {deleteImages} from "../../utils/deleteImages";
-import {PostModel} from "../../models/post";
 import dbConnect from "../../utils/dbConnect";
 import getIsEmpty from "../../utils/slate/getIsEmpty";
 import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
+import {getCursorStages, snippetGraphStages} from "../../utils/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -134,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === "GET") {
 
         if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             await dbConnect();
@@ -152,33 +151,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 conditions = { "_id": {"$in": ids}};
             }
 
-            const cursorStages = req.query.page ? [
-                {$skip: (+req.query.page - 1) * 10},
-                {$limit: 10},
-            ] : [];
+            const cursorStages = getCursorStages(req.query.page);
 
             const snippets = await SnippetModel.aggregate([
                 {$match: conditions},
-                {$lookup: {
-                    from: "posts",
-                    let: {"ids": "$linkedPosts"},
-                    pipeline: [
-                        {$match: {$expr: {$in: ["$_id", "$$ids"]}}},
-                        {$lookup: {
-                            from: "users",
-                            foreignField: "_id",
-                            localField: "userId",
-                            as: "authorArr",
-                        }},
-                    ],
-                    as: "linkedPostsArr",
-                }},
-                {$lookup: {
-                    from: "users",
-                    foreignField: "_id",
-                    localField: "userId",
-                    as: "authorArr",
-                }},
+                ...snippetGraphStages,
                 {$sort: {createdAt: req.query.sort ? +req.query.sort : - 1}},
                 ...cursorStages,
             ]);
