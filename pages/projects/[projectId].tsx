@@ -389,7 +389,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 </div>
                 {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
                     <>
-                        <div className={listView ? "" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
+                        <div className={listView ? "-mt-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-12"}>
                             {snippets.snippets.map((snippet, i, a) => (
                                 <>
                                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
