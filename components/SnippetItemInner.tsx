@@ -16,7 +16,7 @@ import useSWR from "swr";
 import {fetcher} from "../utils/utils";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 
-export default function SnippetItemInner({snippet, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, isList, setTagsQuery}: {
+export default function SnippetItemInner({snippet, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, isList, setTagsQuery, setOpen}: {
     snippet: DatedObj<SnippetObjGraph>,
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
@@ -26,6 +26,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
     addNewTags: (newTags: string[]) => void,
     setTagsQuery: (tagsQuery: string[]) => void,
     isList?: boolean,
+    setOpen?: Dispatch<SetStateAction<boolean>>,
 }) {
     const [session, loading] = useSession();
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -46,6 +47,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             setIsDeleteOpen(false);
             if (setStatsIter && (statsIter !== undefined)) setStatsIter(statsIter + 1);
             setIteration(iteration + 1);
+            if (setOpen) setOpen(false);
         }).catch(e => {
             setIsLoading(false);
             console.log(e);
@@ -85,6 +87,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             setIteration(iteration + 1);
             setStatsIter(statsIter + 1);
             setIsMove(false);
+            if (setOpen) setOpen(false);
         }).catch(e => {
             setIsLoading(false);
             console.log(e);

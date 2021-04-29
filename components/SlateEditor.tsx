@@ -26,6 +26,7 @@ export default function SlateEditor({body, setBody, projectId, urlName, isPost}:
                 plugins={pluginsMemo}
                 components={draggableComponents}
                 options={options}
+                editableProps={{autoFocus: true}}
             >
                 <SlateBalloon/>
                 <SlatePlaceholder/>

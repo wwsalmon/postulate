@@ -11,7 +11,7 @@ import {
     SnippetObjGraph,
     UserObj
 } from "../../utils/types";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
 import axios from "axios";
@@ -49,6 +49,7 @@ import {HiViewGrid, HiViewList} from "react-icons/hi";
 import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
 import PublicPostItem from "../../components/public-post-item";
 import PostItemCard from "../../components/PostItemCard";
+import Mousetrap from "mousetrap";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -89,10 +90,10 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}`);
+    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}`);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&iteration=${iteration}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
 
@@ -196,6 +197,19 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             setProjectIsFeatured(!projectIsFeatured);
         }).catch(e => console.log(e));
     }
+
+    useEffect(() => {
+        function onNewSnippetShortcut(e) {
+            e.preventDefault();
+            setIsSnippet(true);
+        };
+
+        Mousetrap.bind("n", onNewSnippetShortcut);
+
+        return () => {
+            Mousetrap.unbind("n", onNewSnippetShortcut);
+        };
+    });
 
     const SearchControl = () => (
         <input
@@ -335,7 +349,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         </div>
                         <div className="flex items-center flex-shrink-0 my-4 md:my-0">
                             <button className="up-button primary small mr-4" onClick={() => setIsSnippet(true)}>
-                                New snippet
+                                <span>New snippet</span>
+                                <span className="font-normal hidden sm:inline"> (n)</span>
                             </button>
                             <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
                                 <a className="up-button small">

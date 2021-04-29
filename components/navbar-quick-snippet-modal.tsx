@@ -1,5 +1,5 @@
 import SnippetEditor from "./snippet-editor";
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
@@ -7,10 +7,15 @@ import Select from "react-select";
 import axios from "axios";
 import {Node} from "slate";
 
-export default function NavbarQuickSnippetModal({setOpen, initProjectId, iteration, setIteration}: { setOpen: Dispatch<SetStateAction<boolean>>, initProjectId?: string, iteration?: number, setIteration?: Dispatch<SetStateAction<number>> }) {
+export default function NavbarQuickSnippetModal({setOpen, initProjectId, iteration, setIteration}: {
+    setOpen: Dispatch<SetStateAction<boolean>>,
+    initProjectId?: string,
+    iteration?: number,
+    setIteration?: Dispatch<SetStateAction<number>>,
+}) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSnippet, setIsSnippet] = useState<boolean>(true);
-    const [projectId, setProjectId] = useState<string>(initProjectId || null);
+    const [projectId, setProjectId] = useState<string>(initProjectId || "none");
 
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);

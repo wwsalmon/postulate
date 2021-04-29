@@ -80,6 +80,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         availableTags={availableTags}
                         addNewTags={addNewTags}
                         setTagsQuery={setTagsQuery}
+                        setOpen={setModalOpen}
                     />
                 </div>
             </UpModal>
