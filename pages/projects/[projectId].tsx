@@ -207,7 +207,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         />
     );
 
-    const TagControl = (large?: boolean) => (
+    const TagControl = ({large}: { large: boolean }) => (
         <Select
             className="md:text-sm up-gray-500 h-10 md:h-8 md:w-64 w-full"
             options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
