@@ -49,13 +49,12 @@ import SnippetItemCard from "../../components/SnippetItemCard";
 import UpBanner from "../../components/UpBanner";
 import {HiViewGrid, HiViewList} from "react-icons/hi";
 import BackToProjects from "../../components/back-to-projects";
+import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
-    const [isResource, setIsResource] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [iteration, setIteration] = useState<number>(0);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
@@ -105,38 +104,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const numGraphDays = 30;
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
-
-    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
-        setIsLoading(true);
-
-        axios.post("/api/snippet", {
-            projectId: projectId,
-            urlName: urlName,
-            type: isSnippet ? "snippet" : "resource",
-            body: body || "",
-            url: url || "",
-            tags: tags || [],
-            isSlate: !!isSlate,
-        }).then(res => {
-            if (res.data.newTags.length) addNewTags(res.data.newTags);
-            instance && instance.clearAutosavedValue();
-            setStatsIter(statsIter + 1);
-            setIsLoading(false);
-            setIteration(iteration + 1);
-            setIsSnippet(false);
-            setIsResource(false);
-        }).catch(e => {
-            setIsLoading(false);
-            console.log(e);
-        });
-    }
-
-    function onCancelSnippetOrResource(urlName: string) {
-        setIsSnippet(false);
-        setIsResource(false);
-        instance && instance.clearAutosavedValue();
-        axios.post("/api/cancel-delete-images", {urlName: urlName}).catch(e => console.log(e));
-    }
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -342,6 +309,14 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     </div>
                                 </a>
                             </Link>
+                            <UpModal isOpen={isSnippet} setIsOpen={setIsSnippet} wide={true}>
+                                <NavbarQuickSnippetModal
+                                    setOpen={setIsSnippet}
+                                    initProjectId={projectId}
+                                    iteration={iteration}
+                                    setIteration={setIteration}
+                                />
+                            </UpModal>
                         </div>
                     </div>
                     <div className="md:flex items-center">

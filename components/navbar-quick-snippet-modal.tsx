@@ -1,7 +1,5 @@
 import SnippetEditor from "./snippet-editor";
 import React, {Dispatch, SetStateAction, useState} from "react";
-import EasyMDE from "easymde";
-import "easymde/dist/easymde.min.css";
 import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObj, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
@@ -9,10 +7,10 @@ import Select from "react-select";
 import axios from "axios";
 import {Node} from "slate";
 
-export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<SetStateAction<boolean>> }) {
+export default function NavbarQuickSnippetModal({setOpen, initProjectId, iteration, setIteration}: { setOpen: Dispatch<SetStateAction<boolean>>, initProjectId?: string, iteration?: number, setIteration?: Dispatch<SetStateAction<number>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSnippet, setIsSnippet] = useState<boolean>(true);
-    const [projectId, setProjectId] = useState<string>("none");
+    const [projectId, setProjectId] = useState<string>(initProjectId || null);
 
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
@@ -46,6 +44,7 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
         }).then(() => {
             setIsLoading(false);
             setIsSnippet(true);
+            if (setIteration) setIteration(iteration + 1);
             setOpen(false);
         }).catch(e => {
             setIsLoading(false);
@@ -61,38 +60,34 @@ export default function NavbarQuickSnippetModal({setOpen}: { setOpen: Dispatch<S
 
     return (
         <div style={{maxHeight: "calc(100vh - 200px)", overflowY: "auto"}} className="-mx-4 px-4 modal-editor">
-            <h2 className="up-ui-title mb-6">Quick snippet</h2>
-            <hr className="my-6"/>
-            <h2 className="up-ui-title mb-6">Project</h2>
-            <Select
-                options={[
-                    ...((projects && projects.projects && projects.projects.length > 0) ? projects.projects.map(project => ({
-                        value: project._id,
-                        label: getProjectLabel(project._id),
-                    })) : []),
-                    ...((sharedProjects && sharedProjects.projects && sharedProjects.projects.length > 0) ? sharedProjects.projects.map(project => ({
-                        value: project._id,
-                        label: getProjectLabel(project._id),
-                    })) : []),
-                ]}
-                value={{
-                    value: projectId,
-                    label:getProjectLabel(projectId)
-                }}
-                onChange={option => setProjectId(option.value)}
-                styles={{
-                    menu: provided => ({...provided, zIndex: 6}),
-                }}
-            />
-            <hr className="my-6"/>
-            <div className="flex mb-6">
-                <button
-                    className={`up-button small ml-auto ${isSnippet ? "" : "text"}`}
-                    onClick={() => setIsSnippet(!isSnippet)}
-                >
-                    {isSnippet ? "Add" : "Remove"} link
-                </button>
-            </div>
+            <h2 className="up-ui-title mb-6">{initProjectId ? "New snippet" : "Quick snippet"}</h2>
+            {!initProjectId && (
+                <>
+                    <hr className="my-6"/>
+                    <h2 className="up-ui-title mb-6">Project</h2>
+                    <Select
+                        options={[
+                            ...((projects && projects.projects && projects.projects.length > 0) ? projects.projects.map(project => ({
+                                value: project._id,
+                                label: getProjectLabel(project._id),
+                            })) : []),
+                            ...((sharedProjects && sharedProjects.projects && sharedProjects.projects.length > 0) ? sharedProjects.projects.map(project => ({
+                                value: project._id,
+                                label: getProjectLabel(project._id),
+                            })) : []),
+                        ]}
+                        value={{
+                            value: projectId,
+                            label:getProjectLabel(projectId)
+                        }}
+                        onChange={option => setProjectId(option.value)}
+                        styles={{
+                            menu: provided => ({...provided, zIndex: 6}),
+                        }}
+                    />
+                    <hr className="my-6"/>
+                </>
+            )}
             <SnippetEditor
                 isSnippet={isSnippet}
                 availableTags={getProjectTags(projectId)}
