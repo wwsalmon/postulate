@@ -48,6 +48,7 @@ import ellipsize from "ellipsize";
 import SnippetItemCard from "../../components/SnippetItemCard";
 import UpBanner from "../../components/UpBanner";
 import {HiViewGrid, HiViewList} from "react-icons/hi";
+import BackToProjects from "../../components/back-to-projects";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -193,155 +194,178 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         }).catch(e => console.log(e));
     }
 
+    const SearchControl = () => (
+        <input
+            type="text"
+            className="border up-border-gray-200 h-10 md:h-8 md:ml-2 rounded-md md:text-sm px-2 up-bg-gray-100 up-gray-500 w-full md:w-auto mb-4 md:mb-0"
+            placeholder="Search in project"
+            value={snippetSearchQuery}
+            onChange={e => {
+                setSnippetPage(1);
+                setSnippetSearchQuery(e.target.value);
+            }}
+        />
+    );
+
+    const TagControl = (large?: boolean) => (
+        <Select
+            className="md:text-sm up-gray-500 h-10 md:h-8 md:w-64 w-full"
+            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
+            value={tagsQuery.map(d => ({label: d, value: d}))}
+            onChange={(newValue) => {
+                setSnippetPage(1);
+                setTagsQuery(newValue.map(d => d.value));
+            }}
+            placeholder="Filter by tag"
+            styles={{
+                control: (provided) => {
+                    provided["height"] = !large ? "2rem" : "2.5rem";
+                    provided["min-height"] = 0;
+                    provided["background-color"] = "transparent";
+                    provided["border-color"] = "#E4E4E7";
+                    return provided;
+                },
+                indicatorsContainer: (provided) => {
+                    provided["height"] = !large ? "2rem" : "2.5rem";
+                    provided["min-height"] = 0;
+                    return provided;
+                },
+                valueContainer: (provided) => {
+                    provided["height"] = !large ? "2rem" : "2.5rem";
+                    provided["min-height"] = 0;
+                    return provided;
+                },
+            }}
+            isMulti
+        />
+    );
+
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
             <div className="w-full up-bg-gray-50 -mt-8 border-t border-b up-border-gray-200">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex items-center h-20">
-                        <h1 className="content font-bold mr-6">{props.projectData.name}</h1>
-                        <p className="up-gray-400">{ellipsize(props.projectData.description, 45)}</p>
-                        <div className="ml-auto mr-4">
-                            <MoreMenu>
-                                <MoreMenuItem text="View as public" icon={<FiExternalLink/>} href={`/@${props.thisUser.username}/${urlName}`}/>
-                                {!isCollaborator && (
-                                    <>
-                                        <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
-                                        <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                                        <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
-                                    </>
-                                )}
-                                {projectIsFeatured ? (
-                                    <MoreMenuItem text="Don't display on profile" icon={<FiEyeOff/>} onClick={toggleProjectFeatured}/>
-                                ) : (
-                                    <MoreMenuItem text="Display on profile" icon={<FiEye/>} onClick={toggleProjectFeatured}/>
-                                )}
-                            </MoreMenu>
-                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                                <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
-                                <div className="flex mt-4">
-                                    <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
-                                        Delete
-                                    </SpinnerButton>
-                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                                </div>
-                            </UpModal>
-                            <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
-                                <h3 className="up-ui-title">Add collaborator</h3>
-                                <p>Collaborators are able to view and add snippets and posts in your project.</p>
-                                <AsyncSelect
-                                    cacheOtions
-                                    loadOptions={(input, callback) => {
-                                        if (input) {
-                                            axios.get(`/api/search/user?email=${input}`).then(res => {
-                                                const filteredResults = res.data.results.filter(d => ![
-                                                    userId,
-                                                    ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
-                                                ].includes(d._id));
-                                                callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
-                                            }).catch(e => {
-                                                console.log(e);
-                                            });
-                                        } else {
-                                            callback([]);
-                                        }
-                                    }}
-                                    placeholder="Enter collaborator's email"
-                                    styles={{dropdownIndicator: () => ({display: "none"})}}
-                                    onChange={selected => setAddCollaboratorList(selected)}
-                                    isMulti
-                                    value={addCollaboratorList}
-                                    className="my-4 min-w-64"
-                                />
-                                <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
-                                    Add
-                                </SpinnerButton>
-                                <hr className="my-4"/>
-                                <h3 className="up-ui-title">Manage collaborators</h3>
-                                {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
-                                    collaboratorObjs.collaborators.map(collaborator => (
-                                        <div className="flex items-center my-4">
-                                            <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
-                                            <p>{collaborator.name} ({collaborator.email})</p>
-                                            <div className="ml-auto">
-                                                <MoreMenu>
-                                                    <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
-                                                </MoreMenu>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No collaborators found for this project.</p>
-                                ) : (
-                                    <div className="mt-4">
-                                        <Skeleton count={2}/>
+                    <div className="md:flex items-center">
+                        <div className="flex items-center w-full h-20">
+                            <div className="md:flex items-center">
+                                <h1 className="content font-bold mr-6">{props.projectData.name}</h1>
+                                <p className="up-gray-400">{ellipsize(props.projectData.description, 45)}</p>
+                            </div>
+                            <div className="ml-auto md:mr-4">
+                                <MoreMenu>
+                                    <MoreMenuItem text="View as public" icon={<FiExternalLink/>} href={`/@${props.thisUser.username}/${urlName}`}/>
+                                    {!isCollaborator && (
+                                        <>
+                                            <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
+                                            <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                            <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                        </>
+                                    )}
+                                    {projectIsFeatured ? (
+                                        <MoreMenuItem text="Don't display on profile" icon={<FiEyeOff/>} onClick={toggleProjectFeatured}/>
+                                    ) : (
+                                        <MoreMenuItem text="Display on profile" icon={<FiEye/>} onClick={toggleProjectFeatured}/>
+                                    )}
+                                </MoreMenu>
+                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                    <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
+                                    <div className="flex mt-4">
+                                        <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                            Delete
+                                        </SpinnerButton>
+                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
                                     </div>
-                                )}
-                            </UpModal>
+                                </UpModal>
+                                <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
+                                    <h3 className="up-ui-title">Add collaborator</h3>
+                                    <p>Collaborators are able to view and add snippets and posts in your project.</p>
+                                    <AsyncSelect
+                                        cacheOtions
+                                        loadOptions={(input, callback) => {
+                                            if (input) {
+                                                axios.get(`/api/search/user?email=${input}`).then(res => {
+                                                    const filteredResults = res.data.results.filter(d => ![
+                                                        userId,
+                                                        ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
+                                                    ].includes(d._id));
+                                                    callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
+                                                }).catch(e => {
+                                                    console.log(e);
+                                                });
+                                            } else {
+                                                callback([]);
+                                            }
+                                        }}
+                                        placeholder="Enter collaborator's email"
+                                        styles={{dropdownIndicator: () => ({display: "none"})}}
+                                        onChange={selected => setAddCollaboratorList(selected)}
+                                        isMulti
+                                        value={addCollaboratorList}
+                                        className="my-4 min-w-64"
+                                    />
+                                    <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
+                                        Add
+                                    </SpinnerButton>
+                                    <hr className="my-4"/>
+                                    <h3 className="up-ui-title">Manage collaborators</h3>
+                                    {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
+                                        collaboratorObjs.collaborators.map(collaborator => (
+                                            <div className="flex items-center my-4">
+                                                <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
+                                                <p>{collaborator.name} ({collaborator.email})</p>
+                                                <div className="ml-auto">
+                                                    <MoreMenu>
+                                                        <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
+                                                    </MoreMenu>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>No collaborators found for this project.</p>
+                                    ) : (
+                                        <div className="mt-4">
+                                            <Skeleton count={2}/>
+                                        </div>
+                                    )}
+                                </UpModal>
+                            </div>
                         </div>
-                        <button className="up-button primary small mr-4" onClick={() => setIsSnippet(true)}>
-                            New snippet
-                        </button>
-                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
-                            <a className="up-button small">
-                                <div className="flex items-center">
-                                    <FiEdit/>
-                                    <span className="ml-4">New post</span>
-                                </div>
-                            </a>
-                        </Link>
+                        <div className="flex items-center flex-shrink-0 my-4 md:my-0">
+                            <button className="up-button primary small mr-4" onClick={() => setIsSnippet(true)}>
+                                New snippet
+                            </button>
+                            <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
+                                <a className="up-button small">
+                                    <div className="flex items-center">
+                                        <FiEdit/>
+                                        <span className="ml-4">New post</span>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
                     </div>
-                    <div className="flex h-12">
-                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("home")}>
-                            All
-                        </button>
-                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
-                            Snippets ({numSnippets})
-                        </button>
-                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
-                            Posts ({numPosts})
-                        </button>
-                        <Select
-                            className="ml-auto text-sm up-gray-500 h-8 w-64"
-                            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-                            value={tagsQuery.map(d => ({label: d, value: d}))}
-                            onChange={(newValue) => {
-                                setSnippetPage(1);
-                                setTagsQuery(newValue.map(d => d.value));
-                            }}
-                            placeholder="Filter by tag"
-                            styles={{
-                                control: (provided) => {
-                                    provided["height"] = "2rem";
-                                    provided["min-height"] = 0;
-                                    provided["background-color"] = "transparent";
-                                    provided["border-color"] = "#E4E4E7";
-                                    return provided;
-                                },
-                                indicatorsContainer: (provided) => {
-                                    provided["height"] = "2rem";
-                                    provided["min-height"] = 0;
-                                    return provided;
-                                },
-                            }}
-                            isMulti
-                        />
-                        <input
-                            type="text"
-                            className="border up-border-gray-200 h-8 ml-2 rounded-md text-sm px-2 up-bg-gray-100 up-gray-500"
-                            placeholder="Search in project"
-                            value={snippetSearchQuery}
-                            onChange={e => {
-                                setSnippetPage(1);
-                                setSnippetSearchQuery(e.target.value);
-                            }}
-                        />
+                    <div className="md:flex items-center">
+                        <div className="hidden md:flex items-center order-2 ml-auto">
+                            <TagControl large={false}/>
+                            <SearchControl/>
+                        </div>
+                        <div className="flex items-center h-12">
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("home")}>
+                                All
+                            </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
+                                Snippets ({numSnippets})
+                            </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
+                                Posts ({numPosts})
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div className="max-w-7xl mx-auto px-4 py-12">
+            <div className="max-w-7xl mx-auto px-4 pb-12">
                 {(snippetSearchQuery || (tagsQuery && !!tagsQuery.length)) && (
-                    <UpBanner>
+                    <UpBanner className="my-4">
                         <div className="flex items-center w-full">
                             <p>Showing matches {snippetSearchQuery && `for "${snippetSearchQuery}" `}{tagsQuery && !!tagsQuery.length && "tagged "}{tagsQuery.map(tag => "#" + tag + " ")}</p>
                             <button className="ml-auto up-button text small" onClick={() => {
@@ -351,7 +375,11 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         </div>
                     </UpBanner>
                 )}
-                <div className="flex items-center">
+                <div className="md:hidden my-4">
+                    <SearchControl/>
+                    <TagControl large={true}/>
+                </div>
+                <div className="flex items-center my-4">
                     <button className="ml-auto up-button text small" onClick={() => setListView(false)}>
                         <HiViewGrid/>
                     </button>
@@ -361,7 +389,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 </div>
                 {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
                     <>
-                        <div className={listView ? "" : "grid grid-cols-3 gap-4"}>
+                        <div className={listView ? "" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
                             {snippets.snippets.map((snippet, i, a) => (
                                 <>
                                     {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
@@ -490,11 +518,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         )}
                     </div>
-                </div>
-                <div className="w-full h-16 fixed bg-white bottom-0 left-0 border-t lg:hidden flex items-center z-20">
-                    <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "home" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("home")}>Snippets</button>
-                    <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "posts" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("posts")}>Posts</button>
-                    <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "stats" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("stats")}>Stats</button>
                 </div>
             </div>
         </>

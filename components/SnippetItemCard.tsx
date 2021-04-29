@@ -61,6 +61,17 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                 </div>
             </button>
             <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
+                <div className="md:flex items-center py-4 bg-white">
+                    <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
+                    {snippet.tags.map((tag, i) => (
+                        <button
+                            className={`up-gray-400 font-bold ${i === 0 ? "md:ml-auto" : "ml-2"}`}
+                            onClick={() => setTagsQuery([tag])}
+                        >
+                            #{tag}
+                        </button>
+                    ))}
+                </div>
                 <div style={{maxHeight: "calc(100vh - 240px)", minHeight: 300, overflowY: "auto"}} className="-mx-4 px-4 relative">
                     <SnippetItemInner
                         snippet={snippet}
@@ -72,17 +83,6 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         addNewTags={addNewTags}
                         setTagsQuery={setTagsQuery}
                     />
-                </div>
-                <div className="flex items-center pt-4 bg-white">
-                    <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
-                    {snippet.tags.map((tag, i) => (
-                        <button
-                            className={`up-gray-400 font-bold ${i === 0 ? "ml-auto" : "ml-2"}`}
-                            onClick={() => setTagsQuery([tag])}
-                        >
-                            #{tag}
-                        </button>
-                    ))}
                 </div>
             </UpModal>
         </>
