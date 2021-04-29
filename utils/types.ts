@@ -73,6 +73,11 @@ export interface SnippetObj {
     linkedPosts: string[], // array of IDs
 }
 
+export interface SnippetObjGraph extends SnippetObj {
+    linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
+    authorArr: DatedObj<UserObj>[];
+}
+
 export interface PostObj {
     urlName: string,
     projectId: string, // ID

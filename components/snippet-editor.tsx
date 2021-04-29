@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
-import {DatedObj, SnippetObj} from "../utils/types";
+import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
 import MDEditor from "./md-editor";
 import Creatable from "react-select/creatable";
@@ -13,7 +13,7 @@ import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
-    snippet?: DatedObj<SnippetObj>,
+    snippet?: DatedObj<SnippetObjGraph>,
     projectId?: string,
     availableTags: string[],
     isLoading: boolean,

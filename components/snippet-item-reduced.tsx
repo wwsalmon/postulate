@@ -1,18 +1,18 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, SnippetObjGraph} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
-import {FiCode, FiCopy, FiEye} from "react-icons/fi";
+import {FiCode, FiEye} from "react-icons/fi";
 import SimpleMDEEditor from "react-simplemde-editor";
 import SlateReadOnly from "./SlateReadOnly";
+import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 
-export default function SnippetItemReduced({snippet, authors, selectedSnippetIds = null, setSelectedSnippetIds = null, isPostPage = false}: {
-    snippet: DatedObj<SnippetObj>,
-    authors: DatedObj<UserObj>[],
+export default function SnippetItemReduced({snippet, selectedSnippetIds = null, setSelectedSnippetIds = null, isPostPage = false}: {
+    snippet: DatedObj<SnippetObjGraph>,
     selectedSnippetIds?: string[],
     setSelectedSnippetIds?: Dispatch<SetStateAction<string[]>>,
     isPostPage?: boolean,
@@ -32,11 +32,11 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
         <div className={`py-8 border-b hover:bg-gray-50 transition ${isPostPage ? "" : "px-4 -mx-4"}`}>
             <div className="flex items-center mb-4">
                 {!(session && session.userId === snippet.userId) && (
-                    <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
+                    <Link href={`/@${snippet.authorArr[0].username}`}>
                         <a>
                             <img
-                                src={authors.find(d => d._id === snippet.userId).image}
-                                alt={authors.find(d => d._id === snippet.userId).name}
+                                src={snippet.authorArr[0].image}
+                                alt={snippet.authorArr[0].name}
                                 className="w-6 h-6 rounded-full opacity-25 hover:opacity-100 transition mr-4 "
                             />
                         </a>
@@ -68,31 +68,10 @@ export default function SnippetItemReduced({snippet, authors, selectedSnippetIds
                 </div>
             </div>
             {snippet.url && (
-                <div className="p-2 rounded-md shadow-md mb-4 inline-block">
-                    <span>{snippet.url}</span>
-                </div>
+                <SnippetItemLinkPreview snippet={snippet}/>
             )}
             <div className="prose" style={{maxWidth: "unset"}}>
-                {(!isMarkdown || isPostPage) ? (
-                    snippet.slateBody ?
-                        <SlateReadOnly nodes={snippet.slateBody}/>
-                        : Parser(markdownConverter.makeHtml(snippet.body))
-                ) : (
-                    <div className="border rounded-md bg-white p-2">
-                        <SimpleMDEEditor
-                            value={snippet.body}
-                            onChange={() => null}
-                            getMdeInstance={instance => {
-                                instance.codemirror.setOption("readOnly", true);
-                            }}
-                            options={{
-                                spellChecker: false,
-                                toolbar: false,
-                                status: false,
-                            }}
-                        />
-                    </div>
-                )}
+                <SlateReadOnly nodes={snippet.slateBody}/>
             </div>
         </div>
     );

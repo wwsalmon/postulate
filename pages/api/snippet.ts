@@ -10,6 +10,7 @@ import {PostModel} from "../../models/post";
 import dbConnect from "../../utils/dbConnect";
 import getIsEmpty from "../../utils/slate/getIsEmpty";
 import {serialize} from "remark-slate";
+import * as mongoose from "mongoose";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -133,50 +134,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === "GET") {
 
         if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId)) return res.status(406).json({message: "Invalid filtering queries found in request"});
 
         try {
             await dbConnect();
 
-            let conditions: any = { projectId: req.query.projectId };
+            let conditions: any = { projectId: mongoose.Types.ObjectId(req.query.projectId) };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
-            if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds)};
+            if (req.query.userIds && JSON.parse(req.query.userIds).length) conditions["userId"] = {"$in": JSON.parse(req.query.userIds).map(d => mongoose.Types.ObjectId(d))};
             if (req.query.linked) {
                 if (req.query.linked === "true") conditions["linkedPosts"] = {"$exists": true, "$ne": []};
                 if (req.query.linked === "false") conditions["linkedPosts"] = {"$eq": []};
             }
             if (req.query.ids && JSON.parse(req.query.ids).length) {
-                const ids: any = JSON.parse(req.query.ids);
+                const ids: any = JSON.parse(req.query.ids).map(d => mongoose.Types.ObjectId(d));
                 conditions = { "_id": {"$in": ids}};
             }
 
-            const cursor = SnippetModel
-                .find(conditions)
-                .sort({"createdAt": req.query.sort ? +req.query.sort : - 1});
+            const cursorStages = req.query.page ? [
+                {$skip: (+req.query.page - 1) * 10},
+                {$limit: 10},
+            ] : [];
 
-            const snippets = await (req.query.page ?
-                cursor
-                    .skip((+req.query.page - 1) * 10)
-                    .limit(10) :
-                cursor
-            );
+            const snippets = await SnippetModel.aggregate([
+                {$match: conditions},
+                {$lookup: {
+                    from: "posts",
+                    let: {"ids": "$linkedPosts"},
+                    pipeline: [
+                        {$match: {$expr: {$in: ["$_id", "$$ids"]}}},
+                        {$lookup: {
+                            from: "users",
+                            foreignField: "_id",
+                            localField: "userId",
+                            as: "authorArr",
+                        }},
+                    ],
+                    as: "linkedPostsArr",
+                }},
+                {$lookup: {
+                    from: "users",
+                    foreignField: "_id",
+                    localField: "userId",
+                    as: "authorArr",
+                }},
+                {$sort: {createdAt: req.query.sort ? +req.query.sort : - 1}},
+                ...cursorStages,
+            ]);
 
             const count = await SnippetModel
                 .find(conditions)
                 .count();
 
-            // get associated authors
-            const authorIds = snippets.map(d => d.userId);
-            const uniqueAuthorIds = authorIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-            const authors = await UserModel.find({ _id: {$in: uniqueAuthorIds }});
-
-            // get associated posts
-            const postIds = snippets.reduce((a, b) => a = [...a, ...b.linkedPosts], []);
-            const uniquePostIds = postIds.filter((d, i, a) => a.findIndex(x => x === d) === i);
-            const posts = await PostModel.find({ _id: {$in: uniquePostIds }});
-
-            res.status(200).json({snippets: snippets, authors: authors, count: count, posts: posts });
+            res.status(200).json({snippets: snippets, count: count});
 
             return;
         } catch (e) {
