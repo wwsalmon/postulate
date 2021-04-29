@@ -254,6 +254,10 @@ a.up-button.small:not(.primary):not(.text) {
     @apply bg-black text-white;
 }
 
+.up-button.selected.text:not(.primary):not(:disabled) {
+    background-color: #FAFAFA;
+}
+
 .up-button.text:not(:disabled):hover{
     @apply bg-gray-100;
 }

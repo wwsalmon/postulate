@@ -35,7 +35,6 @@ import Skeleton from "react-loading-skeleton";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Link from "next/link";
-import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
@@ -43,12 +42,10 @@ import dbConnect from "../../utils/dbConnect";
 import GitHubCalendar from "react-github-contribution-calendar/lib";
 import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
-import {Node} from "slate";
 import ellipsize from "ellipsize";
 import SnippetItemCard from "../../components/SnippetItemCard";
 import UpBanner from "../../components/UpBanner";
 import {HiViewGrid, HiViewList} from "react-icons/hi";
-import BackToProjects from "../../components/back-to-projects";
 import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
 import PublicPostItem from "../../components/public-post-item";
 import PostItemCard from "../../components/PostItemCard";
@@ -396,10 +393,18 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 {displayReady ? displayItems.length > 0 ? (
                     <>
                         <div className="flex items-center my-4">
-                            <button className="ml-auto up-button text small" onClick={() => setListView(false)}>
+                            <button
+                                className={"ml-auto up-button text small " + (!listView ? "selected" : "")}
+                                onClick={() => setListView(false)}
+                                // disabled={!listView}
+                            >
                                 <HiViewGrid/>
                             </button>
-                            <button className="ml-2 up-button text small" onClick={() => setListView(true)}>
+                            <button
+                                className={"ml-2 up-button text small " + (listView ? "selected" : "")}
+                                onClick={() => setListView(true)}
+                                // disabled={listView}
+                            >
                                 <HiViewList/>
                             </button>
                         </div>
