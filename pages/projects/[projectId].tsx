@@ -62,7 +62,7 @@ export const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSea
 }) => (
     <input
         type="text"
-        className={`border up-border-gray-200 h-10 ${breakpoint}:h-8 ${breakpoint}:ml-2 rounded-md ${breakpoint}:text-sm px-2 up-bg-gray-100 up-gray-500 w-full ${breakpoint}:w-auto mb-4 ${breakpoint}:mb-0`}
+        className={`border up-border-gray-200 h-10 ${breakpoint === "md" ? "md:h-8 md:ml-2 md:text-sm md:w-auto md:mb-0" : "lg:h-8 lg:ml-2 lg:text-sm lg:w-auto lg:mb-0"} rounded-md px-2 up-bg-gray-100 up-gray-500 w-full mb-4`}
         placeholder="Search in project"
         value={snippetSearchQuery}
         onChange={e => {
