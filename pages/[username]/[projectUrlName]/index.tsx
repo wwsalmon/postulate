@@ -17,14 +17,17 @@ import dbConnect from "../../../utils/dbConnect";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {FiArrowLeft} from "react-icons/fi";
 import ProjectStats from "../../../components/ProjectStats";
+import PaginationBar from "../../../components/PaginationBar";
+import PaginationBanner from "../../../components/PaginationBanner";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
+    const [postPage, setPostPage] = useState<number>(1);
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}`, fetcher);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
@@ -68,12 +71,23 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                 </div>
             </div>
             <div className="max-w-4xl mx-auto px-4">
-                {tab === "posts" ? postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
-                    <PublicPostItem
-                        post={post}
-                        showAuthor
-                    />
-                )) : (
+                {tab === "posts" ? postsReady ? filteredPosts.length > 0 ? (
+                    <>
+                        <PaginationBanner page={postPage} label="posts" setPage={setPostPage} className="mb-12"/>
+                        {filteredPosts.map(post => (
+                            <PublicPostItem
+                                post={post}
+                                showAuthor
+                            />
+                        ))}
+                        <PaginationBar
+                            page={postPage}
+                            count={postsReady ? posts.count : 0}
+                            label="posts"
+                            setPage={setPostPage}
+                        />
+                    </>
+                ) : (
                     <p>No public posts have been published in this project yet.</p>
                 ) : (
                     <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>

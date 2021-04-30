@@ -53,6 +53,7 @@ import PostItemCard from "../../components/PostItemCard";
 import Mousetrap from "mousetrap";
 import Accordion from "react-robust-accordion";
 import ProjectStats from "../../components/ProjectStats";
+import PaginationBar from "../../components/PaginationBar";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -533,28 +534,11 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                         </>
                                     ))}
                                 </div>
-                                <p className="opacity-25 mt-16">
-                                    Showing {displayLabel} {(displayPage - 1) * 10 + 1}
-                                    -{(displayPage < Math.floor(displayCount / 10)) ? displayPage * 10 : displayCount} of {displayCount}
-                                </p>
-                                {displayCount > 10 && (
-                                    <div className="mt-4">
-                                        {Array.from({length: Math.ceil(displayCount / 10)}, (x, i) => i + 1).map(d => (
-                                            <button
-                                                className={"py-2 px-4 rounded-md mr-2 " + (d === displayPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
-                                                onClick={() => {
-                                                    const setFunction = {
-                                                        home: setItemPage,
-                                                        posts: setPostPage,
-                                                        snippets: setSnippetPage,
-                                                    }[tab];
-                                                    setFunction(d);
-                                                }}
-                                                disabled={+d === +displayPage}
-                                            >{d}</button>
-                                        ))}
-                                    </div>
-                                )}
+                                <PaginationBar page={displayPage} count={displayCount} label={displayLabel} setPage={{
+                                    home: setItemPage,
+                                    posts: setPostPage,
+                                    snippets: setSnippetPage,
+                                }[tab]}/>
                             </>
                         ) : (
                             <p className="up-gray-400 my-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets or posts in this project yet. Press New Snippet or New Post to add some."}</p>
