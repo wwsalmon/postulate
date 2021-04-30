@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
+import {DatedObj, PostObj, ProjectObj, SnippetObjGraph, UserObj} from "../../utils/types";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
@@ -34,7 +34,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
     const [instance, setInstance] = useState<EasyMDE>(null);
     const [isSnippetsOpen, setIsSnippetsOpen] = useState<boolean>(false);
 
-    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
@@ -123,7 +123,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                                         {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                             <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                                         )}
-                                        <SnippetItemReduced snippet={snippet} authors={selectedSnippets.authors} selectedSnippetIds={selectedSnippetIds} setSelectedSnippetIds={setSelectedSnippetIds}/>
+                                        <SnippetItemReduced snippet={snippet} selectedSnippetIds={selectedSnippetIds} setSelectedSnippetIds={setSelectedSnippetIds}/>
                                     </div>
                                 ))}
                             </>
