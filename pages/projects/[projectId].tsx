@@ -217,7 +217,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const SearchControl = () => (
         <input
             type="text"
-            className="border up-border-gray-200 h-10 md:h-8 md:ml-2 rounded-md md:text-sm px-2 up-bg-gray-100 up-gray-500 w-full md:w-auto mb-4 md:mb-0"
+            className="border up-border-gray-200 h-10 lg:h-8 md:ml-2 rounded-md lg:text-sm px-2 up-bg-gray-100 up-gray-500 w-full lg:w-auto mb-4 lg:mb-0"
             placeholder="Search in project"
             value={snippetSearchQuery}
             onChange={e => {
@@ -229,7 +229,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
 
     const TagControl = ({large}: { large: boolean }) => (
         <Select
-            className="md:text-sm up-gray-500 h-10 md:h-8 md:w-64 w-full"
+            className="lg:text-sm up-gray-500 h-10 lg:h-8 lg:w-64 w-full"
             options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
             value={tagsQuery.map(d => ({label: d, value: d}))}
             onChange={(newValue) => {
@@ -350,7 +350,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                 </UpModal>
                             </div>
                         </div>
-                        <div className="flex items-center flex-shrink-0 my-4 md:my-0">
+                        <div className="flex items-center flex-shrink-0 py-4 md:my-0">
                             <button className="up-button primary small mr-4" onClick={() => setIsSnippet(true)}>
                                 <span>New snippet</span>
                                 <span className="font-normal hidden sm:inline"> (n)</span>
@@ -433,8 +433,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             )}
             <div className={"w-full up-bg-gray-50 border-b up-border-gray-200 " + (selectedSnippetIds.length ? "pt-2" : "")}>
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="md:flex items-center">
-                        <div className="hidden md:flex items-center order-2 ml-auto">
+                    <div className="lg:flex items-center">
+                        <div className="hidden lg:flex items-center order-2 ml-auto">
                             <TagControl large={false}/>
                             <SearchControl/>
                         </div>
@@ -448,189 +448,195 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
                                 Posts ({numPosts})
                             </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
+                                Stats ({percentLinked}%)
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="max-w-7xl mx-auto px-4 pb-12">
-                {(snippetSearchQuery || (tagsQuery && !!tagsQuery.length)) && (
-                    <UpBanner className="my-4">
-                        <div className="flex items-center w-full">
-                            <p>Showing matches {snippetSearchQuery && `for "${snippetSearchQuery}" `}{tagsQuery && !!tagsQuery.length && "tagged "}{tagsQuery.map(tag => "#" + tag + " ")}</p>
-                            <button className="ml-auto up-button text small" onClick={() => {
-                                setSnippetSearchQuery("");
-                                setTagsQuery([]);
-                            }}>Clear</button>
-                        </div>
-                    </UpBanner>
-                )}
-                <div className="md:hidden my-4">
-                    <SearchControl/>
-                    <TagControl large={true}/>
-                </div>
-                {displayReady ? displayItems.length > 0 ? (
+                {tab === "stats" ? (
                     <>
-                        <div className="flex items-center my-4">
-                            <button
-                                className={"ml-auto up-button text small " + (!listView ? "selected" : "")}
-                                onClick={() => setListView(false)}
-                                // disabled={!listView}
-                            >
-                                <HiViewGrid/>
-                            </button>
-                            <button
-                                className={"ml-2 up-button text small " + (listView ? "selected" : "")}
-                                onClick={() => setListView(true)}
-                                // disabled={listView}
-                            >
-                                <HiViewList/>
-                            </button>
+                        <div className="my-8 lg:flex -mx-4">
+                            <div className="lg:w-1/3 mx-4">
+                                <h3 className="up-ui-title">Overview ({percentLinked}% linked)</h3>
+                                <p className="mb-4 up-gray-500 text-sm">Linked percentage is the percentage of snippets that are linked to at least one post.</p>
+                                <ReactFrappeChart
+                                    type="line"
+                                    colors={["#ccd4ff", "#0026ff"]}
+                                    axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
+                                    lineOptions={{ regionFill: 1, hideDots: 1 }}
+                                    height={250}
+                                    animate={false}
+                                    data={{
+                                        labels: Array(numGraphDays).fill(0).map((d, i) => {
+                                            const currDate = new Date();
+                                            const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
+                                            return format(new Date(thisDate), "M/d");
+                                        }),
+                                        datasets: [
+                                            {
+                                                name: "Snippets",
+                                                values: arrGraphGenerator(snippetDates, numGraphDays),
+                                            },
+                                            {
+                                                name: "Posts",
+                                                values: arrGraphGenerator(postDates, numGraphDays),
+                                            },
+                                        ],
+                                    }}
+                                />
+                            </div>
+                            <hr className="my-8 lg:hidden"/>
+                            <div className="md:flex lg:w-2/3">
+                                <div className="md:w-1/2 mx-4">
+                                    <h3 className="up-ui-title mb-4">Snippets ({numSnippets})</h3>
+                                    {/*
+                            // @ts-ignore*/}
+                                    <GitHubCalendar
+                                        panelColors={[
+                                            "#eeeeee",
+                                            "#ccd4ff",
+                                            "#99a8ff",
+                                            "#667dff",
+                                            "#3351ff",
+                                            ...Array(50).fill("#0026ff"),
+                                        ]}
+                                        values={snippetDates}
+                                        until={format(new Date(), "yyyy-MM-dd")}
+                                    />
+                                </div>
+                                <hr className="my-8 md:hidden"/>
+                                <div className="md:w-1/2 mx-4">
+                                    <h3 className="up-ui-title mb-4">Posts ({numPosts})</h3>
+                                    {/*
+                            // @ts-ignore*/}
+                                    <GitHubCalendar
+                                        panelColors={[
+                                            "#eeeeee",
+                                            "#ccd4ff",
+                                            "#99a8ff",
+                                            "#667dff",
+                                            "#3351ff",
+                                            ...Array(50).fill("#0026ff"),
+                                        ]}
+                                        values={postDates}
+                                        until={format(new Date(), "yyyy-MM-dd")}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className={listView ? "-mt-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-12"}>
-                            {displayItems.map((item, i, a) => (
-                                <>
-                                    {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="up-ui-title mt-12 pb-4 md:col-span-2 lg:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
-                                    )}
-                                    {listView ? (item.type ? (
-                                            <SnippetItem
-                                                snippet={item}
-                                                iteration={iteration}
-                                                setIteration={setIteration}
-                                                availableTags={availableTags}
-                                                addNewTags={addNewTags}
-                                                setTagsQuery={setTagsQuery}
-                                                selectedSnippetIds={selectedSnippetIds}
-                                                setSelectedSnippetIds={setSelectedSnippetIds}
-                                                setStatsIter={setStatsIter}
-                                                statsIter={statsIter}
-                                            />
-                                        ) : (
-                                            <PublicPostItem post={item}/>
-                                        )
-                                    ) : (item.type ? (
-                                            <SnippetItemCard
-                                                snippet={item}
-                                                setTagsQuery={setTagsQuery}
-                                                iteration={iteration}
-                                                setIteration={setIteration}
-                                                statsIter={statsIter}
-                                                setStatsIter={setStatsIter}
-                                                availableTags={availableTags}
-                                                addNewTags={addNewTags}
-                                                selectedSnippetIds={selectedSnippetIds}
-                                                setSelectedSnippetIds={setSelectedSnippetIds}
-                                            />
-                                        ) : (
-                                            <PostItemCard post={item}/>
-                                        )
-                                    )}
-                                </>
-                            ))}
+                    </>
+                ) : (
+                    <>
+                        {(snippetSearchQuery || (tagsQuery && !!tagsQuery.length)) && (
+                            <UpBanner className="my-4">
+                                <div className="flex items-center w-full">
+                                    <p>Showing matches {snippetSearchQuery && `for "${snippetSearchQuery}" `}{tagsQuery && !!tagsQuery.length && "tagged "}{tagsQuery.map(tag => "#" + tag + " ")}</p>
+                                    <button className="ml-auto up-button text small" onClick={() => {
+                                        setSnippetSearchQuery("");
+                                        setTagsQuery([]);
+                                    }}>Clear</button>
+                                </div>
+                            </UpBanner>
+                        )}
+                        <div className="lg:hidden my-4">
+                            <SearchControl/>
+                            <TagControl large={true}/>
                         </div>
-                        <p className="opacity-25 mt-16">
-                            Showing {displayLabel} {(displayPage - 1) * 10 + 1}
-                            -{(displayPage < Math.floor(displayCount / 10)) ? displayPage * 10 : displayCount} of {displayCount}
-                        </p>
-                        {displayCount > 10 && (
-                            <div className="mt-4">
-                                {Array.from({length: Math.ceil(displayCount / 10)}, (x, i) => i + 1).map(d => (
+                        {displayReady ? displayItems.length > 0 ? (
+                            <>
+                                <div className="flex items-center my-4">
                                     <button
-                                        className={"py-2 px-4 rounded-md mr-2 " + (d === displayPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
-                                        onClick={() => {
-                                            const setFunction = {
-                                                home: setItemPage,
-                                                posts: setPostPage,
-                                                snippets: setSnippetPage,
-                                            }[tab];
-                                            setFunction(d);
-                                        }}
-                                        disabled={+d === +displayPage}
-                                    >{d}</button>
-                                ))}
+                                        className={"ml-auto up-button text small " + (!listView ? "selected" : "")}
+                                        onClick={() => setListView(false)}
+                                        // disabled={!listView}
+                                    >
+                                        <HiViewGrid/>
+                                    </button>
+                                    <button
+                                        className={"ml-2 up-button text small " + (listView ? "selected" : "")}
+                                        onClick={() => setListView(true)}
+                                        // disabled={listView}
+                                    >
+                                        <HiViewList/>
+                                    </button>
+                                </div>
+                                <div className={listView ? "-mt-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-12"}>
+                                    {displayItems.map((item, i, a) => (
+                                        <>
+                                            {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                                <p className="up-ui-title mt-12 pb-4 md:col-span-2 lg:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
+                                            )}
+                                            {listView ? (item.type ? (
+                                                    <SnippetItem
+                                                        snippet={item}
+                                                        iteration={iteration}
+                                                        setIteration={setIteration}
+                                                        availableTags={availableTags}
+                                                        addNewTags={addNewTags}
+                                                        setTagsQuery={setTagsQuery}
+                                                        selectedSnippetIds={selectedSnippetIds}
+                                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                                        setStatsIter={setStatsIter}
+                                                        statsIter={statsIter}
+                                                    />
+                                                ) : (
+                                                    <PublicPostItem post={item}/>
+                                                )
+                                            ) : (item.type ? (
+                                                    <SnippetItemCard
+                                                        snippet={item}
+                                                        setTagsQuery={setTagsQuery}
+                                                        iteration={iteration}
+                                                        setIteration={setIteration}
+                                                        statsIter={statsIter}
+                                                        setStatsIter={setStatsIter}
+                                                        availableTags={availableTags}
+                                                        addNewTags={addNewTags}
+                                                        selectedSnippetIds={selectedSnippetIds}
+                                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                                    />
+                                                ) : (
+                                                    <PostItemCard post={item}/>
+                                                )
+                                            )}
+                                        </>
+                                    ))}
+                                </div>
+                                <p className="opacity-25 mt-16">
+                                    Showing {displayLabel} {(displayPage - 1) * 10 + 1}
+                                    -{(displayPage < Math.floor(displayCount / 10)) ? displayPage * 10 : displayCount} of {displayCount}
+                                </p>
+                                {displayCount > 10 && (
+                                    <div className="mt-4">
+                                        {Array.from({length: Math.ceil(displayCount / 10)}, (x, i) => i + 1).map(d => (
+                                            <button
+                                                className={"py-2 px-4 rounded-md mr-2 " + (d === displayPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
+                                                onClick={() => {
+                                                    const setFunction = {
+                                                        home: setItemPage,
+                                                        posts: setPostPage,
+                                                        snippets: setSnippetPage,
+                                                    }[tab];
+                                                    setFunction(d);
+                                                }}
+                                                disabled={+d === +displayPage}
+                                            >{d}</button>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <p className="up-gray-400 my-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets or posts in this project yet. Press New Snippet or New Post to add some."}</p>
+                        ) : (
+                            <div className="mt-4">
+                                <Skeleton count={10}/>
                             </div>
                         )}
                     </>
-                ) : (
-                    <p className="up-gray-400 my-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets or posts in this project yet. Press New Snippet or New Post to add some."}</p>
-                ) : (
-                    <div className="mt-4">
-                        <Skeleton count={10}/>
-                    </div>
                 )}
-                <div className={tab === "stats" ? "" : "hidden lg:block"}>
-                    <hr className="my-8 lg:hidden"/>
-                    <h3 className="up-ui-title mb-8">Stats</h3>
-                    <div className="flex items-center">
-                        <button
-                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "posts" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                            onClick={() => setStatsTab("posts")}
-                        >
-                            <FiEdit/>
-                            <p className="ml-2">{numPosts} posts</p>
-                        </button>
-                        <button
-                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "snippets" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                            onClick={() => setStatsTab("snippets")}
-                        >
-                            <FiMessageSquare/>
-                            <p className="ml-2">{numSnippets} snippets</p>
-                        </button>
-                        <button
-                            className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "graph" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                            onClick={() => setStatsTab("graph")}
-                        >
-                            {percentLinked}% linked
-                        </button>
-                    </div>
-                    <div className="my-8">
-                        {(statsTab === "snippets" || statsTab === "posts") && (
-                            <>
-                                {/*
-                        // @ts-ignore*/}
-                                <GitHubCalendar
-                                    panelColors={[
-                                        "#eeeeee",
-                                        "#ccd4ff",
-                                        "#99a8ff",
-                                        "#667dff",
-                                        "#3351ff",
-                                        ...Array(50).fill("#0026ff"),
-                                    ]}
-                                    values={{snippets: snippetDates, posts: postDates}[statsTab]}
-                                    until={format(new Date(), "yyyy-MM-dd")}
-                                />
-                            </>
-                        )}
-                        {statsTab === "graph" && (
-                            <ReactFrappeChart
-                                type="line"
-                                colors={["#ccd4ff", "#0026ff"]}
-                                axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
-                                lineOptions={{ regionFill: 1, hideDots: 1 }}
-                                height={250}
-                                animate={false}
-                                data={{
-                                    labels: Array(numGraphDays).fill(0).map((d, i) => {
-                                        const currDate = new Date();
-                                        const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
-                                        return format(new Date(thisDate), "M/d");
-                                    }),
-                                    datasets: [
-                                        {
-                                            name: "Snippets",
-                                            values: arrGraphGenerator(snippetDates, numGraphDays),
-                                        },
-                                        {
-                                            name: "Posts",
-                                            values: arrGraphGenerator(postDates, numGraphDays),
-                                        },
-                                    ],
-                                }}
-                            />
-                        )}
-                    </div>
-                </div>
             </div>
         </>
     )
