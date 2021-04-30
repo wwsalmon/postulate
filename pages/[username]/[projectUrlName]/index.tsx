@@ -14,6 +14,8 @@ import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
+import UpInlineButton from "../../../components/style/UpInlineButton";
+import {FiArrowLeft} from "react-icons/fi";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
@@ -26,43 +28,45 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
+    const [tab, setTab] = useState<"posts" | "snippets">("posts");
+
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="max-w-4xl mx-auto px-4">
-                {(isOwner || isCollaborator) && (
-                    <UpBanner>
-                        <div className="md:flex items-center w-full">
-                            <p>You're viewing this project as a public visitor would see it.</p>
-                            <Link href={`/projects/${projectId}`}>
-                                <a className="up-button text small ml-auto">Back</a>
-                            </Link>
-                        </div>
-                    </UpBanner>
-                )}
-                <div className="flex items-center">
-                    <div>
-                        <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                        <p className="up-h2">{description}</p>
-                        <div className="flex items-center my-8">
-                            <Link href={`/@${props.thisUser.username}`}>
-                                <a>
-                                    <img src={props.thisUser.image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
-                                </a>
-                            </Link>
-                            <div>
-                                <Link href={`/@${props.thisUser.username}`}>
-                                    <a className="font-bold">
-                                        {props.thisUser.name}
-                                    </a>
-                                </Link>
-                                <p className="opacity-50">Project owner</p>
-                            </div>
-                        </div>
+            <div className="w-full up-bg-gray-50 -mt-8 border-t border-b mb-12 up-border-gray-200">
+                <div className="max-w-4xl mx-auto px-4 pt-4">
+                    <div className="flex items-center">
+                        {(isOwner || isCollaborator) && (
+                            <>
+                                <UpInlineButton href={`/projects/${projectId}`} light={true}>
+                                    <div className="flex items-center">
+                                        <FiArrowLeft/>
+                                        <span className="ml-4">
+                                        Back to project
+                                    </span>
+                                    </div>
+                                </UpInlineButton>
+                                <span className="mx-2 up-gray-300"> / </span>
+                            </>
+                        )}
+                        <UpInlineButton href={`/@${props.thisUser.username}`} light={true}>
+                            {props.thisUser.name}
+                        </UpInlineButton>
+                        <span className="ml-2 up-gray-300">/</span>
+                    </div>
+                    <h1 className="up-h1 mt-6 mb-2">{name}</h1>
+                    <p className="content up-gray-400">{description}</p>
+                    <div className="flex items-center h-12 mt-8">
+                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
+                            Public posts ({posts ? filteredPosts.length : "Loading..."})
+                        </button>
+                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
+                            Public Snippets
+                        </button>
                     </div>
                 </div>
-                <hr className="my-8"/>
-                <p className="up-ui-title mb-12 opacity-50">Public posts ({posts ? filteredPosts.length : "Loading..."})</p>
+            </div>
+            <div className="max-w-4xl mx-auto px-4">
                 {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                     <PublicPostItem
                         post={post}
