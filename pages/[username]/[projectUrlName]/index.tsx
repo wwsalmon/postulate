@@ -16,6 +16,7 @@ import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {FiArrowLeft} from "react-icons/fi";
+import ProjectStats from "../../../components/ProjectStats";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
@@ -28,7 +29,7 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
-    const [tab, setTab] = useState<"posts" | "snippets">("posts");
+    const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
 
     return (
         <>
@@ -60,14 +61,14 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
                             Public posts ({posts ? filteredPosts.length : "Loading..."})
                         </button>
-                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
-                            Public Snippets
+                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
+                            Stats
                         </button>
                     </div>
                 </div>
             </div>
             <div className="max-w-4xl mx-auto px-4">
-                {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
+                {tab === "posts" ? postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
                     <PublicPostItem
                         post={post}
                         showAuthor
@@ -76,6 +77,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                     <p>No public posts have been published in this project yet.</p>
                 ) : (
                     <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
+                ) : (
+                    <ProjectStats projectId={projectId}/>
                 )}
                 {!session && <InlineCTA/>}
             </div>
