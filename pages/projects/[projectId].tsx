@@ -40,8 +40,6 @@ import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
-import GitHubCalendar from "react-github-contribution-calendar/lib";
-import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
 import ellipsize from "ellipsize";
 import SnippetItemCard from "../../components/SnippetItemCard";
@@ -74,8 +72,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [postPage, setPostPage] = useState<number>(1);
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
-    const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
-    const [instance, setInstance] = useState<EasyMDE>(null);
     const [tab, setTab] = useState<"home"|"snippets"|"posts"|"stats">("home");
     const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
     const [statsIter, setStatsIter] = useState<number>(0);
@@ -95,10 +91,10 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}`);
+    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}`);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&page=${postPage}&iteration=${iteration}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&page=${postPage}&iteration=${iteration}&search=${snippetSearchQuery}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
 
