@@ -7,6 +7,7 @@ import {DatedObj, PostObjGraph} from "../utils/types";
 import UpBanner from "../components/UpBanner";
 import UserSearch from "../components/UserSearch";
 import PaginationBanner from "../components/PaginationBanner";
+import UpSEO from "../components/up-seo";
 
 export default function Explore({}: {  }) {
     const [page, setPage] = useState<number>(1);
@@ -14,6 +15,7 @@ export default function Explore({}: {  }) {
 
     return (
         <div className="px-4 mx-auto max-w-4xl">
+            <UpSEO title="Explore"/>
             <UpH1 className="mb-4">Explore</UpH1>
             <p className="up-gray-500">The latest public posts from users across the platform</p>
             <hr className="my-8"/>
