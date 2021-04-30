@@ -21,9 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (project.userId.toString() !== session.userId) return res.status(403).json({message: "Unauthed"});
 
         let conditions = {projectId: mongoose.Types.ObjectId(req.query.projectId)};
-
         if (req.query.search) conditions["$text"] = {"$search": req.query.search};
-        if (req.query.tags) conditions["tags"] = conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
+        const parsedTags = req.query.tags ? JSON.parse(req.query.tags) : [];
+        if (parsedTags.length) conditions["tags"] = conditions["tags"] = {"$in": parsedTags};
 
         const items = await SnippetModel.aggregate([
             {$match: conditions},
