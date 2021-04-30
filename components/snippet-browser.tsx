@@ -1,6 +1,6 @@
 import React, {Dispatch, SetStateAction, useState} from "react";
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, ProjectObj, SnippetObjGraph, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import Select from "react-select";
 import {format} from "date-fns";
@@ -24,7 +24,7 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
 
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${snippetProjectId}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
     const {data: projects, error: projectsError}: responseInterface<{projects: DatedObj<ProjectObj>[] }, any> = useSWR(`/api/project`, fetcher);
     const {data: sharedProjects, error: sharedProjectsError}: responseInterface<{projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] }, any> = useSWR("/api/project?shared=true", fetcher);
 
@@ -117,7 +117,6 @@ export default function SnippetBrowser({startProjectId, selectedSnippetIds, setS
                                 )}
                                 <SnippetItemReduced
                                     snippet={snippet}
-                                    authors={snippets.authors}
                                     selectedSnippetIds={selectedSnippetIds}
                                     setSelectedSnippetIds={setSelectedSnippetIds}
                                 />

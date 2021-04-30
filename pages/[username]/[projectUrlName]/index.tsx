@@ -14,64 +14,116 @@ import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
+import UpInlineButton from "../../../components/style/UpInlineButton";
+import {FiArrowLeft} from "react-icons/fi";
+import ProjectStats from "../../../components/ProjectStats";
+import PaginationBar from "../../../components/PaginationBar";
+import PaginationBanner from "../../../components/PaginationBanner";
+import {SearchControl} from "../../projects/[projectId]";
+import FilterBanner from "../../../components/FilterBanner";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
+    const [postPage, setPostPage] = useState<number>(1);
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}&search=${searchQuery}`, fetcher);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
+    const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
+
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="max-w-4xl mx-auto px-4">
-                {(isOwner || isCollaborator) && (
-                    <UpBanner>
-                        <div className="md:flex items-center w-full">
-                            <p>You're viewing this project as a public visitor would see it.</p>
-                            <Link href={`/projects/${projectId}`}>
-                                <a className="up-button text small ml-auto">Back</a>
-                            </Link>
-                        </div>
-                    </UpBanner>
-                )}
-                <div className="flex items-center">
-                    <div>
-                        <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                        <p className="up-h2">{description}</p>
-                        <div className="flex items-center my-8">
-                            <Link href={`/@${props.thisUser.username}`}>
-                                <a>
-                                    <img src={props.thisUser.image} alt={`Profile picture of ${props.thisUser.name}`} className="w-10 h-10 rounded-full mr-4"/>
-                                </a>
-                            </Link>
-                            <div>
-                                <Link href={`/@${props.thisUser.username}`}>
-                                    <a className="font-bold">
-                                        {props.thisUser.name}
-                                    </a>
-                                </Link>
-                                <p className="opacity-50">Project owner</p>
-                            </div>
+            <div className="w-full up-bg-gray-50 -mt-8 border-t border-b mb-12 up-border-gray-200">
+                <div className="max-w-4xl mx-auto px-4 pt-4">
+                    <div className="flex items-center">
+                        {(isOwner || isCollaborator) && (
+                            <>
+                                <UpInlineButton href={`/projects/${projectId}`} light={true}>
+                                    <div className="flex items-center">
+                                        <FiArrowLeft/>
+                                        <span className="ml-4">
+                                        Back to project
+                                    </span>
+                                    </div>
+                                </UpInlineButton>
+                                <span className="mx-2 up-gray-300"> / </span>
+                            </>
+                        )}
+                        <UpInlineButton href={`/@${props.thisUser.username}`} light={true}>
+                            {props.thisUser.name}
+                        </UpInlineButton>
+                        <span className="ml-2 up-gray-300">/</span>
+                    </div>
+                    <h1 className="up-h1 mt-6 mb-2">{name}</h1>
+                    <p className="content up-gray-400">{description}</p>
+                    <div className="flex items-center h-12 mt-8">
+                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
+                            Public posts ({posts ? filteredPosts.length : "Loading..."})
+                        </button>
+                        <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
+                            Stats
+                        </button>
+                        <div className="ml-auto hidden md:block">
+                            <SearchControl
+                                snippetSearchQuery={searchQuery}
+                                setSnippetPage={setPostPage}
+                                setSnippetSearchQuery={setSearchQuery}
+                                breakpoint="md"
+                            />
                         </div>
                     </div>
                 </div>
-                <hr className="my-8"/>
-                <p className="up-ui-title mb-12 opacity-50">Public posts ({posts ? filteredPosts.length : "Loading..."})</p>
-                {postsReady ? filteredPosts.length > 0 ? filteredPosts.map(post => (
-                    <PublicPostItem
-                        post={post}
-                        showAuthor
-                    />
-                )) : (
+            </div>
+            <div className="max-w-4xl mx-auto px-4">
+                {tab === "posts" ? postsReady ? filteredPosts.length > 0 ? (
+                    <>
+                        <div className="mb-4 -mt-4">
+                            <FilterBanner
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                tagsQuery={[]}
+                                setTagsQuery={() => null}
+                            />
+                        </div>
+                        <PaginationBanner page={postPage} label="posts" setPage={setPostPage} className="-mt-4 mb-12"/>
+                        <div className="-mt-8 mb-12 md:hidden">
+                            <SearchControl
+                                snippetSearchQuery={searchQuery}
+                                setSnippetPage={setPostPage}
+                                setSnippetSearchQuery={setSearchQuery}
+                                breakpoint="md"
+                            />
+                        </div>
+                        <div className="mt-16">
+                            {filteredPosts.map(post => (
+                                <PublicPostItem
+                                    post={post}
+                                    showAuthor
+                                />
+                            ))}
+                        </div>
+                        <PaginationBar
+                            page={postPage}
+                            count={postsReady ? posts.count : 0}
+                            label="posts"
+                            setPage={setPostPage}
+                        />
+                    </>
+                ) : searchQuery ? (
+                    <p>No posts matching search query.</p>
+                ) : (
                     <p>No public posts have been published in this project yet.</p>
                 ) : (
                     <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
+                ) : (
+                    <ProjectStats projectId={projectId}/>
                 )}
                 {!session && <InlineCTA/>}
             </div>

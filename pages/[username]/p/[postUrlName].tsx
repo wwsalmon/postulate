@@ -8,7 +8,7 @@ import {
     PostObjGraph,
     ProjectObj,
     ReactionObj,
-    SnippetObj,
+    SnippetObjGraph,
     UserObj
 } from "../../../utils/types";
 import {useRouter} from "next/router";
@@ -20,7 +20,7 @@ import Link from "next/link";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
-import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
+import {FiArrowLeft, FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
 import UpModal from "../../../components/up-modal";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
@@ -40,6 +40,7 @@ import CommentContainerItem from "../../../components/comment-container-item";
 import {NotifsContext} from "../../_app";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import Linkify from "react-linkify";
+import UpInlineButton from "../../../components/style/UpInlineButton";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -64,7 +65,7 @@ export default function PublicPost(props: {
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
 
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObjGraph>[]}, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
-    const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
+    const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${props.postData._id}&iter=${commentsIteration}`);
 
@@ -141,6 +142,16 @@ export default function PublicPost(props: {
                 <UpBanner className="mb-8">
                     <p>This is a <b>private</b> post. It can only be accessed by the project owner and collaborators.</p>
                 </UpBanner>
+            )}
+            {isOwner && (
+                <UpInlineButton href={`/projects/${projectId}`} className="my-8">
+                    <div className="flex items-center">
+                        <FiArrowLeft/>
+                        <span className="ml-4">
+                            Back to project
+                        </span>
+                    </div>
+                </UpInlineButton>
             )}
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
@@ -248,7 +259,7 @@ export default function PublicPost(props: {
                                 {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                     <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
                                 )}
-                                <SnippetItemReduced snippet={snippet} authors={linkedSnippets.authors} isPostPage={true}/>
+                                <SnippetItemReduced snippet={snippet} isPostPage={true}/>
                             </div>
                         ))}
                     </Accordion>

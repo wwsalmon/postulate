@@ -4,6 +4,7 @@ import React, {ReactNode} from "react";
 interface BaseProps {
     children: ReactNode;
     className?: string,
+    light?: boolean,
 }
 
 interface ButtonProps extends BaseProps {
@@ -18,8 +19,8 @@ interface LinkProps extends BaseProps {
 
 type ButtonOrLinkProps = ButtonProps | LinkProps;
 
-export default function UpInlineButton({href, onClick, children, className}: ButtonOrLinkProps) {
-    const classNames = "block up-gray-500 font-medium hover:up-gray-700 hover:up-bg-gray-50 py-1 px-2 -mx-2 rounded-md transition " + (className || "");
+export default function UpInlineButton({href, onClick, children, className, light}: ButtonOrLinkProps) {
+    const classNames = "inline-block font-medium hover:up-gray-700 hover:up-bg-gray-100 py-1 px-2 -mx-2 rounded-md transition " + (light ? "up-gray-400" : "up-gray-500") + " " + (className || "");
 
     return href ? (
         <Link href={href}>

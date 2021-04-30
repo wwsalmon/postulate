@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, PostObj, ProjectObj, SnippetObj, UserObj} from "../utils/types";
+import {DatedObj, PostObj, ProjectObj, SnippetObj, SnippetObjGraph, UserObj} from "../utils/types";
 import {format} from "date-fns";
 import Parser from "html-react-parser";
 import MoreMenu from "./more-menu";
@@ -18,16 +18,14 @@ import useSWR from "swr";
 import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
 import {Node} from "slate";
-import SlateReadOnly from "./SlateReadOnly";
 import Linkify from "react-linkify";
 import ProjectBrowser from "./project-browser";
+import dynamic from "next/dynamic";
+import SnippetItemInner from "./SnippetItemInner";
+const SlateReadOnly = dynamic(() => import("./SlateReadOnly"));
 
-export default function SnippetItem({snippet, authors, posts, projectData, thisUser, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {
-    snippet: DatedObj<SnippetObj>,
-    authors: DatedObj<UserObj>[],
-    posts: DatedObj<PostObj>[],
-    projectData: DatedObj<ProjectObj>,
-    thisUser: DatedObj<UserObj>,
+export default function SnippetItem({snippet, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {
+    snippet: DatedObj<SnippetObjGraph>,
     iteration: number,
     setIteration: Dispatch<SetStateAction<number>>,
     availableTags: string[],
@@ -44,7 +42,6 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [isMove, setIsMove] = useState<boolean>(false);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
-    const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
     const [instance, setInstance] = useState<EasyMDE>(null);
 
     const isSelected = selectedSnippetIds.includes(snippet._id);
@@ -117,7 +114,7 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
 
     return (
         <>
-            <div className={"py-8 border-b transition md:flex up-hover-parent " + ((isEdit || isSelected) ? "" : " hover:bg-gray-50 ") + (isSelected ? "" : "md:pr-8 md:-mr-8")}>
+            <div className={"py-8 border-b transition md:flex up-hover-parent " + (isSelected ? "" : "md:pr-8 md:-mr-8")}>
                 {!isEdit && (
                     <div className="flex ml-auto mb-4 order-3">
                         <div className="md:hidden flex items-center">
@@ -135,11 +132,11 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                 className="mr-4 opacity-50 hover:opacity-100 w-4 h-4"
                             />
                             {!(session && session.userId === snippet.userId) && (
-                                <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
+                                <Link href={`/@${snippet.authorArr[0].username}`}>
                                     <a>
                                         <img
-                                            src={authors.find(d => d._id === snippet.userId).image}
-                                            alt={authors.find(d => d._id === snippet.userId).name}
+                                            src={snippet.authorArr[0].image}
+                                            alt={snippet.authorArr[0].name}
                                             className="w-6 h-6 rounded-full opacity-25 hover:opacity-100 transition mr-4"
                                         />
                                     </a>
@@ -149,42 +146,15 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                                 {format(new Date(snippet.createdAt), "h:mm a")}
                             </p>
                         </div>
-                        {session && (session.userId === snippet.userId) && !isSelected && (
-                            <div className="ml-auto">
-                                <MoreMenu>
-                                    <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
-                                    <MoreMenuItem text="Move" icon={<FiArrowRightCircle/>} onClick={() => setIsMove(true)}/>
-                                    <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                                </MoreMenu>
-                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                                    <p>Are you sure you want to delete this snippet? This cannot be undone.</p>
-                                    <div className="flex mt-4">
-                                        <SpinnerButton isLoading={isLoading} onClick={onDelete}>
-                                            Delete
-                                        </SpinnerButton>
-                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                                    </div>
-                                </UpModal>
-                                <UpModal isOpen={isMove} setIsOpen={setIsMove} wide={true}>
-                                    <h3 className="up-ui-title mb-4">Select a project to move this snippet to</h3>
-                                    <ProjectBrowser
-                                        setOpen={setIsMove}
-                                        featuredProjectIds={[projectData._id]}
-                                        buttonText="Move"
-                                        onSubmit={onMoveSnippet}
-                                    />
-                                </UpModal>
-                            </div>
-                        )}
                     </div>
                 )}
                 <div className="hidden md:block w-28 pr-4 mt-1 flex-shrink-0">
                     {!(session && session.userId === snippet.userId) && (
-                        <Link href={`/@${authors.find(d => d._id === snippet.userId).username}`}>
+                        <Link href={`/@${snippet.authorArr[0].username}`}>
                             <a>
                                 <img
-                                    src={authors.find(d => d._id === snippet.userId).image}
-                                    alt={authors.find(d => d._id === snippet.userId).name}
+                                    src={snippet.authorArr[0].image}
+                                    alt={snippet.authorArr[0].name}
                                     className="w-6 h-6 rounded-full mb-4 opacity-25 hover:opacity-100 transition"
                                 />
                             </a>
@@ -213,72 +183,17 @@ export default function SnippetItem({snippet, authors, posts, projectData, thisU
                     maxHeight: 90,
                     boxShadow: "rgb(255, 255, 255) 0px -40px 10px -10px inset",
                 } : {}}>
-                    {(isEdit && session && session.userId === snippet.userId) ? (
-                        <SnippetEditor
-                            snippet={snippet}
-                            availableTags={availableTags}
-                            isLoading={isEditLoading}
-                            onSaveEdit={onSaveEdit}
-                            onCancelEdit={onCancelEdit}
-                            setInstance={setInstance}
-                        />
-                    ) : (
-                        <>
-                            {snippet.url && (
-                                <Link href={snippet.url}>
-                                    <a className="p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition">
-                                        <div>
-                                            <p className="underline opacity-50 break-all">{snippet.url}</p>
-                                            {linkPreview && (
-                                                <div className="mt-4">
-                                                    <p className="up-ui-item-title">{linkPreview.title}</p>
-                                                    <p>{linkPreview.description}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {linkPreview && linkPreview.images && linkPreview.images.length && (
-                                            <div className="w-32 ml-auto pl-4 flex-shrink-0">
-                                                <img src={linkPreview.images[0]} className="w-full"/>
-                                            </div>
-                                        )}
-                                    </a>
-                                </Link>
-                            )}
-                            <div className="prose break-words">
-                                {snippet.slateBody ? (
-                                        <SlateReadOnly nodes={snippet.slateBody}/>
-                                    ) : (
-                                        <Linkify>
-                                            {Parser(markdownConverter.makeHtml(snippet.body))}
-                                        </Linkify>
-                                    )
-                                }
-                            </div>
-                            <div className="flex mt-4">
-                                {snippet.tags && snippet.tags.map(tag => (
-                                    <button
-                                        className="font-bold opacity-50 mr-2"
-                                        onClick={() => setTagsQuery([tag])}
-                                    >#{tag}</button>
-                                ))}
-                            </div>
-                            {!!snippet.linkedPosts.length && (
-                                <div className="opacity-50 hover:opacity-100 transition">
-                                    <hr className="mb-8 mt-4"/>
-                                    <p className="up-ui-title">Linked posts ({snippet.linkedPosts.length}):</p>
-                                    {snippet.linkedPosts.map(d => (
-                                        <Link href={`/@${thisUser.username}/${projectData.urlName}/${posts.find(x => x._id === d).urlName}`}>
-                                            <a className="underline my-2 block">
-                                                {posts.find(x => x._id === d).title}
-                                            </a>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                            {isSelected && (
-                                <div className="w-full absolute top-0 left-0" style={{height: 90, boxShadow: "rgb(255, 255, 255) 0px -40px 20px -20px inset"}}/>
-                            )}
-                        </>
+                    <SnippetItemInner
+                        snippet={snippet}
+                        iteration={iteration}
+                        setIteration={setIteration}
+                        availableTags={availableTags}
+                        addNewTags={addNewTags}
+                        setTagsQuery={setTagsQuery}
+                        isList={true}
+                    />
+                    {isSelected && (
+                        <div className="w-full absolute top-0 left-0" style={{height: 90, boxShadow: "rgb(255, 255, 255) 0px -40px 20px -20px inset"}}/>
                     )}
                 </div>
             </div>

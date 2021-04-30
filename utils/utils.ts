@@ -125,3 +125,62 @@ export const slateInitValue: Node[] = [{
     children: [{text: ""}],
     id: 0,
 }];
+
+export const snippetGraphStages = [
+    {$lookup: {
+            from: "posts",
+            let: {"ids": "$linkedPosts"},
+            pipeline: [
+                {$match: {$expr: {$in: ["$_id", "$$ids"]}}},
+                {$lookup: {
+                        from: "users",
+                        foreignField: "_id",
+                        localField: "userId",
+                        as: "authorArr",
+                    }},
+            ],
+            as: "linkedPostsArr",
+        }},
+    {$lookup: {
+            from: "users",
+            foreignField: "_id",
+            localField: "userId",
+            as: "authorArr",
+        }},
+];
+
+const userPipeline = [
+    {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
+    {$project: {username: 1, image: 1, name: 1}},
+];
+
+export const postGraphStages = [
+    {$lookup: {
+            from: "projects",
+            let: {"projectId": "$projectId"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                {$project: {name: 1, urlName: 1, userId: 1, stars: 1,}},
+                {$lookup: {
+                        from: "users",
+                        let: {"userId": "$userId"},
+                        pipeline: userPipeline,
+                        as: "ownerArr",
+                    }},
+            ],
+            as: "projectArr"
+        }},
+    {$lookup: {
+            from: "users",
+            let: {"userId": "$userId"},
+            pipeline: userPipeline,
+            as: "authorArr",
+        }},
+];
+
+export const getCursorStages = (page?: string, search?: boolean) => {
+    let retval = [];
+    if (!search) retval.push({$sort: {createdAt: -1}});
+    if (page) retval.push({$skip: (+page - 1) * 10}, {$limit: 10});
+    return retval;
+};

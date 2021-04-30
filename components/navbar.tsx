@@ -8,10 +8,11 @@ import {DatedObj, NotificationWithAuthorAndTarget} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import useSWR from "swr";
 import {format} from "date-fns";
-import {useContext, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {NotifsContext} from "../pages/_app";
 import UpModal from "./up-modal";
 import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
+import Mousetrap from "mousetrap";
 
 export default function Navbar() {
     const [session, loading] = useSession();
@@ -22,7 +23,18 @@ export default function Navbar() {
     const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
     const unreadCount = (notifications && notifications.data) ? notifications.data.filter(d => !d.read).length : 0;
 
-    console.log(notifications)
+    useEffect(() => {
+        function onNewSnippetShortcut(e) {
+            e.preventDefault();
+            setQuickSnippetOpen(true);
+        };
+
+        Mousetrap.bind("q", onNewSnippetShortcut);
+
+        return () => {
+            Mousetrap.unbind("q", onNewSnippetShortcut);
+        };
+    });
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">

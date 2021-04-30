@@ -6,6 +6,8 @@ import React, {useState} from "react";
 import {DatedObj, PostObjGraph} from "../utils/types";
 import UpBanner from "../components/UpBanner";
 import UserSearch from "../components/UserSearch";
+import PaginationBanner from "../components/PaginationBanner";
+import UpSEO from "../components/up-seo";
 
 export default function Explore({}: {  }) {
     const [page, setPage] = useState<number>(1);
@@ -13,17 +15,13 @@ export default function Explore({}: {  }) {
 
     return (
         <div className="px-4 mx-auto max-w-4xl">
+            <UpSEO title="Explore"/>
             <UpH1 className="mb-4">Explore</UpH1>
             <p className="up-gray-500">The latest public posts from users across the platform</p>
             <hr className="my-8"/>
             <UserSearch/>
             <hr className="mt-8 mb-16"/>
-            {page > 1 && (
-                <UpBanner className="-mt-8 mb-12 flex items-center">
-                    <span>Showing <b>page {page}</b> of posts</span>
-                    <button className="up-button text small ml-auto" onClick={() => setPage(1)}>Back to recent</button>
-                </UpBanner>
-            )}
+            <PaginationBanner page={page} label="posts" setPage={setPage} className="-mt-8 mb-12"/>
             {data && data.posts && data.posts.map(post => (
                 <PublicPostItem post={post} showAuthor={true} showProject={true}/>
             ))}

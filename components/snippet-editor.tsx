@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
-import {DatedObj, SnippetObj} from "../utils/types";
+import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
 import MDEditor from "./md-editor";
 import Creatable from "react-select/creatable";
@@ -10,10 +10,12 @@ import {Node} from "slate";
 import {slateInitValue} from "../utils/utils";
 import SlateEditor from "./SlateEditor";
 import getIsEmpty from "../utils/slate/getIsEmpty";
+import Mousetrap from "mousetrap";
+import isHotkey from "is-hotkey";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
     isSnippet?: boolean,
-    snippet?: DatedObj<SnippetObj>,
+    snippet?: DatedObj<SnippetObjGraph>,
     projectId?: string,
     availableTags: string[],
     isLoading: boolean,
@@ -29,6 +31,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
 
+    const disableSaveFinal = disableSave || (isSnippetState && !(body || !slateBody.every(d => getIsEmpty(d)))) || (!isSnippetState && !url);
+
+    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody));
+
     useEffect(() => {
         window.onbeforeunload = !!body ? () => true : undefined;
 
@@ -39,7 +45,25 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
 
     useEffect(() => {
         if (!snippet) setIsSnippetState(isSnippet);
-    }, [isSnippet])
+    }, [isSnippet]);
+
+    useEffect(() => {
+        function onSaveSnippetShortcut(e) {
+            if (isHotkey("mod+s", e)) {
+                e.preventDefault();
+                console.log("save");
+                if (!disableSaveFinal) {
+                    onSaveEditFilled();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", onSaveSnippetShortcut);
+
+        return () => {
+            window.removeEventListener("keydown", onSaveSnippetShortcut);
+        };
+    });
 
     return (
         <>
@@ -86,10 +110,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
             <div className="flex">
                 <SpinnerButton
                     isLoading={isLoading}
-                    onClick={() => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody))}
-                    isDisabled={disableSave || (isSnippetState && !(body || !slateBody.every(d => getIsEmpty(d)))) || (!isSnippetState && !url)}
+                    onClick={onSaveEditFilled}
+                    isDisabled={disableSaveFinal}
                 >
-                    Save
+                    Save<span className="font-normal hidden sm:inline"> (⌘s)</span>
                 </SpinnerButton>
                 <button className="up-button text" onClick={() => onCancelEdit(urlName)}>Cancel</button>
             </div>

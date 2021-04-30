@@ -2,22 +2,29 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
 import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {DatedObj, PostObj, PostObjGraph, ProjectObjWithGraph, SnippetObj, UserObj} from "../../utils/types";
-import React, {useState} from "react";
+import {
+    DatedObj,
+    PostObj,
+    PostObjGraph,
+    ProjectObjWithGraph,
+    SnippetObj,
+    SnippetObjGraph,
+    UserObj
+} from "../../utils/types";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
 import axios from "axios";
 import UpSEO from "../../components/up-seo";
-import BackToProjects from "../../components/back-to-projects";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
 import {
+    FiChevronDown, FiChevronUp,
     FiEdit,
     FiEdit2,
     FiExternalLink,
     FiEye,
     FiEyeOff,
-    FiLink,
     FiMessageSquare,
     FiTrash,
     FiUserPlus,
@@ -29,23 +36,85 @@ import Skeleton from "react-loading-skeleton";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Link from "next/link";
-import SnippetEditor from "../../components/snippet-editor";
 import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
-import GitHubCalendar from "react-github-contribution-calendar/lib";
-import ReactFrappeChart from "../../components/frappe-chart";
 import EasyMDE from "easymde";
-import {BiLink, BiUnlink} from "react-icons/bi";
-import {Node} from "slate";
+import ellipsize from "ellipsize";
+import SnippetItemCard from "../../components/SnippetItemCard";
+import UpBanner from "../../components/UpBanner";
+import {HiViewGrid, HiViewList} from "react-icons/hi";
+import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
+import PublicPostItem from "../../components/public-post-item";
+import PostItemCard from "../../components/PostItemCard";
+import Mousetrap from "mousetrap";
+import Accordion from "react-robust-accordion";
+import ProjectStats from "../../components/ProjectStats";
+import PaginationBar from "../../components/PaginationBar";
+import FilterBanner from "../../components/FilterBanner";
+
+export const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSearchQuery, breakpoint = "lg"}: {
+    snippetSearchQuery: string,
+    setSnippetPage: Dispatch<SetStateAction<number>>,
+    setSnippetSearchQuery: Dispatch<SetStateAction<string>>,
+    breakpoint?: "md" | "lg",
+}) => (
+    <input
+        type="text"
+        className={`border up-border-gray-200 h-10 ${breakpoint}:h-8 ${breakpoint}:ml-2 rounded-md ${breakpoint}:text-sm px-2 up-bg-gray-100 up-gray-500 w-full ${breakpoint}:w-auto mb-4 ${breakpoint}:mb-0`}
+        placeholder="Search in project"
+        value={snippetSearchQuery}
+        onChange={e => {
+            setSnippetPage(1);
+            setSnippetSearchQuery(e.target.value);
+        }}
+    />
+);
+
+const TagControl = ({large, setSnippetPage, availableTags, tagsQuery, setTagsQuery}: {
+    large: boolean,
+    setSnippetPage: Dispatch<SetStateAction<number>>,
+    availableTags: string[],
+    tagsQuery: string[],
+    setTagsQuery: Dispatch<SetStateAction<string[]>>,
+}) => (
+    <Select
+        className="lg:text-sm up-gray-500 h-10 lg:h-8 lg:w-64 w-full"
+        options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
+        value={tagsQuery.map(d => ({label: d, value: d}))}
+        onChange={(newValue) => {
+            setSnippetPage(1);
+            setTagsQuery(newValue.map(d => d.value));
+        }}
+        placeholder="Filter by tag"
+        styles={{
+            control: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                provided["background-color"] = "transparent";
+                provided["border-color"] = "#E4E4E7";
+                return provided;
+            },
+            indicatorsContainer: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                return provided;
+            },
+            valueContainer: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                return provided;
+            },
+        }}
+        isMulti
+    />
+);
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
     const [session, loading] = useSession();
     const [isSnippet, setIsSnippet] = useState<boolean>(false);
-    const [isResource, setIsResource] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [iteration, setIteration] = useState<number>(0);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
@@ -57,13 +126,15 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [snippetSearchQuery, setSnippetSearchQuery] = useState<string>("");
     const [tagsQuery, setTagsQuery] = useState<string[]>([]);
     const [authorsQuery, setAuthorsQuery] = useState<string[]>([]);
+    const [itemPage, setItemPage] = useState<number>(1);
+    const [postPage, setPostPage] = useState<number>(1);
     const [snippetPage, setSnippetPage] = useState<number>(1);
     const [selectedSnippetIds, setSelectedSnippetIds] = useState<string[]>([]);
-    const [statsTab, setStatsTab] = useState<"posts" | "snippets" | "graph">("posts");
-    const [instance, setInstance] = useState<EasyMDE>(null);
-    const [tab, setTab] = useState<"home"|"posts"|"stats">("home");
+    const [tab, setTab] = useState<"home"|"snippets"|"posts"|"stats">("home");
     const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
     const [statsIter, setStatsIter] = useState<number>(0);
+    const [listView, setListView] = useState<boolean>(false);
+    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
 
     const [{
         _id: projectId,
@@ -78,54 +149,54 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
-    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true`, fetcher);
+    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}`);
+    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&page=${postPage}&iteration=${iteration}&search=${snippetSearchQuery}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
+
+    const itemsReady = items && items.items;
+    const postsReady = posts && posts.posts;
+    const snippetsReady = snippets && snippets.snippets;
+
+    const displayItems = {
+        home: itemsReady ? items.items : [],
+        posts: postsReady ? posts.posts : [],
+        snippets: snippetsReady ? snippets.snippets : [],
+    }[tab];
+
+    const displayReady = {
+        home: itemsReady,
+        posts: postsReady,
+        snippets: snippetsReady,
+    }[tab];
+
+    const displayLabel = {
+        home: "items",
+        posts: "posts",
+        snippets: "snippets",
+    }[tab];
+
+    const displayPage = {
+        home: itemPage,
+        posts: postPage,
+        snippets: snippetPage,
+    }[tab];
+
+    const displayCount = {
+        home: itemsReady ? items.count : 0,
+        posts: postsReady ? posts.count : 0,
+        snippets: snippetsReady ? snippets.count : 0,
+    }[tab];
 
     const statsReady = stats && stats.postDates && stats.snippetDates;
     const numPosts = statsReady ? stats.postDates.length : 0;
     const numSnippets = statsReady ? stats.snippetDates.length : 0;
     const numLinkedSnippets = statsReady ? stats.linkedSnippetsCount : 0;
     const percentLinked = numLinkedSnippets ? Math.round(numLinkedSnippets / numSnippets * 100) : 0;
-    const snippetDates = statsReady ? arrToDict(stats.snippetDates) : {};
-    const postDates = statsReady ? arrToDict(stats.postDates) : {};
-    const numGraphDays = 30;
 
     const [projectIsFeatured, setProjectIsFeatured] = useState<boolean>(session && session.featuredProjects.includes(projectId));
-
-    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
-        setIsLoading(true);
-
-        axios.post("/api/snippet", {
-            projectId: projectId,
-            urlName: urlName,
-            type: isSnippet ? "snippet" : "resource",
-            body: body || "",
-            url: url || "",
-            tags: tags || [],
-            isSlate: !!isSlate,
-        }).then(res => {
-            if (res.data.newTags.length) addNewTags(res.data.newTags);
-            instance && instance.clearAutosavedValue();
-            setStatsIter(statsIter + 1);
-            setIsLoading(false);
-            setIteration(iteration + 1);
-            setIsSnippet(false);
-            setIsResource(false);
-        }).catch(e => {
-            setIsLoading(false);
-            console.log(e);
-        });
-    }
-
-    function onCancelSnippetOrResource(urlName: string) {
-        setIsSnippet(false);
-        setIsResource(false);
-        instance && instance.clearAutosavedValue();
-        axios.post("/api/cancel-delete-images", {urlName: urlName}).catch(e => console.log(e));
-    }
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -183,389 +254,326 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         }).catch(e => console.log(e));
     }
 
-    return (
-        <div className="max-w-7xl mx-auto px-4 pb-16">
-            <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="lg:flex">
-                <div className="lg:w-2/3 lg:pr-8 lg:border-r">
-                    <BackToProjects/>
-                    <div className="flex items-center">
-                        <div>
-                            <h1 className="up-h1 mt-8 mb-2">{name}</h1>
-                            <p className="opacity-50">{description}</p>
-                        </div>
-                        <div className="ml-auto">
-                            <MoreMenu>
-                                <MoreMenuItem text="View as public" icon={<FiExternalLink/>} href={`/@${props.thisUser.username}/${urlName}`}/>
-                                {!isCollaborator && (
-                                    <>
-                                        <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
-                                        <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                                        <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
-                                    </>
-                                )}
-                                {projectIsFeatured ? (
-                                    <MoreMenuItem text="Don't display on profile" icon={<FiEyeOff/>} onClick={toggleProjectFeatured}/>
-                                ) : (
-                                    <MoreMenuItem text="Display on profile" icon={<FiEye/>} onClick={toggleProjectFeatured}/>
-                                )}
-                            </MoreMenu>
-                            <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                                <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
-                                <div className="flex mt-4">
-                                    <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
-                                        Delete
-                                    </SpinnerButton>
-                                    <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                                </div>
-                            </UpModal>
-                            <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
-                                <h3 className="up-ui-title">Add collaborator</h3>
-                                <p>Collaborators are able to view and add snippets and posts in your project.</p>
-                                <AsyncSelect
-                                    cacheOtions
-                                    loadOptions={(input, callback) => {
-                                        if (input) {
-                                            axios.get(`/api/search/user?email=${input}`).then(res => {
-                                                const filteredResults = res.data.results.filter(d => ![
-                                                    userId,
-                                                    ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
-                                                ].includes(d._id));
-                                                callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
-                                            }).catch(e => {
-                                                console.log(e);
-                                            });
-                                        } else {
-                                            callback([]);
-                                        }
-                                    }}
-                                    placeholder="Enter collaborator's email"
-                                    styles={{dropdownIndicator: () => ({display: "none"})}}
-                                    onChange={selected => setAddCollaboratorList(selected)}
-                                    isMulti
-                                    value={addCollaboratorList}
-                                    className="my-4 min-w-64"
-                                />
-                                <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
-                                    Add
-                                </SpinnerButton>
-                                <hr className="my-4"/>
-                                <h3 className="up-ui-title">Manage collaborators</h3>
-                                {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
-                                    collaboratorObjs.collaborators.map(collaborator => (
-                                        <div className="flex items-center my-4">
-                                            <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
-                                            <p>{collaborator.name} ({collaborator.email})</p>
-                                            <div className="ml-auto">
-                                                <MoreMenu>
-                                                    <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
-                                                </MoreMenu>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p>No collaborators found for this project.</p>
-                                ) : (
-                                    <div className="mt-4">
-                                        <Skeleton count={2}/>
-                                    </div>
-                                )}
-                            </UpModal>
-                        </div>
-                    </div>
-                    <div className={tab === "home" ? "" : "hidden lg:block"}>
+    useEffect(() => {
+        function onNewSnippetShortcut(e) {
+            e.preventDefault();
+            setIsSnippet(true);
+        };
 
-                        <div className="sm:flex items-center mt-6">
-                            <input
-                                type="text"
-                                className="border-b my-2 py-2 sm:mr-4 flex-grow w-full sm:w-auto"
-                                placeholder="Search"
-                                value={snippetSearchQuery}
-                                onChange={e => {
-                                    setSnippetPage(1);
-                                    setSnippetSearchQuery(e.target.value);
-                                }}
-                            />
-                            <Select
-                                className="flex-grow sm:mr-4 mt-4 sm:mt-0"
-                                options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-                                value={tagsQuery.map(d => ({label: d, value: d}))}
-                                onChange={(newValue) => {
-                                    setSnippetPage(1);
-                                    setTagsQuery(newValue.map(d => d.value));
-                                }}
-                                placeholder="Filter by tag"
-                                isMulti
-                            />
-                            <Select
-                                className="sm:w-32 mt-4 sm:mt-0"
-                                options={[
-                                    {value: "all", label: "All"},
-                                    {value: "true", label: <BiLink/>},
-                                    {value: "false", label: <BiUnlink/>},
-                                ]}
-                                value={{value: linkedQuery, label: {
-                                    "all": "All",
-                                    "true": <BiLink/>,
-                                    "false": <BiUnlink/>,
-                                }[linkedQuery]}}
-                                onChange={newValue => setLinkedQuery(newValue.value)}
-                            />
-                        </div>
-                        <hr className="my-8 lg:-mr-8 lg:pr-8"/>
-                        {!(isSnippet || isResource) ? (
-                            <div className="md:flex items-center mt-6">
-                                <button className="up-button primary small mr-4 mb-4 md:mb-0" onClick={() => setIsSnippet(true)}>
-                                    New snippet
-                                </button>
-                                <button className="up-button text small mb-4 md:mb-0" onClick={() => setIsResource(true)}>
-                                    <div className="flex items-center">
-                                        <FiLink/>
-                                        <span className="ml-4">Add resource</span>
-                                    </div>
-                                </button>
-                                <button
-                                    className="underline opacity-50 hover:opacity-100 transition ml-auto flex-shrink-0"
-                                    onClick={() => {
-                                        setOrderNew(!orderNew);
-                                        setSnippetPage(1);
-                                    }}
-                                >{orderNew ? "View oldest first" : "View newest first"}</button>
+        Mousetrap.bind("n", onNewSnippetShortcut);
+
+        return () => {
+            Mousetrap.unbind("n", onNewSnippetShortcut);
+        };
+    });
+
+    return (
+        <>
+            <UpSEO title={props.projectData.name} description={props.projectData.description}/>
+            <div className="w-full up-bg-gray-50 -mt-8 border-t up-border-gray-200">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="md:flex items-center">
+                        <div className="flex items-center w-full h-20">
+                            <div className="md:flex items-center">
+                                <h1 className="content font-bold mr-6">{props.projectData.name}</h1>
+                                <p className="up-gray-400">{ellipsize(props.projectData.description, 45)}</p>
                             </div>
-                        ) : (
-                            <div className="p-4 shadow-md rounded-md">
-                                <h3 className="up-ui-item-title mb-4">{isSnippet ? "New snippet" : "Add resource"}</h3>
-                                <SnippetEditor
-                                    isSnippet={isSnippet}
-                                    projectId={projectId}
-                                    availableTags={availableTags}
-                                    isLoading={isLoading}
-                                    onSaveEdit={onSubmit}
-                                    onCancelEdit={onCancelSnippetOrResource}
-                                    setInstance={setInstance}
-                                />
-                            </div>
-                        )}
-                        {selectedSnippets && !!selectedSnippets.snippets.length && (
-                            <div className="p-4 shadow-md my-8">
-                                <p className="up-ui-title">Selected ({selectedSnippetIds.length})</p>
-                                {selectedSnippets.snippets.map((snippet, i, a) => (
-                                    <div key={snippet._id}>
-                                        {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                            <p className="mt-12 pb-4 opacity-50">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                        )}
-                                        <SnippetItem
-                                            snippet={snippet}
-                                            authors={selectedSnippets.authors}
-                                            posts={selectedSnippets.posts}
-                                            projectData={props.projectData}
-                                            thisUser={props.thisUser}
-                                            iteration={iteration}
-                                            setIteration={setIteration}
-                                            availableTags={availableTags}
-                                            addNewTags={addNewTags}
-                                            setTagsQuery={setTagsQuery}
-                                            selectedSnippetIds={selectedSnippetIds}
-                                            setSelectedSnippetIds={setSelectedSnippetIds}
-                                            setStatsIter={setStatsIter}
-                                            statsIter={statsIter}
-                                        />
+                            <div className="ml-auto md:mr-4">
+                                <MoreMenu>
+                                    <MoreMenuItem text="View as public" icon={<FiExternalLink/>} href={`/@${props.thisUser.username}/${urlName}`}/>
+                                    {!isCollaborator && (
+                                        <>
+                                            <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/@${props.thisUser.username}/${urlName}/edit`}/>
+                                            <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                            <MoreMenuItem text="Add collaborators" icon={<FiUserPlus/>} onClick={() => setAddCollaboratorOpen(true)}/>
+                                        </>
+                                    )}
+                                    {projectIsFeatured ? (
+                                        <MoreMenuItem text="Don't display on profile" icon={<FiEyeOff/>} onClick={toggleProjectFeatured}/>
+                                    ) : (
+                                        <MoreMenuItem text="Display on profile" icon={<FiEye/>} onClick={toggleProjectFeatured}/>
+                                    )}
+                                </MoreMenu>
+                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                    <p>Are you sure you want to delete this project and all its snippets? This action cannot be undone.</p>
+                                    <div className="flex mt-4">
+                                        <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                            Delete
+                                        </SpinnerButton>
+                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
                                     </div>
-                                ))}
-                                <div className="flex items-center mt-4">
-                                    <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
-                                        <a className="up-button ml-auto mb-4 md:mb-0 small">
-                                            <div className="flex items-center">
-                                                <FiEdit/>
-                                                <span className="ml-4">New post from selected</span>
-                                            </div>
-                                        </a>
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
-                        <p className="mt-8 opacity-25">
-                            Snippets are only visible to project owners and collaborators.
-                        </p>
-                        {(snippets && snippets.snippets) ? snippets.snippets.length > 0 ? (
-                            <>
-                                <p className="opacity-50">
-                                    Showing snippets {(snippetPage - 1) * 10 + 1}
-                                    -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
-                                </p>
-                                {snippets.snippets.filter(d => !selectedSnippetIds.includes(d._id)).map((snippet, i, a) => (
-                                    <div key={snippet._id}>
-                                        {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                            <p className="up-ui-title mt-12 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                        )}
-                                        <SnippetItem
-                                            snippet={snippet}
-                                            authors={snippets.authors}
-                                            posts={snippets.posts}
-                                            projectData={props.projectData}
-                                            thisUser={props.thisUser}
-                                            iteration={iteration}
-                                            setIteration={setIteration}
-                                            availableTags={availableTags}
-                                            addNewTags={addNewTags}
-                                            setTagsQuery={setTagsQuery}
-                                            selectedSnippetIds={selectedSnippetIds}
-                                            setSelectedSnippetIds={setSelectedSnippetIds}
-                                            setStatsIter={setStatsIter}
-                                            statsIter={statsIter}
-                                        />
-                                    </div>
-                                ))}
-                                <p className="opacity-25">
-                                    Showing snippets {(snippetPage - 1) * 10 + 1}
-                                    -{(snippetPage < Math.floor(snippets.count / 10)) ? snippetPage * 10 : snippets.count} of {snippets.count}
-                                </p>
-                                {snippets.count > 10 && (
-                                    <div className="mt-4">
-                                        {Array.from({length: Math.ceil(snippets.count / 10)}, (x, i) => i + 1).map(d => (
-                                            <button
-                                                className={"py-2 px-4 rounded-md mr-2 " + (d === snippetPage ? "opacity-50 cursor-not-allowed bg-gray-100" : "")}
-                                                onClick={() => setSnippetPage(d)}
-                                                disabled={+d === +snippetPage}
-                                            >{d}</button>
-                                        ))}
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <p>{snippetSearchQuery ? "No snippets matching search query" : "No snippets in this project"}</p>
-                        ) : (
-                            <div className="mt-4">
-                                <Skeleton count={10}/>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="lg:w-1/3 lg:pl-8">
-                    <div className={tab === "stats" ? "" : "hidden lg:block"}>
-                        <hr className="my-8 lg:hidden"/>
-                        <h3 className="up-ui-title mb-8">Stats</h3>
-                        <div className="flex items-center">
-                            <button
-                                className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "posts" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                                onClick={() => setStatsTab("posts")}
-                            >
-                                <FiEdit/>
-                                <p className="ml-2">{numPosts} posts</p>
-                            </button>
-                            <button
-                                className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "snippets" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                                onClick={() => setStatsTab("snippets")}
-                            >
-                                <FiMessageSquare/>
-                                <p className="ml-2">{numSnippets} snippets</p>
-                            </button>
-                            <button
-                                className={`flex items-center mr-6 transition pb-2 border-b-2 ${statsTab === "graph" ? "font-bold border-black opacity-75" : "opacity-25 hover:opacity-75 border-transparent"}`}
-                                onClick={() => setStatsTab("graph")}
-                            >
-                                {percentLinked}% linked
-                            </button>
-                        </div>
-                        <div className="my-8">
-                            {(statsTab === "snippets" || statsTab === "posts") && (
-                                <>
-                                    {/*
-                                // @ts-ignore*/}
-                                    <GitHubCalendar
-                                        panelColors={[
-                                            "#eeeeee",
-                                            "#ccd4ff",
-                                            "#99a8ff",
-                                            "#667dff",
-                                            "#3351ff",
-                                            ...Array(50).fill("#0026ff"),
-                                        ]}
-                                        values={{snippets: snippetDates, posts: postDates}[statsTab]}
-                                        until={format(new Date(), "yyyy-MM-dd")}
+                                </UpModal>
+                                <UpModal isOpen={addCollaboratorOpen} setIsOpen={setAddCollaboratorOpen}>
+                                    <h3 className="up-ui-title">Add collaborator</h3>
+                                    <p>Collaborators are able to view and add snippets and posts in your project.</p>
+                                    <AsyncSelect
+                                        cacheOtions
+                                        loadOptions={(input, callback) => {
+                                            if (input) {
+                                                axios.get(`/api/search/user?email=${input}`).then(res => {
+                                                    const filteredResults = res.data.results.filter(d => ![
+                                                        userId,
+                                                        ...((collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.map(x => x._id.toString()) : [])
+                                                    ].includes(d._id));
+                                                    callback(filteredResults.map(user => ({label: user.name + ` (${user.email})`, value: user.email})))
+                                                }).catch(e => {
+                                                    console.log(e);
+                                                });
+                                            } else {
+                                                callback([]);
+                                            }
+                                        }}
+                                        placeholder="Enter collaborator's email"
+                                        styles={{dropdownIndicator: () => ({display: "none"})}}
+                                        onChange={selected => setAddCollaboratorList(selected)}
+                                        isMulti
+                                        value={addCollaboratorList}
+                                        className="my-4 min-w-64"
                                     />
-                                </>
-                            )}
-                            {statsTab === "graph" && (
-                                <ReactFrappeChart
-                                    type="line"
-                                    colors={["#ccd4ff", "#0026ff"]}
-                                    axisOptions={{ xAxisMode: "tick", yAxisMode: "tick", xIsSeries: 1 }}
-                                    lineOptions={{ regionFill: 1, hideDots: 1 }}
-                                    height={250}
-                                    animate={false}
-                                    data={{
-                                        labels: Array(numGraphDays).fill(0).map((d, i) => {
-                                            const currDate = new Date();
-                                            const thisDate = +currDate - (1000 * 24 * 3600) * (numGraphDays - 1 - i);
-                                            return format(new Date(thisDate), "M/d");
-                                        }),
-                                        datasets: [
-                                            {
-                                                name: "Snippets",
-                                                values: arrGraphGenerator(snippetDates, numGraphDays),
-                                            },
-                                            {
-                                                name: "Posts",
-                                                values: arrGraphGenerator(postDates, numGraphDays),
-                                            },
-                                        ],
-                                    }}
-                                />
-                            )}
+                                    <SpinnerButton isLoading={addCollaboratorLoading} onClick={onAddCollaborators} isDisabled={!addCollaboratorList || addCollaboratorList.length === 0}>
+                                        Add
+                                    </SpinnerButton>
+                                    <hr className="my-4"/>
+                                    <h3 className="up-ui-title">Manage collaborators</h3>
+                                    {(collaboratorObjs && collaboratorObjs.collaborators) ? collaboratorObjs.collaborators.length > 0 ? (
+                                        collaboratorObjs.collaborators.map(collaborator => (
+                                            <div className="flex items-center my-4">
+                                                <img src={collaborator.image} alt={collaborator.name} className="w-10 h-10 rounded-full mr-4"/>
+                                                <p>{collaborator.name} ({collaborator.email})</p>
+                                                <div className="ml-auto">
+                                                    <MoreMenu>
+                                                        <MoreMenuItem text="Remove" icon={<FiX/>} onClick={() => deleteCollaborator(collaborator._id)}/>
+                                                    </MoreMenu>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>No collaborators found for this project.</p>
+                                    ) : (
+                                        <div className="mt-4">
+                                            <Skeleton count={2}/>
+                                        </div>
+                                    )}
+                                </UpModal>
+                            </div>
                         </div>
-                    </div>
-                    <hr className="my-10 hidden lg:block"/>
-                    <div className={tab === "posts" ? "" : "hidden lg:block"}>
-                        <hr className="my-8 lg:hidden"/>
-                        <div className="flex items-center">
-                            <h3 className="up-ui-title">Posts ({(posts && posts.posts) ? posts.posts.length : "Loading..."})</h3>
+                        <div className="flex items-center flex-shrink-0 py-4 md:my-0">
+                            <button className="up-button primary small mr-4" onClick={() => setIsSnippet(true)}>
+                                <span>New snippet</span>
+                                <span className="font-normal hidden sm:inline"> (n)</span>
+                            </button>
                             <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}`}>
-                                <a className="up-button ml-auto mb-4 md:mb-0 small">
+                                <a className="up-button small">
                                     <div className="flex items-center">
                                         <FiEdit/>
                                         <span className="ml-4">New post</span>
                                     </div>
                                 </a>
                             </Link>
+                            <UpModal isOpen={isSnippet} setIsOpen={setIsSnippet} wide={true}>
+                                <NavbarQuickSnippetModal
+                                    setOpen={setIsSnippet}
+                                    initProjectId={projectId}
+                                    iteration={iteration}
+                                    setIteration={setIteration}
+                                />
+                            </UpModal>
                         </div>
-                        {(posts && posts.posts) ? posts.posts.length > 0 ? (
-                            <>
-                                {posts.posts.map(post => (
-                                    <Link href={`/@${post.authorArr[0].username}/p/${post.urlName}`}>
-                                        <a className="block my-8 opacity-25 hover:opacity-100 transition pt-6 border-t" key={post._id}>
-                                            <p className="">
-                                                {post.privacy !== "public" && (
-                                                    <span className="p-1 bg-gray-100 border rounded-md inline-block text-xs mb-2 mr-2">{post.privacy.charAt(0).toUpperCase() + post.privacy.substr(1)}</span>
-                                                )}
-                                                <span>{post.title}</span>
-                                            </p>
-                                            <div className="flex items-center mt-2">
-                                                {collaborators && !!collaborators.length && (
-                                                    <img src={post.authorArr[0].image} alt={`Profile picture`} className="w-6 h-6 rounded-full mr-3"/>
-                                                )}
-                                                <p className="opacity-50">{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
-                                            </div>
-                                        </a>
-                                    </Link>
-                                ))}
-                            </>
-                        ) : (
-                            <p className="my-4">No posts in this project</p>
-                        ) : (
-                            <div className="mt-4">
-                                <Skeleton count={4}/>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
-            <div className="w-full h-16 fixed bg-white bottom-0 left-0 border-t lg:hidden flex items-center z-20">
-                <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "home" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("home")}>Snippets</button>
-                <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "posts" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("posts")}>Posts</button>
-                <button className={`w-1/3 h-full font-bold border-b-2 ${tab === "stats" ? "border-black" : "border-transparent opacity-25"}`} onClick={() => setTab("stats")}>Stats</button>
+            {!!selectedSnippetIds.length && (
+                <div className="w-full up-bg-blue text-white">
+                    <div className="max-w-7xl mx-auto px-4 flex items-center h-12">
+                        <button className="up-button text small light mr-2" onClick={() => setSelectedSnippetIds([])}><FiX/></button>
+                        <button className="flex items-center" onClick={() => setSelectedSnippetsOpen(!selectedSnippetsOpen)}>
+                            <p className="mr-2">{selectedSnippetIds.length} snippet{selectedSnippetIds.length > 1 ? "s" : ""} selected</p>
+                            {selectedSnippetsOpen ? (
+                                <FiChevronUp/>
+                            ) : (
+                                <FiChevronDown/>
+                            )}
+                        </button>
+                        <div className="hidden sm:block ml-auto">
+                            <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                                <a className="up-button text small">
+                                    <div className="flex items-center h-full">
+                                        <FiEdit/>
+                                        <span className="ml-4">New post from selected</span>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-4">
+                        <Accordion openState={selectedSnippetsOpen} setOpenState={setSelectedSnippetsOpen}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                                {selectedSnippets && selectedSnippets.snippets && selectedSnippets.snippets.map(snippet => (
+                                    <SnippetItemCard
+                                        snippet={snippet}
+                                        setTagsQuery={setTagsQuery}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        statsIter={statsIter}
+                                        setStatsIter={setStatsIter}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                        showFullDate={true}
+                                    />
+                                ))}
+                            </div>
+                        </Accordion>
+                    </div>
+                    <div className="max-w-7xl h-12 mx-auto px-4 flex items-center sm:hidden">
+                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                            <a className="up-button text small ml-auto">
+                                <div className="flex items-center h-full">
+                                    <FiEdit/>
+                                    <span className="ml-4">New post from selected</span>
+                                </div>
+                            </a>
+                        </Link>
+                    </div>
+                </div>
+            )}
+            <div className={"w-full up-bg-gray-50 border-b up-border-gray-200 " + (selectedSnippetIds.length ? "pt-2" : "")}>
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="lg:flex items-center">
+                        <div className="hidden lg:flex items-center order-2 ml-auto">
+                            <TagControl
+                                large={false}
+                                setTagsQuery={setTagsQuery}
+                                tagsQuery={tagsQuery}
+                                availableTags={availableTags}
+                                setSnippetPage={setSnippetPage}
+                            />
+                            <SearchControl
+                                setSnippetPage={setSnippetPage}
+                                snippetSearchQuery={snippetSearchQuery}
+                                setSnippetSearchQuery={setSnippetSearchQuery}
+                            />
+                        </div>
+                        <div className="flex items-center h-12">
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("home")}>
+                                All
+                            </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
+                                Snippets ({numSnippets})
+                            </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
+                                Posts ({numPosts})
+                            </button>
+                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
+                                Stats ({percentLinked}%)
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+            <div className="max-w-7xl mx-auto px-4 pb-12">
+                {tab === "stats" ? (
+                    <ProjectStats projectId={projectId} statsIter={statsIter}/>
+                ) : (
+                    <>
+                        <FilterBanner
+                            searchQuery={snippetSearchQuery}
+                            setSearchQuery={setSnippetSearchQuery}
+                            tagsQuery={tagsQuery}
+                            setTagsQuery={setTagsQuery}
+                        />
+                        <div className="lg:hidden my-4">
+                            <SearchControl
+                                setSnippetPage={setSnippetPage}
+                                snippetSearchQuery={snippetSearchQuery}
+                                setSnippetSearchQuery={setSnippetSearchQuery}
+                            />
+                            <TagControl
+                                large={true}
+                                setTagsQuery={setTagsQuery}
+                                tagsQuery={tagsQuery}
+                                availableTags={availableTags}
+                                setSnippetPage={setSnippetPage}
+                            />
+                        </div>
+                        {displayReady ? displayItems.length > 0 ? (
+                            <>
+                                <div className="flex items-center my-4">
+                                    <button
+                                        className={"ml-auto up-button text small " + (!listView ? "selected" : "")}
+                                        onClick={() => setListView(false)}
+                                        // disabled={!listView}
+                                    >
+                                        <HiViewGrid/>
+                                    </button>
+                                    <button
+                                        className={"ml-2 up-button text small " + (listView ? "selected" : "")}
+                                        onClick={() => setListView(true)}
+                                        // disabled={listView}
+                                    >
+                                        <HiViewList/>
+                                    </button>
+                                </div>
+                                <div className={listView ? "-mt-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 -mt-12"}>
+                                    {displayItems.map((item, i, a) => (
+                                        <>
+                                            {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                                <p className="up-ui-title mt-12 pb-4 md:col-span-2 lg:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
+                                            )}
+                                            {listView ? (item.type ? (
+                                                    <SnippetItem
+                                                        snippet={item}
+                                                        iteration={iteration}
+                                                        setIteration={setIteration}
+                                                        availableTags={availableTags}
+                                                        addNewTags={addNewTags}
+                                                        setTagsQuery={setTagsQuery}
+                                                        selectedSnippetIds={selectedSnippetIds}
+                                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                                        setStatsIter={setStatsIter}
+                                                        statsIter={statsIter}
+                                                    />
+                                                ) : (
+                                                    <PublicPostItem post={item}/>
+                                                )
+                                            ) : (item.type ? (
+                                                    <SnippetItemCard
+                                                        snippet={item}
+                                                        setTagsQuery={setTagsQuery}
+                                                        iteration={iteration}
+                                                        setIteration={setIteration}
+                                                        statsIter={statsIter}
+                                                        setStatsIter={setStatsIter}
+                                                        availableTags={availableTags}
+                                                        addNewTags={addNewTags}
+                                                        selectedSnippetIds={selectedSnippetIds}
+                                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                                    />
+                                                ) : (
+                                                    <PostItemCard post={item}/>
+                                                )
+                                            )}
+                                        </>
+                                    ))}
+                                </div>
+                                <PaginationBar page={displayPage} count={displayCount} label={displayLabel} setPage={{
+                                    home: setItemPage,
+                                    posts: setPostPage,
+                                    snippets: setSnippetPage,
+                                }[tab]}/>
+                            </>
+                        ) : (
+                            <p className="up-gray-400 my-8">{snippetSearchQuery ? "No snippets matching search query" : "No snippets or posts in this project yet. Press New Snippet or New Post to add some."}</p>
+                        ) : (
+                            <div className="mt-4">
+                                <Skeleton count={10}/>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </>
     )
 }
 

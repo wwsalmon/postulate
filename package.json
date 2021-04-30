@@ -1,6 +1,6 @@
 {
   "name": "updately-pro",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -28,6 +28,7 @@
     "link-preview-js": "^2.1.6",
     "migrate-mongo": "^8.1.4",
     "mongoose": "^5.11.14",
+    "mousetrap": "^1.6.5",
     "multiparty": "^4.2.2",
     "next": "10.0.5",
     "next-auth": "^3.11.2",
