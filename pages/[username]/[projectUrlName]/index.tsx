@@ -19,15 +19,18 @@ import {FiArrowLeft} from "react-icons/fi";
 import ProjectStats from "../../../components/ProjectStats";
 import PaginationBar from "../../../components/PaginationBar";
 import PaginationBanner from "../../../components/PaginationBanner";
+import {SearchControl} from "../../projects/[projectId]";
+import FilterBanner from "../../../components/FilterBanner";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
     const [postPage, setPostPage] = useState<number>(1);
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}&search=${searchQuery}`, fetcher);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
@@ -67,19 +70,45 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
                             Stats
                         </button>
+                        <div className="ml-auto hidden md:block">
+                            <SearchControl
+                                snippetSearchQuery={searchQuery}
+                                setSnippetPage={setPostPage}
+                                setSnippetSearchQuery={setSearchQuery}
+                                breakpoint="md"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
             <div className="max-w-4xl mx-auto px-4">
                 {tab === "posts" ? postsReady ? filteredPosts.length > 0 ? (
                     <>
-                        <PaginationBanner page={postPage} label="posts" setPage={setPostPage} className="mb-12"/>
-                        {filteredPosts.map(post => (
-                            <PublicPostItem
-                                post={post}
-                                showAuthor
+                        <div className="mb-4 -mt-4">
+                            <FilterBanner
+                                searchQuery={searchQuery}
+                                setSearchQuery={setSearchQuery}
+                                tagsQuery={[]}
+                                setTagsQuery={() => null}
                             />
-                        ))}
+                        </div>
+                        <PaginationBanner page={postPage} label="posts" setPage={setPostPage} className="-mt-4 mb-12"/>
+                        <div className="-mt-8 mb-12 md:hidden">
+                            <SearchControl
+                                snippetSearchQuery={searchQuery}
+                                setSnippetPage={setPostPage}
+                                setSnippetSearchQuery={setSearchQuery}
+                                breakpoint="md"
+                            />
+                        </div>
+                        <div className="mt-16">
+                            {filteredPosts.map(post => (
+                                <PublicPostItem
+                                    post={post}
+                                    showAuthor
+                                />
+                            ))}
+                        </div>
                         <PaginationBar
                             page={postPage}
                             count={postsReady ? posts.count : 0}
@@ -87,6 +116,8 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             setPage={setPostPage}
                         />
                     </>
+                ) : searchQuery ? (
+                    <p>No posts matching search query.</p>
                 ) : (
                     <p>No public posts have been published in this project yet.</p>
                 ) : (

@@ -52,15 +52,17 @@ import Mousetrap from "mousetrap";
 import Accordion from "react-robust-accordion";
 import ProjectStats from "../../components/ProjectStats";
 import PaginationBar from "../../components/PaginationBar";
+import FilterBanner from "../../components/FilterBanner";
 
-const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSearchQuery}: {
+export const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSearchQuery, breakpoint = "lg"}: {
     snippetSearchQuery: string,
     setSnippetPage: Dispatch<SetStateAction<number>>,
-    setSnippetSearchQuery: Dispatch<SetStateAction<string>>
+    setSnippetSearchQuery: Dispatch<SetStateAction<string>>,
+    breakpoint?: "md" | "lg",
 }) => (
     <input
         type="text"
-        className="border up-border-gray-200 h-10 lg:h-8 md:ml-2 rounded-md lg:text-sm px-2 up-bg-gray-100 up-gray-500 w-full lg:w-auto mb-4 lg:mb-0"
+        className={`border up-border-gray-200 h-10 ${breakpoint}:h-8 ${breakpoint}:ml-2 rounded-md ${breakpoint}:text-sm px-2 up-bg-gray-100 up-gray-500 w-full ${breakpoint}:w-auto mb-4 ${breakpoint}:mb-0`}
         placeholder="Search in project"
         value={snippetSearchQuery}
         onChange={e => {
@@ -475,17 +477,12 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                     <ProjectStats projectId={projectId} statsIter={statsIter}/>
                 ) : (
                     <>
-                        {(snippetSearchQuery || (tagsQuery && !!tagsQuery.length)) && (
-                            <UpBanner className="my-4">
-                                <div className="flex items-center w-full">
-                                    <p>Showing matches {snippetSearchQuery && `for "${snippetSearchQuery}" `}{tagsQuery && !!tagsQuery.length && "tagged "}{tagsQuery.map(tag => "#" + tag + " ")}</p>
-                                    <button className="ml-auto up-button text small" onClick={() => {
-                                        setSnippetSearchQuery("");
-                                        setTagsQuery([]);
-                                    }}>Clear</button>
-                                </div>
-                            </UpBanner>
-                        )}
+                        <FilterBanner
+                            searchQuery={snippetSearchQuery}
+                            setSearchQuery={setSnippetSearchQuery}
+                            tagsQuery={tagsQuery}
+                            setTagsQuery={setTagsQuery}
+                        />
                         <div className="lg:hidden my-4">
                             <SearchControl
                                 setSnippetPage={setSnippetPage}
