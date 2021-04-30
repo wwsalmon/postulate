@@ -11,7 +11,7 @@ import {
     SnippetObjGraph,
     UserObj
 } from "../../utils/types";
-import React, {useEffect, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
 import axios from "axios";
@@ -52,6 +52,62 @@ import Mousetrap from "mousetrap";
 import Accordion from "react-robust-accordion";
 import ProjectStats from "../../components/ProjectStats";
 import PaginationBar from "../../components/PaginationBar";
+
+const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSearchQuery}: {
+    snippetSearchQuery: string,
+    setSnippetPage: Dispatch<SetStateAction<number>>,
+    setSnippetSearchQuery: Dispatch<SetStateAction<string>>
+}) => (
+    <input
+        type="text"
+        className="border up-border-gray-200 h-10 lg:h-8 md:ml-2 rounded-md lg:text-sm px-2 up-bg-gray-100 up-gray-500 w-full lg:w-auto mb-4 lg:mb-0"
+        placeholder="Search in project"
+        value={snippetSearchQuery}
+        onChange={e => {
+            setSnippetPage(1);
+            setSnippetSearchQuery(e.target.value);
+        }}
+    />
+);
+
+const TagControl = ({large, setSnippetPage, availableTags, tagsQuery, setTagsQuery}: {
+    large: boolean,
+    setSnippetPage: Dispatch<SetStateAction<number>>,
+    availableTags: string[],
+    tagsQuery: string[],
+    setTagsQuery: Dispatch<SetStateAction<string[]>>,
+}) => (
+    <Select
+        className="lg:text-sm up-gray-500 h-10 lg:h-8 lg:w-64 w-full"
+        options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
+        value={tagsQuery.map(d => ({label: d, value: d}))}
+        onChange={(newValue) => {
+            setSnippetPage(1);
+            setTagsQuery(newValue.map(d => d.value));
+        }}
+        placeholder="Filter by tag"
+        styles={{
+            control: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                provided["background-color"] = "transparent";
+                provided["border-color"] = "#E4E4E7";
+                return provided;
+            },
+            indicatorsContainer: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                return provided;
+            },
+            valueContainer: (provided) => {
+                provided["height"] = !large ? "2rem" : "2.5rem";
+                provided["min-height"] = 0;
+                return provided;
+            },
+        }}
+        isMulti
+    />
+);
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -208,52 +264,6 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             Mousetrap.unbind("n", onNewSnippetShortcut);
         };
     });
-
-    const SearchControl = () => (
-        <input
-            type="text"
-            className="border up-border-gray-200 h-10 lg:h-8 md:ml-2 rounded-md lg:text-sm px-2 up-bg-gray-100 up-gray-500 w-full lg:w-auto mb-4 lg:mb-0"
-            placeholder="Search in project"
-            value={snippetSearchQuery}
-            onChange={e => {
-                setSnippetPage(1);
-                setSnippetSearchQuery(e.target.value);
-            }}
-        />
-    );
-
-    const TagControl = ({large}: { large: boolean }) => (
-        <Select
-            className="lg:text-sm up-gray-500 h-10 lg:h-8 lg:w-64 w-full"
-            options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-            value={tagsQuery.map(d => ({label: d, value: d}))}
-            onChange={(newValue) => {
-                setSnippetPage(1);
-                setTagsQuery(newValue.map(d => d.value));
-            }}
-            placeholder="Filter by tag"
-            styles={{
-                control: (provided) => {
-                    provided["height"] = !large ? "2rem" : "2.5rem";
-                    provided["min-height"] = 0;
-                    provided["background-color"] = "transparent";
-                    provided["border-color"] = "#E4E4E7";
-                    return provided;
-                },
-                indicatorsContainer: (provided) => {
-                    provided["height"] = !large ? "2rem" : "2.5rem";
-                    provided["min-height"] = 0;
-                    return provided;
-                },
-                valueContainer: (provided) => {
-                    provided["height"] = !large ? "2rem" : "2.5rem";
-                    provided["min-height"] = 0;
-                    return provided;
-                },
-            }}
-            isMulti
-        />
-    );
 
     return (
         <>
@@ -430,8 +440,18 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="lg:flex items-center">
                         <div className="hidden lg:flex items-center order-2 ml-auto">
-                            <TagControl large={false}/>
-                            <SearchControl/>
+                            <TagControl
+                                large={false}
+                                setTagsQuery={setTagsQuery}
+                                tagsQuery={tagsQuery}
+                                availableTags={availableTags}
+                                setSnippetPage={setSnippetPage}
+                            />
+                            <SearchControl
+                                setSnippetPage={setSnippetPage}
+                                snippetSearchQuery={snippetSearchQuery}
+                                setSnippetSearchQuery={setSnippetSearchQuery}
+                            />
                         </div>
                         <div className="flex items-center h-12">
                             <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("home")}>
@@ -467,8 +487,18 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </UpBanner>
                         )}
                         <div className="lg:hidden my-4">
-                            <SearchControl/>
-                            <TagControl large={true}/>
+                            <SearchControl
+                                setSnippetPage={setSnippetPage}
+                                snippetSearchQuery={snippetSearchQuery}
+                                setSnippetSearchQuery={setSnippetSearchQuery}
+                            />
+                            <TagControl
+                                large={true}
+                                setTagsQuery={setTagsQuery}
+                                tagsQuery={tagsQuery}
+                                availableTags={availableTags}
+                                setSnippetPage={setSnippetPage}
+                            />
                         </div>
                         {displayReady ? displayItems.length > 0 ? (
                             <>
