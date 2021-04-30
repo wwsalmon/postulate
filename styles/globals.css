@@ -91,6 +91,10 @@ body, div.chart-container {
     background-color: #3F3F46;
 }
 
+.up-bg-blue {
+    background-color: #0026FF;
+}
+
 .hover\:up-bg-gray-50:hover {
     background-color: #FAFAFA;
 }
@@ -259,7 +263,7 @@ a.up-button.small:not(.primary):not(.text) {
 }
 
 .up-button.text:not(:disabled):hover{
-    @apply bg-gray-100;
+    background-color: rgba(0,0,0,0.05);
 }
 
 .up-spinner {

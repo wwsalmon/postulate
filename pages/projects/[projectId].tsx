@@ -19,6 +19,7 @@ import UpSEO from "../../components/up-seo";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
 import {
+    FiChevronDown, FiChevronUp,
     FiEdit,
     FiEdit2,
     FiExternalLink,
@@ -50,6 +51,7 @@ import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal
 import PublicPostItem from "../../components/public-post-item";
 import PostItemCard from "../../components/PostItemCard";
 import Mousetrap from "mousetrap";
+import Accordion from "react-robust-accordion";
 
 export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectObjWithGraph>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -76,6 +78,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [linkedQuery, setLinkedQuery] = useState<"true"|"false"|"all">("all");
     const [statsIter, setStatsIter] = useState<number>(0);
     const [listView, setListView] = useState<boolean>(false);
+    const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
 
     const [{
         _id: projectId,
@@ -92,7 +95,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}`);
     const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
-    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObj>[], authors: DatedObj<UserObj>[], count: number, posts: DatedObj<PostObj>[] }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
+    const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&iteration=${iteration}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
@@ -260,7 +263,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
-            <div className="w-full up-bg-gray-50 -mt-8 border-t border-b up-border-gray-200">
+            <div className="w-full up-bg-gray-50 -mt-8 border-t up-border-gray-200">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="md:flex items-center">
                         <div className="flex items-center w-full h-20">
@@ -370,6 +373,66 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             </UpModal>
                         </div>
                     </div>
+                </div>
+            </div>
+            {!!selectedSnippetIds.length && (
+                <div className="w-full up-bg-blue text-white">
+                    <div className="max-w-7xl mx-auto px-4 flex items-center h-12">
+                        <button className="up-button text small light mr-2" onClick={() => setSelectedSnippetIds([])}><FiX/></button>
+                        <button className="flex items-center" onClick={() => setSelectedSnippetsOpen(!selectedSnippetsOpen)}>
+                            <p className="mr-2">{selectedSnippetIds.length} snippet{selectedSnippetIds.length > 1 ? "s" : ""} selected</p>
+                            {selectedSnippetsOpen ? (
+                                <FiChevronUp/>
+                            ) : (
+                                <FiChevronDown/>
+                            )}
+                        </button>
+                        <div className="hidden sm:block ml-auto">
+                            <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                                <a className="up-button text small">
+                                    <div className="flex items-center h-full">
+                                        <FiEdit/>
+                                        <span className="ml-4">New post from selected</span>
+                                    </div>
+                                </a>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-4">
+                        <Accordion openState={selectedSnippetsOpen} setOpenState={setSelectedSnippetsOpen}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                                {selectedSnippets && selectedSnippets.snippets && selectedSnippets.snippets.map(snippet => (
+                                    <SnippetItemCard
+                                        snippet={snippet}
+                                        setTagsQuery={setTagsQuery}
+                                        iteration={iteration}
+                                        setIteration={setIteration}
+                                        statsIter={statsIter}
+                                        setStatsIter={setStatsIter}
+                                        availableTags={availableTags}
+                                        addNewTags={addNewTags}
+                                        selectedSnippetIds={selectedSnippetIds}
+                                        setSelectedSnippetIds={setSelectedSnippetIds}
+                                        showFullDate={true}
+                                    />
+                                ))}
+                            </div>
+                        </Accordion>
+                    </div>
+                    <div className="max-w-7xl h-12 mx-auto px-4 flex items-center sm:hidden">
+                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                            <a className="up-button text small ml-auto">
+                                <div className="flex items-center h-full">
+                                    <FiEdit/>
+                                    <span className="ml-4">New post from selected</span>
+                                </div>
+                            </a>
+                        </Link>
+                    </div>
+                </div>
+            )}
+            <div className={"w-full up-bg-gray-50 border-b up-border-gray-200 " + (selectedSnippetIds.length ? "pt-2" : "")}>
+                <div className="max-w-7xl mx-auto px-4">
                     <div className="md:flex items-center">
                         <div className="hidden md:flex items-center order-2 ml-auto">
                             <TagControl large={false}/>
@@ -427,7 +490,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             {displayItems.map((item, i, a) => (
                                 <>
                                     {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="up-ui-title mt-12 pb-4 col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
+                                        <p className="up-ui-title mt-12 pb-4 md:col-span-2 lg:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
                                     )}
                                     {listView ? (item.type ? (
                                             <SnippetItem
@@ -455,6 +518,8 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                                 setStatsIter={setStatsIter}
                                                 availableTags={availableTags}
                                                 addNewTags={addNewTags}
+                                                selectedSnippetIds={selectedSnippetIds}
+                                                setSelectedSnippetIds={setSelectedSnippetIds}
                                             />
                                         ) : (
                                             <PostItemCard post={item}/>
