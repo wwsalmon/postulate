@@ -20,7 +20,7 @@ import Link from "next/link";
 import {useSession} from "next-auth/client";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
-import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
+import {FiArrowLeft, FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
 import UpModal from "../../../components/up-modal";
 import SpinnerButton from "../../../components/spinner-button";
 import axios from "axios";
@@ -40,6 +40,7 @@ import CommentContainerItem from "../../../components/comment-container-item";
 import {NotifsContext} from "../../_app";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import Linkify from "react-linkify";
+import UpInlineButton from "../../../components/style/UpInlineButton";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -141,6 +142,16 @@ export default function PublicPost(props: {
                 <UpBanner className="mb-8">
                     <p>This is a <b>private</b> post. It can only be accessed by the project owner and collaborators.</p>
                 </UpBanner>
+            )}
+            {isOwner && (
+                <UpInlineButton href={`/projects/${projectId}`} className="my-8">
+                    <div className="flex items-center">
+                        <FiArrowLeft/>
+                        <span className="ml-4">
+                            Back to project
+                        </span>
+                    </div>
+                </UpInlineButton>
             )}
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>

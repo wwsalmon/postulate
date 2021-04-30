@@ -19,7 +19,7 @@ interface LinkProps extends BaseProps {
 type ButtonOrLinkProps = ButtonProps | LinkProps;
 
 export default function UpInlineButton({href, onClick, children, className}: ButtonOrLinkProps) {
-    const classNames = "block up-gray-500 font-medium hover:up-gray-700 hover:up-bg-gray-50 py-1 px-2 -mx-2 rounded-md transition " + (className || "");
+    const classNames = "inline-block up-gray-500 font-medium hover:up-gray-700 hover:up-bg-gray-50 py-1 px-2 -mx-2 rounded-md transition " + (className || "");
 
     return href ? (
         <Link href={href}>
