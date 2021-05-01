@@ -238,7 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .find(conditions)
                     .count();
 
-                return res.status(200).json({posts: graphObj, count: count});
+                return res.status(200).json({posts: graphObj, items: graphObj, count: count});
             } catch (e) {
                 return res.status(500).json({message: e});
             }

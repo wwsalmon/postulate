@@ -149,28 +149,18 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     }, setProjectData] = useState<DatedObj<ProjectObjWithGraph>>(props.projectData);
 
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
-    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>[]), count: number}, any> = useSWR(`/api/project/feed?projectId=${projectId}&page=${itemPage}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}`);
-    const {data: snippets, error: snippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectId}&iter=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&userIds=${encodeURIComponent(JSON.stringify(authorsQuery))}&page=${snippetPage}&sort=${orderNew ? "-1" : "1"}&linked=${linkedQuery}`, fetcher);
+    const {data: items, error: itemsError}: responseInterface<{items: (DatedObj<SnippetObjGraph> | DatedObj<PostObjGraph>)[], count: number}, any> = useSWR(`/api/${{
+        home: "project/feed",
+        posts: "post",
+        snippets: "snippet",
+    }[tab]}?projectId=${projectId}&page=${itemPage}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&private=true`);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&private=true&page=${postPage}&iteration=${iteration}&search=${snippetSearchQuery}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
 
-    const itemsReady = items && items.items;
-    const postsReady = posts && posts.posts;
-    const snippetsReady = snippets && snippets.snippets;
+    const displayReady = items && items.items;
 
-    const displayItems = {
-        home: itemsReady ? items.items : [],
-        posts: postsReady ? posts.posts : [],
-        snippets: snippetsReady ? snippets.snippets : [],
-    }[tab];
-
-    const displayReady = {
-        home: itemsReady,
-        posts: postsReady,
-        snippets: snippetsReady,
-    }[tab];
+    const displayItems = displayReady ? items.items : [];
 
     const displayLabel = {
         home: "items",
@@ -184,11 +174,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         snippets: snippetPage,
     }[tab];
 
-    const displayCount = {
-        home: itemsReady ? items.count : 0,
-        posts: postsReady ? posts.count : 0,
-        snippets: snippetsReady ? snippets.count : 0,
-    }[tab];
+    const displayCount = displayReady ? items.count : 0;
 
     const statsReady = stats && stats.postDates && stats.snippetDates;
     const numPosts = statsReady ? stats.postDates.length : 0;
@@ -521,7 +507,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                             {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                                 <p className="up-ui-title mt-12 pb-4 md:col-span-2 lg:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
                                             )}
-                                            {listView ? (item.type ? (
+                                            {listView ? (("type" in item) ? (
                                                     <SnippetItem
                                                         snippet={item}
                                                         iteration={iteration}
@@ -537,7 +523,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                                 ) : (
                                                     <PublicPostItem post={item}/>
                                                 )
-                                            ) : (item.type ? (
+                                            ) : (("type" in item) ? (
                                                     <SnippetItemCard
                                                         snippet={item}
                                                         setTagsQuery={setTagsQuery}

@@ -164,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .find(conditions)
                 .count();
 
-            res.status(200).json({snippets: snippets, count: count});
+            res.status(200).json({snippets: snippets, items: snippets, count: count});
 
             return;
         } catch (e) {

@@ -6,8 +6,11 @@ async function dbConnect() {
     // check if we have a connection to the database or if it's currently
     // connecting or disconnecting (readyState 1, 2 and 3)
     if (mongoose.connection.readyState >= 1) {
+        console.log("existing connection");
         return;
     }
+
+    console.log("new connection");
 
     return mongoose.connect(process.env.MONGODB_URL, {
         useNewUrlParser: true,
