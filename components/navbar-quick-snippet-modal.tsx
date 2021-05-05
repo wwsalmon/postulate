@@ -47,6 +47,11 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
             tags: tags || [],
             isSlate: isSlate,
         }).then(() => {
+            // @ts-ignore
+            window.analytics.track("Item created", {
+                type: "snippet",
+                projectId: projectId,
+            });
             setIsLoading(false);
             setIsSnippet(true);
             if (setIteration) setIteration(iteration + 1);

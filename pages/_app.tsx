@@ -12,7 +12,11 @@ import {createContext, useState} from "react";
 Router.events.on("routeChangeStart", (url) => {
     NProgress.start();
 });
-Router.events.on("routeChangeComplete", () => NProgress.done());
+Router.events.on("routeChangeComplete", (url) => {
+    // @ts-ignore window.analytics undefined below
+    window.analytics.page(url);
+    NProgress.done();
+});
 Router.events.on("routeChangeError", () => NProgress.done());
 
 export const NotifsContext = createContext(null);

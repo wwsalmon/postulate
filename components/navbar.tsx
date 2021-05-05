@@ -34,7 +34,15 @@ export default function Navbar() {
         return () => {
             Mousetrap.unbind("q", onNewSnippetShortcut);
         };
-    });
+    }, []);
+
+    useEffect(() => {
+        // @ts-ignore window.analytics undefined below
+        if (session) window.analytics.identify(session.userId, {
+            username: session.username,
+            email: session.user.email,
+        });
+    }, [loading]);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
