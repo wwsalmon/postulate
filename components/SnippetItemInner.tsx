@@ -139,7 +139,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             ) : (
                 <>
                     <div className="flex">
-                        <div className="w-full">
+                        <div className="w-full" style={{minWidth: 0}}>
                             {snippet.url && (
                                 <SnippetItemLinkPreview snippet={snippet}/>
                             )}
