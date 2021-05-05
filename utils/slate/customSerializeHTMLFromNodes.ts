@@ -203,7 +203,7 @@ export const customSerializeHTMLFromNodes = (
                 return encodeURIComponent(`<pre><code>${node.children.map(line => {
                         if ("text" in line) return escapeHTML(line.text) + "\n";
                         if ("children" in line) return escapeHTML(line.children[0].text) + "\n";
-                    })}</code></pre>                    
+                    }).join("")}</code></pre>                    
                 `);
             }
 
