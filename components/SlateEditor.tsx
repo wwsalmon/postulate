@@ -8,19 +8,20 @@ import draggableComponents from "../utils/slate/slateDraggables";
 import SlateBalloon from "./SlateBalloon";
 import SlatePlaceholder from "./SlatePlaceholder";
 
-export default function SlateEditor({body, setBody, projectId, urlName, isPost}: {
+export default function SlateEditor({body, setBody, projectId, urlName, isPost, id}: {
     body: Node[],
     setBody: Dispatch<SetStateAction<Node[]>>,
     projectId: string,
     urlName: string,
     isPost: boolean,
+    id: string,
 }) {
     const pluginsMemo = useMemo(() => pluginsFactory(projectId, urlName, isPost), []);
 
     return (
         <DndProvider backend={HTML5Backend}>
             <SlatePlugins
-                id="testId"
+                id={id}
                 value={body}
                 onChange={newValue => setBody(newValue)}
                 plugins={pluginsMemo}
