@@ -1,16 +1,8 @@
 import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
-import {arrGraphGenerator, arrToDict, cleanForJSON, fetcher} from "../../utils/utils";
+import {cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {
-    DatedObj,
-    PostObj,
-    PostObjGraph,
-    ProjectObjWithGraph,
-    SnippetObj,
-    SnippetObjGraph,
-    UserObj
-} from "../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObjWithGraph, SnippetObjGraph, UserObj} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
@@ -19,13 +11,13 @@ import UpSEO from "../../components/up-seo";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
 import {
-    FiChevronDown, FiChevronUp,
+    FiChevronDown,
+    FiChevronUp,
     FiEdit,
     FiEdit2,
     FiExternalLink,
     FiEye,
     FiEyeOff,
-    FiMessageSquare,
     FiTrash,
     FiUserPlus,
     FiX
@@ -40,10 +32,8 @@ import {format} from "date-fns";
 import SnippetItem from "../../components/snippet-item";
 import {UserModel} from "../../models/user";
 import dbConnect from "../../utils/dbConnect";
-import EasyMDE from "easymde";
 import ellipsize from "ellipsize";
 import SnippetItemCard from "../../components/SnippetItemCard";
-import UpBanner from "../../components/UpBanner";
 import {HiViewGrid, HiViewList} from "react-icons/hi";
 import NavbarQuickSnippetModal from "../../components/navbar-quick-snippet-modal";
 import PublicPostItem from "../../components/public-post-item";
@@ -153,7 +143,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         home: "project/feed",
         posts: "post",
         snippets: "snippet",
-    }[tab]}?projectId=${projectId}&page=${itemPage}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&private=true`);
+    }[tab]}?projectId=${projectId}&page=${{home: itemPage, posts: postPage, snippets: snippetPage}[tab]}&iteration=${iteration}&search=${snippetSearchQuery}&tags=${encodeURIComponent(JSON.stringify(tagsQuery))}&private=true`);
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
@@ -246,10 +236,25 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             setIsSnippet(true);
         };
 
+        function onNewPostShortcut(e) {
+            if (selectedSnippetIds.length) {
+                e.preventDefault();
+                router.push(`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`);
+            }
+        }
+
+        function onToggleViewShortcut(e) {
+            setListView(!listView);
+        }
+
         Mousetrap.bind("n", onNewSnippetShortcut);
+        Mousetrap.bind("p", onNewPostShortcut);
+        Mousetrap.bind("v", onToggleViewShortcut);
 
         return () => {
             Mousetrap.unbind("n", onNewSnippetShortcut);
+            Mousetrap.unbind("p", onNewPostShortcut);
+            Mousetrap.unbind("v", onToggleViewShortcut);
         };
     });
 
@@ -386,6 +391,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     <div className="flex items-center h-full">
                                         <FiEdit/>
                                         <span className="ml-4">New post from selected</span>
+                                        <span className="font-normal ml-1">(p)</span>
                                     </div>
                                 </a>
                             </Link>
@@ -442,16 +448,32 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             />
                         </div>
                         <div className="flex items-center h-12">
-                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("home")}>
+                            <button
+                                className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "home" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`}
+                                style={{top: 1}}
+                                onClick={() => setTab("home")}
+                            >
                                 All
                             </button>
-                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("snippets")}>
+                            <button
+                                className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "snippets" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`}
+                                style={{top: 1}}
+                                onClick={() => setTab("snippets")}
+                            >
                                 Snippets ({numSnippets})
                             </button>
-                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
+                            <button
+                                className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`}
+                                style={{top: 1}}
+                                onClick={() => setTab("posts")}
+                            >
                                 Posts ({numPosts})
                             </button>
-                            <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("stats")}>
+                            <button
+                                className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "stats" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`}
+                                style={{top: 1}}
+                                onClick={() => setTab("stats")}
+                            >
                                 Stats ({percentLinked}%)
                             </button>
                         </div>

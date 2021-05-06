@@ -30,6 +30,11 @@ export default function NewProject() {
                 setIsLoading(false);
                 console.log(res.data.error);
             } else {
+                // @ts-ignore
+                window.analytics.track("Item created", {
+                    type: "project",
+                    projectId: res.data.id,
+                });
                 router.push(`/projects/${res.data.id}`);
             }
         }).catch(e => {

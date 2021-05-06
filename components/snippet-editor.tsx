@@ -85,6 +85,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                         projectId={snippet ? snippet.projectId : projectId}
                         urlName={urlName}
                         isPost={false}
+                        id="snippetEditor"
                     />
                 ) : (
                     <MDEditor

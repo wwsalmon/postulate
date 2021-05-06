@@ -1,5 +1,5 @@
 import {DatedObj, SnippetObjGraph} from "../utils/types";
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import axios from "axios";
 import {Node} from "slate";
 import {useSession} from "next-auth/client";
@@ -12,9 +12,8 @@ import UpModal from "./up-modal";
 import SpinnerButton from "./spinner-button";
 import ProjectBrowser from "./project-browser";
 import Link from "next/link";
-import useSWR from "swr";
-import {fetcher} from "../utils/utils";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
+import Mousetrap from "mousetrap";
 
 export default function SnippetItemInner({snippet, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, isList, setTagsQuery, setOpen}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -93,12 +92,33 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             console.log(e);
         });
     }
+    
+    useEffect(() => {
+        function onEditShortcut(e) {
+            e.preventDefault();
+            setIsEdit(true);
+        }
+
+        function onMoveShortcut(e) {
+            e.preventDefault();
+            setIsMove(true);
+        }
+
+        Mousetrap.bind("e", onEditShortcut);
+
+        Mousetrap.bind("m", onMoveShortcut);
+
+        return () => {
+            Mousetrap.unbind("e", onEditShortcut);
+            Mousetrap.unbind("m", onMoveShortcut);
+        };          
+    }, []);
 
     const ThisMoreMenu = () => (
         <div className="ml-auto">
             <MoreMenu>
-                <MoreMenuItem text="Edit" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
-                <MoreMenuItem text="Move" icon={<FiArrowRightCircle/>} onClick={() => setIsMove(true)}/>
+                <MoreMenuItem text="Edit (e)" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
+                <MoreMenuItem text="Move (m)" icon={<FiArrowRightCircle/>} onClick={() => setIsMove(true)}/>
                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
             </MoreMenu>
             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
@@ -139,7 +159,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             ) : (
                 <>
                     <div className="flex">
-                        <div className="w-full">
+                        <div className="w-full" style={{minWidth: 0}}>
                             {snippet.url && (
                                 <SnippetItemLinkPreview snippet={snippet}/>
                             )}

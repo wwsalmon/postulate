@@ -13,11 +13,15 @@ import {NotifsContext} from "../pages/_app";
 import UpModal from "./up-modal";
 import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
 import Mousetrap from "mousetrap";
+import { useToasts } from "react-toast-notifications";
+import NavbarSwitcher from "./NavbarSwitcher";
 
 export default function Navbar() {
     const [session, loading] = useSession();
+    const {addToast} = useToasts();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
     const [quickSnippetOpen, setQuickSnippetOpen] = useState<boolean>(false);
+    const [switcherOpen, setSwitcherOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
 
     const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
@@ -29,12 +33,28 @@ export default function Navbar() {
             setQuickSnippetOpen(true);
         };
 
+        function onSwitcherShortcut(e) {
+            e.preventDefault();
+            setSwitcherOpen(true);
+        }
+
         Mousetrap.bind("q", onNewSnippetShortcut);
+
+        Mousetrap.bind("g", onSwitcherShortcut);
 
         return () => {
             Mousetrap.unbind("q", onNewSnippetShortcut);
+            Mousetrap.unbind("g", onSwitcherShortcut);
         };
-    });
+    }, []);
+
+    useEffect(() => {
+        // @ts-ignore window.analytics undefined below
+        if (session) window.analytics.identify(session.userId, {
+            username: session.username,
+            email: session.user.email,
+        });
+    }, [loading]);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
@@ -67,7 +87,17 @@ export default function Navbar() {
                                 <FiEdit2/>
                             </button>
                             <UpModal isOpen={quickSnippetOpen} setIsOpen={setQuickSnippetOpen} wide={true}>
-                                <NavbarQuickSnippetModal setOpen={setQuickSnippetOpen}/>
+                                <NavbarQuickSnippetModal
+                                    setOpen={setQuickSnippetOpen}
+                                    callback={() => addToast("Snippet successfully saved", {
+                                        appearance: "success",
+                                        autoDismiss: true,
+                                        autoDismissTimeout: 3000,
+                                    })}
+                                />
+                            </UpModal>
+                            <UpModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
+                                <NavbarSwitcher setOpen={setSwitcherOpen}/>
                             </UpModal>
                         </>
                     )}

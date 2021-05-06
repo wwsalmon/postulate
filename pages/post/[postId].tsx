@@ -60,6 +60,11 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             selectedSnippetIds: selectedSnippetIds,
             isSlate: !!isSlate,
         }).then(res => {
+            // @ts-ignore
+            window.analytics.track("Item created", {
+                type: "post",
+                projectId: projectId,
+            });
             instance && instance.clearAutosavedValue();
             router.push(res.data.url);
         }).catch(e => {

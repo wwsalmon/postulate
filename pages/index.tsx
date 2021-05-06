@@ -52,7 +52,7 @@ export default function Home() {
                     <code className="text-2xl md:text-4xl bg-gray-200 p-2 rounded-md font-bold">10x</code> your <b>learning and writing output</b> by <b>taking public notes</b>
                 </h1>
                 {/*<hr className="my-10 max-w-sm mx-auto"/>*/}
-                <p className="max-w-xl mx-auto md:text-2xl text-xl leading-normal md:leading-normal">Postulate is a a notetaking platform that helps you <b>publish your ideas instead of forgetting them.</b></p>
+                <p className="max-w-xl mx-auto md:text-2xl text-xl leading-normal md:leading-normal">Postulate is a notetaking platform that helps you <b>publish your ideas instead of forgetting them.</b></p>
                 <img src="/sc1.jpg" alt="" className="max-w-xl mx-auto block shadow-xl my-10 w-full"/>
             </div>
             <div className="w-full up-primary" id="waitlist">

@@ -110,6 +110,7 @@ export default function NewPostEditor(props: {
                         projectId={projectId}
                         urlName={props.tempId}
                         isPost={true}
+                        id="postEditor"
                     />
                 ) : (
                     <MDEditor
