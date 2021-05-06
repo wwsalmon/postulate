@@ -8,6 +8,7 @@ import Footer from "../components/footer";
 import NProgress from "nprogress";
 import "../styles/nprogress.css";
 import {createContext, useState} from "react";
+import {ToastProvider} from "react-toast-notifications";
 
 Router.events.on("routeChangeStart", (url) => {
     NProgress.start();
@@ -29,7 +30,9 @@ export default function App({Component, pageProps}: AppProps) {
         <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
             <Provider session={pageProps.session}>
                 {router.route !== "/" && (
-                    <Navbar/>
+                    <ToastProvider>
+                        <Navbar/>
+                    </ToastProvider>
                 )}
                 <div id="app-root">
                     <Component {...pageProps} />

@@ -13,9 +13,11 @@ import {NotifsContext} from "../pages/_app";
 import UpModal from "./up-modal";
 import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
 import Mousetrap from "mousetrap";
+import { useToasts } from "react-toast-notifications";
 
 export default function Navbar() {
     const [session, loading] = useSession();
+    const {addToast} = useToasts();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
     const [quickSnippetOpen, setQuickSnippetOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
@@ -75,7 +77,14 @@ export default function Navbar() {
                                 <FiEdit2/>
                             </button>
                             <UpModal isOpen={quickSnippetOpen} setIsOpen={setQuickSnippetOpen} wide={true}>
-                                <NavbarQuickSnippetModal setOpen={setQuickSnippetOpen}/>
+                                <NavbarQuickSnippetModal
+                                    setOpen={setQuickSnippetOpen}
+                                    callback={() => addToast("Snippet successfully saved", {
+                                        appearance: "success",
+                                        autoDismiss: true,
+                                        autoDismissTimeout: 3000,
+                                    })}
+                                />
                             </UpModal>
                         </>
                     )}
