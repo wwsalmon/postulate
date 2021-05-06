@@ -31,7 +31,7 @@ export default function UserSearch() {
                     ))}
                 </>
             ) : (query && (
-                <p className="opacity-50">No results found</p>
+                <p className="up-gray-400">No results found</p>
             ))}
         </>
     );
