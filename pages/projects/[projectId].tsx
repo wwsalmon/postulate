@@ -236,10 +236,25 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             setIsSnippet(true);
         };
 
+        function onNewPostShortcut(e) {
+            if (selectedSnippetIds.length) {
+                e.preventDefault();
+                router.push(`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`);
+            }
+        }
+
+        function onToggleViewShortcut(e) {
+            setListView(!listView);
+        }
+
         Mousetrap.bind("n", onNewSnippetShortcut);
+        Mousetrap.bind("p", onNewPostShortcut);
+        Mousetrap.bind("v", onToggleViewShortcut);
 
         return () => {
             Mousetrap.unbind("n", onNewSnippetShortcut);
+            Mousetrap.unbind("p", onNewPostShortcut);
+            Mousetrap.unbind("v", onToggleViewShortcut);
         };
     });
 
@@ -376,6 +391,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                                     <div className="flex items-center h-full">
                                         <FiEdit/>
                                         <span className="ml-4">New post from selected</span>
+                                        <span className="font-normal ml-1">(p)</span>
                                     </div>
                                 </a>
                             </Link>
