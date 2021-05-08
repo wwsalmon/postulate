@@ -4,6 +4,8 @@ import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {SnippetModel} from "../../models/snippet";
 import {PostModel} from "../../models/post";
+import {differenceInWeeks} from "date-fns";
+import {getIsActive} from "../admin";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "GET") return res.status(405).json({message: "wrong method"});
@@ -51,17 +53,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
 
         const snippetTexts = await SnippetModel.aggregate([
-            {$project: {"body": 1}}
+            {$project: {"body": 1, "userId": 1}}
         ]);
 
         const postTexts = await PostModel.aggregate([
-            {$project: {"body": 1}}
+            {$project: {"body": 1, "userId": 1}}
         ]);
 
-        const snippetTextLength = snippetTexts.reduce((a, b) => a + (b.body ? b.body.split(" ").length : 0), 0);
-        const postTextLength = postTexts.reduce((a, b) => a + (b.body ? b.body.split(" ").length : 0), 0);
+        const getBodyLengths = (itemArr: {body: string}[]) => itemArr.reduce((a, b) => a + (b.body ? b.body.split(" ").length : 0), 0);
 
-        return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength});
+        const snippetTextLength = getBodyLengths(snippetTexts);
+        const postTextLength = getBodyLengths(postTexts);
+
+        const weeklyActiveUsers = users.filter(d => !!getIsActive(d, 7));
+        let weeksElasped = 0;
+        let wordsWritten = 0;
+        for (let user of weeklyActiveUsers) {
+            weeksElasped += differenceInWeeks(new Date(), new Date(user.createdAt));
+            const thisUserPosts = postTexts.filter(d => d.userId.toString() === user._id.toString());
+            const thisUserSnippets = snippetTexts.filter(d => d.userId.toString() === user._id.toString());
+            wordsWritten += getBodyLengths([...thisUserPosts, ...thisUserSnippets]);
+        }
+        const wordsPerWeek = wordsWritten / weeksElasped;
+
+        return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength, wordsPerWeek: wordsPerWeek});
     } catch (e) {
         return res.status(500).json({message: e});
     }
