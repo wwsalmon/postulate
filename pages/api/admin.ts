@@ -66,17 +66,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const postTextLength = getBodyLengths(postTexts);
 
         const weeklyActiveUsers = users.filter(d => !!getIsActive(d, 7));
-        let weeksElasped = 0;
+        let weeksElapsed = 0;
         let wordsWritten = 0;
+        let snippetsWritten = 0;
+        let postsWritten = 0;
         for (let user of weeklyActiveUsers) {
-            weeksElasped += differenceInWeeks(new Date(), new Date(user.createdAt));
+            weeksElapsed += differenceInWeeks(new Date(), new Date(user.createdAt));
             const thisUserPosts = postTexts.filter(d => d.userId.toString() === user._id.toString());
             const thisUserSnippets = snippetTexts.filter(d => d.userId.toString() === user._id.toString());
             wordsWritten += getBodyLengths([...thisUserPosts, ...thisUserSnippets]);
+            postsWritten += thisUserPosts.length;
+            snippetsWritten += thisUserSnippets.length;
         }
-        const wordsPerWeek = wordsWritten / weeksElasped;
+        const wordsPerWeek = wordsWritten / weeksElapsed;
+        const snippetsPerWeek = snippetsWritten / weeksElapsed;
+        const postsPerWeek = postsWritten / weeksElapsed;
 
-        return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength, wordsPerWeek: wordsPerWeek});
+        return res.status(200).json({data: users, wordCount: snippetTextLength + postTextLength, wordsPerWeek: wordsPerWeek, snippetsPerWeek: snippetsPerWeek, postsPerWeek: postsPerWeek});
     } catch (e) {
         return res.status(500).json({message: e});
     }
