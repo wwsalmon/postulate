@@ -1,0 +1,22 @@
+{
+  "icons": {
+    "48": "48.png",
+    "128": "128.png",
+    "256": "256.png"
+  },
+  "manifest_version": 2,
+  "permissions": [
+    "activeTab"
+  ],
+  "name": "Postulate: 10x your learning and writing output",
+  "version": "0.17.0",
+  "description": "Postulate is a notetaking platform that helps you publish your ideas instead of forgetting them.",
+  "browser_action" : {
+    "default_popup" : "popup.html",
+    "default_icon" : {
+      "48": "48.png",
+      "128": "128.png",
+      "256": "256.png"
+    }
+  }
+}

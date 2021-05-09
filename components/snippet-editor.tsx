@@ -10,10 +10,10 @@ import {Node} from "slate";
 import {slateInitValue} from "../utils/utils";
 import SlateEditor from "./SlateEditor";
 import getIsEmpty from "../utils/slate/getIsEmpty";
-import Mousetrap from "mousetrap";
 import isHotkey from "is-hotkey";
+import SlateEditorMoveToEnd from "./SlateEditorMoveToEnd";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObjGraph>,
     projectId?: string,
@@ -23,9 +23,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     onCancelEdit: (urlName: string) => void,
     setInstance?: Dispatch<SetStateAction<EasyMDE>>,
     disableSave?: boolean,
+    initBody?: Node[],
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
-    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : slateInitValue);
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
@@ -86,7 +87,9 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                         urlName={urlName}
                         isPost={false}
                         id="snippetEditor"
-                    />
+                    >
+                        <SlateEditorMoveToEnd initBody={initBody}/>
+                    </SlateEditor>
                 ) : (
                     <MDEditor
                         body={body}

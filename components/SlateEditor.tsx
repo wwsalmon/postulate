@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction, useMemo, useState} from "react";
+import React, {Dispatch, ReactNode, SetStateAction, useMemo} from "react";
 import {Node} from "slate";
 import {options, pluginsFactory} from "../utils/slate/slatePlugins";
 import {DndProvider} from "react-dnd";
@@ -8,13 +8,14 @@ import draggableComponents from "../utils/slate/slateDraggables";
 import SlateBalloon from "./SlateBalloon";
 import SlatePlaceholder from "./SlatePlaceholder";
 
-export default function SlateEditor({body, setBody, projectId, urlName, isPost, id}: {
+export default function SlateEditor({body, setBody, projectId, urlName, isPost, id, children}: {
     body: Node[],
     setBody: Dispatch<SetStateAction<Node[]>>,
     projectId: string,
     urlName: string,
     isPost: boolean,
     id: string,
+    children?: ReactNode,
 }) {
     const pluginsMemo = useMemo(() => pluginsFactory(projectId, urlName, isPost), []);
 
@@ -31,6 +32,7 @@ export default function SlateEditor({body, setBody, projectId, urlName, isPost, 
             >
                 <SlateBalloon/>
                 <SlatePlaceholder/>
+                {children}
             </SlatePlugins>
         </DndProvider>
     );
