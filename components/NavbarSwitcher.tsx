@@ -3,13 +3,17 @@ import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObjWithCounts} from "../utils/types";
 import {fetcher} from "../utils/utils";
 import Link from "next/link";
-import {useRouter} from "next/router";
+import Router, {useRouter} from "next/router";
 
 export default function NavbarSwitcher({setOpen}: { setOpen: Dispatch<SetStateAction<boolean>> }) {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const {data: projects, error: postsError}: responseInterface<{ projects: DatedObj<ProjectObjWithCounts>[], count: number }, any> = useSWR(`/api/project?search=${searchQuery}&page=1`, fetcher);
+
+    Router.events.on("routeChangeComplete", () => {
+        setOpen(false);
+    });
 
     return (
         <>

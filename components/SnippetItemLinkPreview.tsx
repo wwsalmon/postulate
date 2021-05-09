@@ -5,11 +5,29 @@ import useSWR from "swr";
 import {fetcher} from "../utils/utils";
 import ellipsize from "ellipsize";
 
-export default function SnippetItemLinkPreview({snippet, small}: {snippet: DatedObj<SnippetObjGraph>, small?: boolean}) {
-    const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${snippet.url}`, snippet.url ? fetcher : () => null);
+interface SnippetItemLinkPreviewBaseProps {
+    small?: boolean,
+}
+
+interface SnippetItemLinkPreviewSnippetProps extends SnippetItemLinkPreviewBaseProps {
+    snippet: DatedObj<SnippetObjGraph>,
+    url?: never,
+}
+
+interface SnippetItemLinkPreviewUrlProps extends SnippetItemLinkPreviewBaseProps {
+    snippet?: never,
+    url: string,
+}
+
+type SnippetItemLinkPreviewProps = SnippetItemLinkPreviewSnippetProps | SnippetItemLinkPreviewUrlProps;
+
+export default function SnippetItemLinkPreview({snippet, url, small}: SnippetItemLinkPreviewProps) {
+    const thisUrl = url || (snippet && snippet.url);
+    
+    const {data: linkPreview, error: linkPreviewError} = useSWR(`/api/link-preview?url=${thisUrl}`, (thisUrl) ? fetcher : () => null);
 
     return (
-        <Link href={snippet.url}>
+        <Link href={thisUrl}>
             <a className={small ? "flex mb-2" : "p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition w-full"}>
                 <div>
                     <p className="opacity-50 break-all">{ellipsize(snippet.url, 50)}</p>
