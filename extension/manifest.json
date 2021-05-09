@@ -6,7 +6,8 @@
   },
   "manifest_version": 2,
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "contextMenus"
   ],
   "name": "Postulate: 10x your learning and writing output",
   "version": "0.17.0",
@@ -20,13 +21,17 @@
     }
   },
   "commands": {
-    "_execute_browser_action": {
+    "keyboard_save": {
       "suggested_key": {
         "windows": "Alt+P",
         "mac": "Alt+P",
         "chromeos": "Alt+P",
         "linux": "Alt+P"
-      }
+      },
+      "description": "Save page or selection as Postulate snippet"
     }
+  },
+  "background": {
+    "scripts": ["background.js"]
   }
 }

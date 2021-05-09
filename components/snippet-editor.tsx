@@ -13,7 +13,7 @@ import getIsEmpty from "../utils/slate/getIsEmpty";
 import isHotkey from "is-hotkey";
 import SlateEditorMoveToEnd from "./SlateEditorMoveToEnd";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody, startNode}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObjGraph>,
     projectId?: string,
@@ -24,6 +24,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     setInstance?: Dispatch<SetStateAction<EasyMDE>>,
     disableSave?: boolean,
     initBody?: Node[],
+    startNode?: number,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
     const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
@@ -88,7 +89,9 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                         isPost={false}
                         id="snippetEditor"
                     >
-                        <SlateEditorMoveToEnd initBody={initBody}/>
+                        {startNode !== undefined && initBody !== undefined && (
+                            <SlateEditorMoveToEnd initBody={initBody} startNode={startNode}/>
+                        )}
                     </SlateEditor>
                 ) : (
                     <MDEditor

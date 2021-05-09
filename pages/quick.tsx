@@ -8,14 +8,14 @@ import {FiCheckCircle} from "react-icons/fi";
 export default function QuickSnippetPage() {
     const router = useRouter();
     const url = router.query.url;
+    const text = router.query.text;
     const isExtension = router.query.isExtension;
     const [saved, setSaved] = useState<boolean>(false);
 
-    const initBody = url ? (
-        [{"type":"p","children":[{"type":"a","url":url,"children":[{"text":url}],"id":1}],"id":0},{"type":"p","children":[{"text": ""}],"id":2}]
-    ) : (
-        [{"type":"p","children":[{"text": ""}],"id":0}]
-    );
+    let initBody = [];
+    if (url) initBody.push({"type":"p","children":[{"type":"a","url":url,"children":[{"text":url}],"id":1}],"id":0});
+    if (text) initBody.push({"type":"blockquote","children":[{"text":text}],"id":2})
+    initBody.push({"type":"p","children":[{"text": ""}],"id":3});
 
     useEffect(() => {
         if (saved) {
@@ -41,6 +41,7 @@ export default function QuickSnippetPage() {
                         setOpen={() => null}
                         /* @ts-ignore */
                         initBody={initBody}
+                        startNode={+ +!!url + +!!text}
                         callback={() => isExtension ? setSaved(true) : router.push("/projects")}
                     />
                 </>
