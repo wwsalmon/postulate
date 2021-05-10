@@ -2,19 +2,26 @@ import React from 'react';
 import {GetServerSideProps} from "next";
 import {getSession} from "next-auth/client";
 import UpSEO from "../components/up-seo";
-import useSWR from "swr";
+import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import {formatDistanceToNow} from "date-fns";
 import Link from "next/link";
+import {DatedObj, UserObj} from "../utils/types";
+
+export interface AdminPortalUserObj extends DatedObj<UserObj> {
+    postsArr: {_id: string, createdAt: string}[],
+    projects: {_id: string, createdAt: string}[],
+    snippetsArr: {_id: string, createdAt: string}[],
+}
+
+export function getIsActive(tester: AdminPortalUserObj, days: number) {
+    const posts = tester.postsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
+    const snippets = tester.snippetsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
+    return (posts || snippets);
+}
 
 export default function AdminPortal() {
-    const {data, error} = useSWR("/api/admin", fetcher);
-
-    function getIsActive(tester: any, days: number) {
-        const posts = tester.postsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
-        const snippets = tester.snippetsArr.filter(d => (+new Date() - +new Date(d.createdAt)) < days * 24 * 3600 * 1000).length;
-        return (posts || snippets);
-    }
+    const {data, error}: responseInterface<{data: AdminPortalUserObj[], wordCount: number, wordsPerWeek: number, snippetsPerWeek: number, postsPerWeek: number}, any> = useSWR("/api/admin", fetcher);
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
@@ -25,6 +32,9 @@ export default function AdminPortal() {
             <p><b>Active in last 48 hours:</b> {data && data.data && data.data.filter(d => getIsActive(d, 2)).length}</p>
             <p><b>Active in last week:</b> {data && data.data && data.data.filter(d => getIsActive(d, 7)).length}</p>
             <p><b>Words written: </b> {data && data.wordCount}</p>
+            <p><b>Words written per week by users active in the last week: </b> {data && data.wordsPerWeek}</p>
+            <p><b>Snippets written per week by users active in the last week: </b> {data && data.snippetsPerWeek}</p>
+            <p><b>Posts written per week by users active in the last week: </b> {data && data.postsPerWeek}</p>
             <hr className="my-8"/>
             <div className="w-full overflow-x-auto">
                 <table className="whitespace-nowrap">

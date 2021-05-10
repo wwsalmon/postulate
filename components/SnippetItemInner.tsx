@@ -166,6 +166,17 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
                             <div className={`${isList ? "" : "content"} prose break-words`}>
                                 <SlateReadOnly nodes={snippet.slateBody}/>
                             </div>
+                            {!!snippet.linkArr.length && (
+                                <>
+                                    <hr className="mb-8 mt-4"/>
+                                    <p className="up-ui-title">Linked resources ({snippet.linkArr.length}):</p>
+                                    {snippet.linkArr.map(d => (
+                                        <div className="my-2">
+                                            <SnippetItemLinkPreview url={d.targetUrl}/>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </div>
                         {session && session.userId === snippet.userId && (
                             <ThisMoreMenu/>

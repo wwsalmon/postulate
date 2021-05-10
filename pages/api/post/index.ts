@@ -13,7 +13,8 @@ import dbConnect from "../../../utils/dbConnect";
 import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
 import {serialize} from "remark-slate";
-import {getCursorStages, postGraphStages} from "../../../utils/utils";
+import {findLinks, getCursorStages, postGraphStages} from "../../../utils/utils";
+import {LinkModel} from "../../../models/link";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -51,6 +52,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         if (newTags.length) await TagModel.insertMany(newTags.map(d => ({key: d})));
                     }
 
+                    // check links
+
+                    let linksToAdd = findLinks(req.body.body);
+
                     if (req.body.postId) {
                         const thisPost = await PostModel.findOne({ _id: req.body.postId });
                         if (!thisPost) return res.status(500).json({message: "No post exists for given ID"});
@@ -73,6 +78,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             const bodyString = JSON.stringify(req.body.body);
                             const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));
                             await deleteImages(unusedImages);
+                        }
+
+                        // find existing links
+                        const existingLinks = await LinkModel.find({nodeType: "post", nodeId: mongoose.Types.ObjectId(req.body.postId), targetType: "url"});
+                        // delete links no longer linked in snippet
+                        const linksToDelete = existingLinks.filter(d => !linksToAdd.includes(d.targetUrl)).map(d => d._id);
+                        if (linksToDelete.length) await LinkModel.deleteMany({_id: {$in: linksToDelete}});
+                        // update linksToAdd for new links
+                        linksToAdd = linksToAdd.filter(d => !existingLinks.some(x => x.targetUrl === d));
+                        if (linksToAdd.length) {
+                            // @ts-ignore TS wants _id for some reason
+                            await LinkModel.insertMany(linksToAdd.map(d => ({
+                                nodeType: "post",
+                                nodeId: req.body.postId,
+                                targetType: "url",
+                                targetUrl: d,
+                            })));
                         }
 
                         // update linked snippets
@@ -132,6 +154,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             });
                         }
 
+                        // create links
+                        if (linksToAdd.length) {
+                            // @ts-ignore TS wants _id for some reason
+                            await LinkModel.insertMany(linksToAdd.map(d => ({
+                                nodeType: "post",
+                                nodeId: newPostObj._id,
+                                targetType: "url",
+                                targetUrl: d,
+                            })));
+                        }
+
                         // update linked snippets
                         if (req.body.selectedSnippetIds && req.body.selectedSnippetIds.length) {
                             await SnippetModel.updateMany({ _id: { $in: req.body.selectedSnippetIds } }, {
@@ -160,6 +193,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     // `req.body.tempId` is the same as `urlName` when sent from an existing post
                     const attachedImages = await ImageModel.find({attachedUrlName: req.body.tempId});
                     await deleteImages(attachedImages);
+
+                    // delete links
+                    await LinkModel.deleteMany({nodeId: req.body.postId});
 
                     // update linked snippets
                     await SnippetModel.updateMany({ linkedPosts: req.body.postId }, {

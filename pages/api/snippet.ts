@@ -9,7 +9,8 @@ import dbConnect from "../../utils/dbConnect";
 import getIsEmpty from "../../utils/slate/getIsEmpty";
 import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
-import {getCursorStages, snippetGraphStages} from "../../utils/utils";
+import {findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
+import {LinkModel} from "../../models/link";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -63,6 +64,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     children: req.body.body,
                 }) : req.body.body;
 
+                let linksToAdd = findLinks(req.body.body);
+
+                if (req.body.id) {
+                    // find existing links
+                    const existingLinks = await LinkModel.find({nodeType: "snippet", nodeId: mongoose.Types.ObjectId(req.body.id), targetType: "url"});
+                    // delete links no longer linked in snippet
+                    const linksToDelete = existingLinks.filter(d => !linksToAdd.includes(d.targetUrl)).map(d => d._id);
+                    if (linksToDelete.length) await LinkModel.deleteMany({_id: {$in: linksToDelete}});
+                    // update linksToAdd for new links
+                    linksToAdd = linksToAdd.filter(d => !existingLinks.some(x => x.targetUrl === d));
+                }
+
                 // delete any images that have been removed
                 const attachedImages = await ImageModel.find({attachedUrlName: req.body.urlName});
 
@@ -78,6 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     thisProject.markModified("availableTags");
                     await thisProject.save();
                 }
+
+                let snippetId = req.body.id || "";
 
                 // if update, else new
                 if (req.body.id) {
@@ -102,7 +117,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         linkedPosts: [],
                     }
 
-                    await SnippetModel.create(newSnippet);
+                    const createdSnippet = await SnippetModel.create(newSnippet);
+
+                    snippetId = createdSnippet._id.toString();
+                }
+
+                if (linksToAdd.length) {
+                    // @ts-ignore TS wants _id for some reason
+                    await LinkModel.insertMany(linksToAdd.map(d => ({
+                        nodeType: "snippet",
+                        nodeId: snippetId,
+                        targetType: "url",
+                        targetUrl: d,
+                    })));
                 }
 
                 res.status(200).json({message: "Snippet successfully saved.", newTags: newTags});
@@ -117,6 +144,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const attachedImages = await ImageModel.find({ attachedUrlName: thisSnippet.urlName });
 
                 await deleteImages(attachedImages);
+
+                // delete attached links
+                await LinkModel.deleteMany({ nodeId: thisSnippet._id });
 
                 // delete snippet
                 await SnippetModel.deleteOne({ _id: req.body.id });
