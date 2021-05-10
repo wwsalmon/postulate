@@ -32,9 +32,10 @@ export default function AdminPortal() {
             <p><b>Active in last 48 hours:</b> {data && data.data && data.data.filter(d => getIsActive(d, 2)).length}</p>
             <p><b>Active in last week:</b> {data && data.data && data.data.filter(d => getIsActive(d, 7)).length}</p>
             <p><b>Words written: </b> {data && data.wordCount}</p>
-            <p><b>Words written per week by users active in the last week: </b> {data && data.wordsPerWeek}</p>
-            <p><b>Snippets written per week by users active in the last week: </b> {data && data.snippetsPerWeek}</p>
-            <p><b>Posts written per week by users active in the last week: </b> {data && data.postsPerWeek}</p>
+            <p><b>Words/week*: </b> {data && data.wordsPerWeek}</p>
+            <p><b>Snippets/week*: </b> {data && data.snippetsPerWeek}</p>
+            <p><b>Posts/week*: </b> {data && data.postsPerWeek}</p>
+            <p className="up-gray-400">* averaged across users who have been active in the last week, excluding Samson</p>
             <hr className="my-8"/>
             <div className="w-full overflow-x-auto">
                 <table className="whitespace-nowrap">

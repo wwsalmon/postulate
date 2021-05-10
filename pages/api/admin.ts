@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const snippetTextLength = getBodyLengths(snippetTexts);
         const postTextLength = getBodyLengths(postTexts);
 
-        const weeklyActiveUsers = users.filter(d => !!getIsActive(d, 7));
+        const weeklyActiveUsers = users.filter(d => d.username !== "samsonzhang" && !!getIsActive(d, 7));
         let weeksElapsed = 0;
         let wordsWritten = 0;
         let snippetsWritten = 0;
