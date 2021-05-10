@@ -1,0 +1,37 @@
+{
+  "icons": {
+    "48": "48.png",
+    "128": "128.png",
+    "256": "256.png"
+  },
+  "manifest_version": 2,
+  "permissions": [
+    "activeTab",
+    "contextMenus"
+  ],
+  "name": "Postulate Quicksave",
+  "version": "0.17.1",
+  "description": "Quickly save websites and quotes to Postulate, a notetaking platform that helps you publish your ideas instead of forgetting them.",
+  "browser_action" : {
+    "default_popup" : "popup.html",
+    "default_icon" : {
+      "48": "48.png",
+      "128": "128.png",
+      "256": "256.png"
+    }
+  },
+  "commands": {
+    "keyboard_save": {
+      "suggested_key": {
+        "windows": "Alt+P",
+        "mac": "Alt+P",
+        "chromeos": "Alt+P",
+        "linux": "Alt+P"
+      },
+      "description": "Save page or selection as Postulate snippet"
+    }
+  },
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
