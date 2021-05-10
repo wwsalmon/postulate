@@ -40,7 +40,7 @@ export default function SnippetItemLinkPreview({snippet, url, small}: SnippetIte
                         </div>
                     )}
                 </div>
-                {linkPreview && linkPreview.images && linkPreview.images.length && (
+                {linkPreview && linkPreview.images && !!linkPreview.images.length && (
                     <div className={`${small ? "w-16" : "w-24"} ml-auto pl-4 flex-shrink-0`}>
                         <img src={linkPreview.images[0]} className="w-full"/>
                     </div>

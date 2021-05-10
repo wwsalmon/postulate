@@ -285,7 +285,7 @@ export default function PublicPost(props: {
             {!!props.thisLinks.length && (
                 <>
                     <hr className="my-8"/>
-                    <h3 className="up-ui-title mb-8">Linked resources</h3>
+                    <h3 className="up-ui-title mb-8">Linked resources ({props.thisLinks.length})</h3>
                     {props.thisLinks.slice(0,3).map(d => (
                         <SnippetItemLinkPreview url={d.targetUrl}/>
                     ))}
@@ -296,12 +296,14 @@ export default function PublicPost(props: {
                                     <SnippetItemLinkPreview url={d.targetUrl}/>
                                 ))}
                             </Accordion>
-                            <UpButton text={true} onClick={() => setViewLinkedSnippetsOpen(!viewLinkedSnippetsOpen)}>
-                                <div className="flex items-center">
-                                    <span className="mr-2">{viewLinkedSnippetsOpen ? "Hide" : `Show ${props.thisLinks.length - 3} more`}</span>
-                                    {viewLinkedSnippetsOpen ? <FiChevronUp/> : <FiChevronDown/>}
-                                </div>
-                            </UpButton>
+                            <div className="flex">
+                                <UpButton text={true} onClick={() => setViewLinkedSnippetsOpen(!viewLinkedSnippetsOpen)} className="ml-auto">
+                                    <div className="flex items-center">
+                                        <span className="mr-2">{viewLinkedSnippetsOpen ? "Hide" : `Show ${props.thisLinks.length - 3} more`}</span>
+                                        {viewLinkedSnippetsOpen ? <FiChevronUp/> : <FiChevronDown/>}
+                                    </div>
+                                </UpButton>
+                            </div>
                         </>
                     )}
                 </>

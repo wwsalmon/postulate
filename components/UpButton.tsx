@@ -7,6 +7,7 @@ interface UpButtonPropsBase {
     primary?: boolean,
     text?: boolean,
     isExtension?: boolean,
+    className?: string,
 }
 
 interface UpButtonPropsLink extends UpButtonPropsBase {
@@ -21,8 +22,8 @@ interface UpButtonPropsButton extends UpButtonPropsBase {
 
 type UpButtonProps = UpButtonPropsLink | UpButtonPropsButton;
 
-export default function UpButton({children, isExtension, small, primary, text, href, onClick}: UpButtonProps) {
-    const classNames = `up-button ${small ? "small" : ""} ${primary ? "primary" : ""} ${text ? "text" : ""}`;
+export default function UpButton({children, isExtension, small, primary, text, href, onClick, className}: UpButtonProps) {
+    const classNames = `up-button ${small ? "small" : ""} ${primary ? "primary" : ""} ${text ? "text" : ""} ${className || ""}`;
 
     return href ? isExtension ? (
         <a href={href} className={classNames}>{children}</a>
