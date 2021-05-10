@@ -30,12 +30,12 @@ export default function SnippetItemLinkPreview({snippet, url, small}: SnippetIte
         <Link href={thisUrl}>
             <a className={small ? "flex mb-2" : "p-4 rounded-md shadow-md mb-8 flex opacity-50 hover:opacity-100 transition w-full"}>
                 <div>
-                    <p className="opacity-50 break-all">{ellipsize(snippet.url, 50)}</p>
+                    <p className="opacity-50 break-all">{ellipsize(thisUrl, 50)}</p>
                     {linkPreview && (
                         <div className="mt-2">
                             <p className={small ? "font-bold" : "up-ui-item-title"}>{linkPreview.title}</p>
                             {linkPreview.description && (
-                                <p>{linkPreview.description}</p>
+                                <p>{ellipsize(linkPreview.description, 140)}</p>
                             )}
                         </div>
                     )}

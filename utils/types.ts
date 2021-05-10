@@ -76,6 +76,7 @@ export interface SnippetObj {
 export interface SnippetObjGraph extends SnippetObj {
     linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
     authorArr: DatedObj<UserObj>[];
+    linkArr: DatedObj<LinkObj>[];
 }
 
 export interface PostObj {
@@ -92,6 +93,10 @@ export interface PostObj {
 export interface PostObjGraph extends PostObj {
     projectArr: IdObj<ProjectObjBasicWithOwner>[],
     authorArr: IdObj<UserObjBasic>[],
+}
+
+export interface PostWithAuthor extends PostObj {
+    author: DatedObj<UserObj>[],
 }
 
 export interface ImageObj {
@@ -119,13 +124,6 @@ export interface CommentObj {
     body: string,
 }
 
-export interface NotificationObj {
-    userId: string,
-    type: "postReaction" | "postComment" | "postCommentReply",
-    targetId: string, // ID of relevant object, i.e. a reaction or comment
-    read: boolean,
-}
-
 export interface CommentWithAuthor extends CommentObj {
     author: {
         name: string,
@@ -134,14 +132,36 @@ export interface CommentWithAuthor extends CommentObj {
     }[],
 }
 
-export interface PostWithAuthor extends PostObj {
-    author: DatedObj<UserObj>[],
+export interface NotificationObj {
+    userId: string,
+    type: "postReaction" | "postComment" | "postCommentReply",
+    targetId: string, // ID of relevant object, i.e. a reaction or comment
+    read: boolean,
 }
 
 export interface NotificationWithAuthorAndTarget extends NotificationObj {
     comment: (DatedObj<CommentObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
     reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
 }
+
+interface LinkObjBase {
+    nodeType: "post" | "snippet",
+    nodeId: string,
+}
+
+interface LinkObjTargetUrl extends LinkObjBase {
+    targetType: "url",
+    targetUrl: string,
+    targetId?: never,
+}
+
+interface LinkObjTargetItem extends LinkObjBase {
+    targetType: "post" | "snippet",
+    targetId: string,
+    targetUrl?: never,
+}
+
+export type LinkObj = LinkObjTargetUrl | LinkObjTargetItem;
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
