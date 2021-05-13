@@ -38,6 +38,10 @@ export interface ProjectObj {
     availableTags: string[],
 }
 
+export interface ProjectObjWithOwner extends ProjectObj {
+    ownerArr: DatedObj<UserObj>[],
+}
+
 export interface ProjectObjBasic {
     urlName: string,
     userId: string, // ID
@@ -162,6 +166,16 @@ interface LinkObjTargetItem extends LinkObjBase {
 }
 
 export type LinkObj = LinkObjTargetUrl | LinkObjTargetItem;
+
+export interface SubscriptionObj {
+    targetType: "project" | "user",
+    targetId: string,
+    email: string,
+}
+
+export interface SubscriptionObjGraph extends SubscriptionObj {
+    projectArr: DatedObj<ProjectObjWithOwner>[],
+}
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
