@@ -19,74 +19,22 @@ import PaginationBar from "../../../components/PaginationBar";
 import PaginationBanner from "../../../components/PaginationBanner";
 import {SearchControl} from "../../projects/[projectId]";
 import FilterBanner from "../../../components/FilterBanner";
-import UpButton from "../../../components/UpButton";
-import UpModal from "../../../components/up-modal";
-import SpinnerButton from "../../../components/spinner-button";
-import axios from "axios";
+import SubscriptionButton from "../../../components/SubscriptionButton";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [subscribeOpen, setSubscribeOpen] = useState<boolean>(false);
-    const [subscribeLoading, setSubscribeLoading] = useState<boolean>(false);
-    const [unsubscribeOpen, setUnsubscribeOpen] = useState<boolean>(false);
-    const [unsubscribeLoading, setUnsubscribeLoading] = useState<boolean>(false);
-    const [subscribeIter, setSubscribeIter] = useState<number>(0);
-    const [email, setEmail] = useState<string>("");
-    const [unauthedSubscribeLoading, setUnauthedSubscribeLoading] = useState<boolean>(false);
-    const [subscribeDone, setSubscribeDone] = useState<boolean>(false);
-    const [subscribeNew, setSubscribeNew] = useState<boolean>(false);
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}&search=${searchQuery}`, fetcher);
-    const {data: subscribed, error: subscribedError}: responseInterface<{subscribed: boolean}, any> = useSWR(`/api/subscription?authed=true&projectId=${projectId}&iter=${subscribeIter}`, session ? fetcher : () => null);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
-
-    function onAuthedSubscribe() {
-        setSubscribeLoading(true);
-
-        axios.post(`/api/subscription?authed=true&projectId=${projectId}`).then(() => {
-            setSubscribeIter(subscribeIter + 1);
-            setSubscribeLoading(false);
-        }).catch(e => {
-            console.log(e);
-            setSubscribeLoading(false);
-        });
-    }
-
-    function onAuthedUnsubscribe() {
-        setUnsubscribeLoading(true);
-
-        axios.delete(`/api/subscription?authed=true&projectId=${projectId}`).then(() => {
-            setSubscribeIter(subscribeIter + 1);
-            setUnsubscribeLoading(false);
-            setUnsubscribeOpen(false);
-        }).catch(e => {
-            console.log(e);
-            setUnsubscribeLoading(false);
-        });
-    }
-
-    function onUnauthedSubscribe() {
-        setUnauthedSubscribeLoading(true);
-
-        axios.post(`/api/subscription?email=${email}&projectId=${projectId}`).then(res => {
-            if (!res.data.exists) setSubscribeNew(true);
-            setSubscribeDone(true);
-            setEmail("");
-            setUnauthedSubscribeLoading(false);
-        }).catch(e => {
-            console.log(e);
-            setUnauthedSubscribeLoading(false);
-        });
-    }
 
     return (
         <>
@@ -119,78 +67,9 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         </div>
                         {!isOwner && (
                             <div className="md:ml-auto mt-4 md:mt-0">
-                                {session ? (subscribed && subscribed.subscribed) ? (
-                                    <UpButton text={true} onClick={() => setUnsubscribeOpen(true)}>
-                                        Unsubscribe
-                                    </UpButton>
-                                ) : (
-                                    <SpinnerButton onClick={onAuthedSubscribe} isLoading={subscribeLoading} className="small">
-                                        Subscribe
-                                    </SpinnerButton>
-                                ) : (
-                                    <UpButton primary={true} onClick={() => setSubscribeOpen(true)}>
-                                        Subscribe
-                                    </UpButton>
-                                )}
+                                <SubscriptionButton projectId={projectId}/>
                             </div>
                         )}
-                        <UpModal isOpen={subscribeOpen} setIsOpen={setSubscribeOpen}>
-                            {subscribeDone ? subscribeNew ? (
-                                <>
-                                    <p>Check your email for a link to confirm your subscription.</p>
-                                    <UpButton className="mt-8 text" onClick={() => {
-                                        setSubscribeOpen(false);
-                                        setSubscribeDone(false);
-                                        setSubscribeNew(false);
-                                        setEmail("");
-                                    }}>Okay</UpButton>
-                                </>
-                            ) : (
-                                <>
-                                    <p>This email is already subscribed to this project.</p>
-                                    <UpButton className="mt-8 text" onClick={() => {
-                                        setSubscribeOpen(false);
-                                        setSubscribeDone(false);
-                                        setSubscribeNew(false);
-                                        setEmail("");
-                                    }}>Okay</UpButton>
-                                </>
-                            ) : (
-                                <>
-                                    <p>Subscribe to this project to get notified via email when a new post is published.</p>
-                                    <input
-                                        type="text"
-                                        className="border p-2 mt-4 w-full rounded-md"
-                                        placeholder="Enter your email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                    />
-                                    <div className="flex mt-8">
-                                        <SpinnerButton
-                                            onClick={onUnauthedSubscribe}
-                                            isLoading={unauthedSubscribeLoading}
-                                            isDisabled={!email}
-                                        >
-                                            Subscribe
-                                        </SpinnerButton>
-                                        <UpButton text={true} className="ml-2" onClick={() => setSubscribeOpen(false)}>
-                                            Cancel
-                                        </UpButton>
-                                    </div>
-                                </>
-                            )}
-                        </UpModal>
-                        <UpModal isOpen={unsubscribeOpen} setIsOpen={setUnsubscribeOpen}>
-                            <p>Are you sure you want to unsubscribe from this project?</p>
-                            <div className="flex mt-8">
-                                <SpinnerButton onClick={onAuthedUnsubscribe} isLoading={unsubscribeLoading}>
-                                    Unsubscribe
-                                </SpinnerButton>
-                                <UpButton text={true} className="ml-2" onClick={() => setUnsubscribeOpen(false)}>
-                                    Cancel
-                                </UpButton>
-                            </div>
-                        </UpModal>
                     </div>
                     <div className="flex items-center h-12 mt-8">
                         <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
