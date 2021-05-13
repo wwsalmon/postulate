@@ -2,7 +2,14 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../models/project";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {getSession, useSession} from "next-auth/client";
-import {DatedObj, PostObjGraph, ProjectObjWithGraph, SnippetObjGraph, UserObj} from "../../utils/types";
+import {
+    DatedObj,
+    PostObjGraph,
+    ProjectObjWithGraph,
+    SnippetObjGraph,
+    SubscriptionObjGraph,
+    UserObj
+} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR, {responseInterface} from "swr";
@@ -147,6 +154,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const {data: selectedSnippets, error: selectedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?ids=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`, fetcher);
     const {data: collaboratorObjs, error: collaboratorObjsError}: responseInterface<{collaborators: DatedObj<UserObj>[] }, any> = useSWR(`/api/project/collaborator?projectId=${projectId}&iter=${collaboratorIteration}`, fetcher);
     const {data: stats, error: statsError}: responseInterface<{ postDates: {createdAt: string}[], snippetDates: {createdAt: string}[], linkedSnippetsCount: number }, any> = useSWR(`/api/project/stats?projectId=${projectId}&iter=${statsIter}`);
+    const {data: subscriptions, error: subscriptionsError}: responseInterface<{ subscriptions: DatedObj<SubscriptionObjGraph>[] }, any> = useSWR(`/api/subscription?projectId=${projectId}&stats=true`);
 
     const displayReady = items && items.items;
 
@@ -482,7 +490,14 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
             </div>
             <div className="max-w-7xl mx-auto px-4 pb-12">
                 {tab === "stats" ? (
-                    <ProjectStats projectId={projectId} statsIter={statsIter}/>
+                    <>
+                        <ProjectStats projectId={projectId} statsIter={statsIter}/>
+                        <hr className="my-8"/>
+                        <h3 className="up-ui-title mb-4">Subscribers ({subscriptions && subscriptions.subscriptions && subscriptions.subscriptions.length})</h3>
+                        {subscriptions && subscriptions.subscriptions && subscriptions.subscriptions.map(subscription => (
+                            <p>{subscription.email}</p>
+                        ))}
+                    </>
                 ) : (
                     <>
                         <FilterBanner

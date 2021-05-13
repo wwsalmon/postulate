@@ -7,6 +7,24 @@ import axios from "axios";
 import {ProjectModel} from "../../models/project";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method === "GET" && req.query.projectId && !Array.isArray(req.query.projectId) && req.query.stats) {
+        const session = await getSession({req});
+
+        try {
+            await dbConnect();
+
+            const thisProject = await ProjectModel.findById(req.query.projectId);
+            if (!thisProject) return res.status(404);
+            if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "unauthed"});
+
+            const subscriptions = await SubscriptionModel.find({targetId: req.query.projectId});
+
+            return res.status(200).json({subscriptions: subscriptions});
+        } catch (e) {
+            return res.status(500).json({message: e});
+        }
+    }
+
     // if unauthed post request with "email" query param, send an email to the email with a link to subscribe
     if (req.method === "POST" && req.query.email && !Array.isArray(req.query.email) && req.query.projectId && !Array.isArray(req.query.projectId)) {
         try {
