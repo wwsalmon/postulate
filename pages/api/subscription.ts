@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 templateId: 11,
                 params: {
                     PROJECTNAME: thisProject.name,
-                    CONFIRMLINK: `http://localhost:3000/subscribe/${encodeURIComponent(emailHash)}/${req.query.projectId}`,
+                    CONFIRMLINK: `https://postulate.us/subscribe/${encodeURIComponent(emailHash)}/${req.query.projectId}`,
                 },
             }, {
                 headers: { "api-key": process.env.SENDINBLUE_API_KEY },
