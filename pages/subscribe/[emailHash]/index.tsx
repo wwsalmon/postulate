@@ -60,6 +60,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const decryptedEmail = AES.decrypt(context.query.emailHash, process.env.SUBSCRIBE_SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
+    // basic email validation
+    if (!decryptedEmail.match(/.+@.+/)) return {notFound: true};
+
     try {
         await dbConnect();
 

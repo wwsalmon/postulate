@@ -2,15 +2,13 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObj, PostObjGraph, ProjectObj, UserObj} from "../../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObj, UserObj} from "../../../utils/types";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
-import Link from "next/link";
 import "easymde/dist/easymde.min.css";
 import useSWR, {responseInterface} from "swr";
 import Skeleton from "react-loading-skeleton";
 import UpSEO from "../../../components/up-seo";
-import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
@@ -21,21 +19,56 @@ import PaginationBar from "../../../components/PaginationBar";
 import PaginationBanner from "../../../components/PaginationBanner";
 import {SearchControl} from "../../projects/[projectId]";
 import FilterBanner from "../../../components/FilterBanner";
+import UpButton from "../../../components/UpButton";
+import UpModal from "../../../components/up-modal";
+import SpinnerButton from "../../../components/spinner-button";
+import axios from "axios";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
     const [{_id: projectId, userId, name, description, urlName, createdAt, stars, collaborators, availableTags }, setProjectData] = useState<DatedObj<ProjectObj>>(props.projectData);
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [subscribeOpen, setSubscribeOpen] = useState<boolean>(false);
+    const [subscribeLoading, setSubscribeLoading] = useState<boolean>(false);
+    const [unsubscribeOpen, setUnsubscribeOpen] = useState<boolean>(false);
+    const [unsubscribeLoading, setUnsubscribeLoading] = useState<boolean>(false);
+    const [subscribeIter, setSubscribeIter] = useState<number>(0);
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectId}&page=${postPage}&search=${searchQuery}`, fetcher);
+    const {data: subscribed, error: subscribedError}: responseInterface<{subscribed: boolean}, any> = useSWR(`/api/subscription?authed=true&projectId=${projectId}&iter=${subscribeIter}`, session ? fetcher : () => null);
 
     const postsReady = posts && posts.posts;
     const filteredPosts = postsReady ? posts.posts.filter(post => post.privacy === "public") : [];
 
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
+
+    function onAuthedSubscribe() {
+        setSubscribeLoading(true);
+
+        axios.post(`/api/subscription?authed=true&projectId=${projectId}`).then(() => {
+            setSubscribeIter(subscribeIter + 1);
+            setSubscribeLoading(false);
+        }).catch(e => {
+            console.log(e);
+            setSubscribeLoading(false);
+        });
+    }
+
+    function onAuthedUnsubscribe() {
+        setUnsubscribeLoading(true);
+
+        axios.delete(`/api/subscription?authed=true&projectId=${projectId}`).then(() => {
+            setSubscribeIter(subscribeIter + 1);
+            setUnsubscribeLoading(false);
+            setUnsubscribeOpen(false);
+        }).catch(e => {
+            console.log(e);
+            setUnsubscribeLoading(false);
+        });
+    }
 
     return (
         <>
@@ -61,8 +94,43 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         </UpInlineButton>
                         <span className="ml-2 up-gray-300">/</span>
                     </div>
-                    <h1 className="up-h1 mt-6 mb-2">{name}</h1>
-                    <p className="content up-gray-400">{description}</p>
+                    <div className="md:flex items-center">
+                        <div>
+                            <h1 className="up-h1 mt-6 mb-2">{name}</h1>
+                            <p className="content up-gray-400">{description}</p>
+                        </div>
+                        {!isOwner && (
+                            <div className="md:ml-auto mt-4 md:mt-0">
+                                {session ? (subscribed && subscribed.subscribed) ? (
+                                    <UpButton text={true} onClick={() => setUnsubscribeOpen(true)}>
+                                        Unsubscribe
+                                    </UpButton>
+                                ) : (
+                                    <SpinnerButton onClick={onAuthedSubscribe} isLoading={subscribeLoading} className="small">
+                                        Subscribe
+                                    </SpinnerButton>
+                                ) : (
+                                    <UpButton primary={true} onClick={() => setSubscribeOpen(true)}>
+                                        Subscribe
+                                    </UpButton>
+                                )}
+                            </div>
+                        )}
+                        <UpModal isOpen={subscribeOpen} setIsOpen={setSubscribeOpen}>
+
+                        </UpModal>
+                        <UpModal isOpen={unsubscribeOpen} setIsOpen={setUnsubscribeOpen}>
+                            <p>Are you sure you want to unsubscribe from this project?</p>
+                            <div className="flex mt-4">
+                                <SpinnerButton onClick={onAuthedUnsubscribe} isLoading={unsubscribeLoading}>
+                                    Unsubscribe
+                                </SpinnerButton>
+                                <UpButton text={true} className="ml-2" onClick={() => setUnsubscribeOpen(false)}>
+                                    Cancel
+                                </UpButton>
+                            </div>
+                        </UpModal>
+                    </div>
                     <div className="flex items-center h-12 mt-8">
                         <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
                             Public posts ({posts ? filteredPosts.length : "Loading..."})

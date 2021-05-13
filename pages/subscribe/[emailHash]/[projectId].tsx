@@ -63,6 +63,9 @@ export default function SubscriptionProjectPage({email, emailHash, projectData, 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const decryptedEmail = AES.decrypt(context.query.emailHash, process.env.SUBSCRIBE_SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
+    // basic email validation
+    if (!decryptedEmail.match(/.+@.+/)) return {notFound: true};
+
     if (Array.isArray(context.query.projectId)) return {notFound: true};
 
     try {
