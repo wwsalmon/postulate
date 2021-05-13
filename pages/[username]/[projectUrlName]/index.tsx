@@ -34,6 +34,10 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
     const [unsubscribeOpen, setUnsubscribeOpen] = useState<boolean>(false);
     const [unsubscribeLoading, setUnsubscribeLoading] = useState<boolean>(false);
     const [subscribeIter, setSubscribeIter] = useState<number>(0);
+    const [email, setEmail] = useState<string>("");
+    const [unauthedSubscribeLoading, setUnauthedSubscribeLoading] = useState<boolean>(false);
+    const [subscribeDone, setSubscribeDone] = useState<boolean>(false);
+    const [subscribeNew, setSubscribeNew] = useState<boolean>(false);
 
     const isOwner = session && session.userId === userId;
     const isCollaborator = session && props.projectData.collaborators.includes(session.userId);
@@ -67,6 +71,20 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
         }).catch(e => {
             console.log(e);
             setUnsubscribeLoading(false);
+        });
+    }
+
+    function onUnauthedSubscribe() {
+        setUnauthedSubscribeLoading(true);
+
+        axios.post(`/api/subscription?email=${email}&projectId=${projectId}`).then(res => {
+            if (!res.data.exists) setSubscribeNew(true);
+            setSubscribeDone(true);
+            setEmail("");
+            setUnauthedSubscribeLoading(false);
+        }).catch(e => {
+            console.log(e);
+            setUnauthedSubscribeLoading(false);
         });
     }
 
@@ -117,11 +135,54 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                             </div>
                         )}
                         <UpModal isOpen={subscribeOpen} setIsOpen={setSubscribeOpen}>
-
+                            {subscribeDone ? subscribeNew ? (
+                                <>
+                                    <p>Check your email for a link to confirm your subscription.</p>
+                                    <UpButton className="mt-8 text" onClick={() => {
+                                        setSubscribeOpen(false);
+                                        setSubscribeDone(false);
+                                        setSubscribeNew(false);
+                                        setEmail("");
+                                    }}>Okay</UpButton>
+                                </>
+                            ) : (
+                                <>
+                                    <p>This email is already subscribed to this project.</p>
+                                    <UpButton className="mt-8 text" onClick={() => {
+                                        setSubscribeOpen(false);
+                                        setSubscribeDone(false);
+                                        setSubscribeNew(false);
+                                        setEmail("");
+                                    }}>Okay</UpButton>
+                                </>
+                            ) : (
+                                <>
+                                    <p>Subscribe to this project to get notified via email when a new post is published.</p>
+                                    <input
+                                        type="text"
+                                        className="border p-2 mt-4 w-full rounded-md"
+                                        placeholder="Enter your email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                    />
+                                    <div className="flex mt-8">
+                                        <SpinnerButton
+                                            onClick={onUnauthedSubscribe}
+                                            isLoading={unauthedSubscribeLoading}
+                                            isDisabled={!email}
+                                        >
+                                            Subscribe
+                                        </SpinnerButton>
+                                        <UpButton text={true} className="ml-2" onClick={() => setSubscribeOpen(false)}>
+                                            Cancel
+                                        </UpButton>
+                                    </div>
+                                </>
+                            )}
                         </UpModal>
                         <UpModal isOpen={unsubscribeOpen} setIsOpen={setUnsubscribeOpen}>
                             <p>Are you sure you want to unsubscribe from this project?</p>
-                            <div className="flex mt-4">
+                            <div className="flex mt-8">
                                 <SpinnerButton onClick={onAuthedUnsubscribe} isLoading={unsubscribeLoading}>
                                     Unsubscribe
                                 </SpinnerButton>

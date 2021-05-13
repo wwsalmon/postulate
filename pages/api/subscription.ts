@@ -3,8 +3,43 @@ import CryptoJS, {AES} from "crypto-js";
 import dbConnect from "../../utils/dbConnect";
 import {SubscriptionModel} from "../../models/subscription";
 import {getSession} from "next-auth/client";
+import axios from "axios";
+import {ProjectModel} from "../../models/project";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    // if unauthed post request with "email" query param, send an email to the email with a link to subscribe
+    if (req.method === "POST" && req.query.email && !Array.isArray(req.query.email) && req.query.projectId && !Array.isArray(req.query.projectId)) {
+        try {
+            await dbConnect();
+
+            const thisSub = await SubscriptionModel.findOne({email: req.query.email, targetId: req.query.projectId});
+
+            // if subscription already exists, return immediately
+            if (thisSub) return res.status(200).json({exists: true});
+
+            const thisProject = await ProjectModel.findById(req.query.projectId);
+
+            if (!thisProject) return res.status(404);
+
+            const emailHash = AES.encrypt(req.query.email, process.env.SUBSCRIBE_SECRET_KEY).toString();
+
+            await axios.post("https://api.sendinblue.com/v3/smtp/email", {
+                to: [{email: req.query.email}],
+                templateId: 11,
+                params: {
+                    PROJECTNAME: thisProject.name,
+                    CONFIRMLINK: `http://localhost:3000/subscribe/${encodeURIComponent(emailHash)}/${req.query.projectId}`,
+                },
+            }, {
+                headers: { "api-key": process.env.SENDINBLUE_API_KEY },
+            });
+
+            return res.status(200).json({exists: false});
+        } catch (e) {
+            return res.status(500).json({message: e});
+        }
+    }
+
     let decryptedEmail;
 
     if (req.query.authed) {
