@@ -2,15 +2,13 @@ import {GetServerSideProps} from "next";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObj, PostObjGraph, ProjectObj, UserObj} from "../../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObj, UserObj} from "../../../utils/types";
 import React, {useState} from "react";
 import {useSession} from "next-auth/client";
-import Link from "next/link";
 import "easymde/dist/easymde.min.css";
 import useSWR, {responseInterface} from "swr";
 import Skeleton from "react-loading-skeleton";
 import UpSEO from "../../../components/up-seo";
-import UpBanner from "../../../components/UpBanner";
 import PublicPostItem from "../../../components/public-post-item";
 import InlineCTA from "../../../components/inline-cta";
 import dbConnect from "../../../utils/dbConnect";
@@ -21,6 +19,7 @@ import PaginationBar from "../../../components/PaginationBar";
 import PaginationBanner from "../../../components/PaginationBanner";
 import {SearchControl} from "../../projects/[projectId]";
 import FilterBanner from "../../../components/FilterBanner";
+import SubscriptionButton from "../../../components/SubscriptionButton";
 
 export default function Project(props: {projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObj>}) {
     const [session, loading] = useSession();
@@ -61,8 +60,17 @@ export default function Project(props: {projectData: DatedObj<ProjectObj>, thisU
                         </UpInlineButton>
                         <span className="ml-2 up-gray-300">/</span>
                     </div>
-                    <h1 className="up-h1 mt-6 mb-2">{name}</h1>
-                    <p className="content up-gray-400">{description}</p>
+                    <div className="md:flex items-center">
+                        <div>
+                            <h1 className="up-h1 mt-6 mb-2">{name}</h1>
+                            <p className="content up-gray-400">{description}</p>
+                        </div>
+                        {!isOwner && (
+                            <div className="md:ml-auto mt-4 md:mt-0">
+                                <SubscriptionButton projectId={projectId}/>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex items-center h-12 mt-8">
                         <button className={`h-12 px-6 text-sm up-gray-400 relative ${tab === "posts" ? "bg-white font-bold up-gray-700 rounded-t-md border up-border-gray-200 border-b-0" : ""}`} style={{top: 1}} onClick={() => setTab("posts")}>
                             Public posts ({posts ? filteredPosts.length : "Loading..."})

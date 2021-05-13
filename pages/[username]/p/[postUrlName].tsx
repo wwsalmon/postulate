@@ -43,6 +43,7 @@ import Linkify from "react-linkify";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import SnippetItemLinkPreview from "../../../components/SnippetItemLinkPreview";
 import UpButton from "../../../components/UpButton";
+import SubscriptionButton from "../../../components/SubscriptionButton";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -278,13 +279,59 @@ export default function PublicPost(props: {
             </div>
             {!session && (
                 <>
-                    <hr className="my-8"/>
+                    <hr className="my-12"/>
                     <InlineCTA/>
                 </>
             )}
+            <hr className="my-12"/>
+            {!isOwner && (
+                <>
+                    <h3 className="up-ui-title">Subscribe to this project</h3>
+                    <p className="up-gray-400 mb-8">Subscribe to get an email whenever a new post is published in {props.projectData.name} by {props.thisOwner.name}</p>
+                    <SubscriptionButton projectId={props.projectData._id}/>
+                </>
+            )}
+            <hr className="my-12"/>
+            <h3 className="up-ui-title mb-8">Post author</h3>
+            <div className="flex items-center opacity-50 hover:opacity-100 transition">
+                <Link href={`/@${props.thisAuthor.username}`}>
+                    <a>
+                        <img src={props.thisAuthor.image} alt={`Profile picture of ${props.thisAuthor.name}`} className="w-12 h-12 rounded-full mr-4"/>
+                    </a>
+                </Link>
+                <div>
+                    <Link href={`/@${props.thisAuthor.username}`}>
+                        <a className="up-ui-title">{props.thisAuthor.name}</a>
+                    </Link>
+                    <p><Linkify>{props.thisAuthor.bio}</Linkify></p>
+                </div>
+            </div>
+            <hr className="my-12"/>
+            <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
+            {session ? (
+                <CommentItem
+                    authorId={session.userId}
+                    targetId={props.postData._id}
+                    parentCommentId={undefined}
+                    iteration={commentsIteration}
+                    setIteration={setCommentsIteration}
+                />
+            ) : (
+                <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
+            )}
+            {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
+                <div key={comment._id}>
+                    <CommentContainerItem
+                        iteration={commentsIteration}
+                        setIteration={setCommentsIteration}
+                        comment={comment}
+                        subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
+                    />
+                </div>
+            ))}
             {!!props.thisLinks.length && (
                 <>
-                    <hr className="my-8"/>
+                    <hr className="my-12"/>
                     <h3 className="up-ui-title mb-8">Linked resources ({props.thisLinks.length})</h3>
                     {props.thisLinks.slice(0,3).map(d => (
                         <SnippetItemLinkPreview url={d.targetUrl}/>
@@ -308,45 +355,7 @@ export default function PublicPost(props: {
                     )}
                 </>
             )}
-            <hr className="my-8"/>
-            <h3 className="up-ui-title mb-8">Post author</h3>
-            <div className="flex items-center opacity-50 hover:opacity-100 transition">
-                <Link href={`/@${props.thisAuthor.username}`}>
-                    <a>
-                        <img src={props.thisAuthor.image} alt={`Profile picture of ${props.thisAuthor.name}`} className="w-12 h-12 rounded-full mr-4"/>
-                    </a>
-                </Link>
-                <div>
-                    <Link href={`/@${props.thisAuthor.username}`}>
-                        <a className="up-ui-title">{props.thisAuthor.name}</a>
-                    </Link>
-                    <p><Linkify>{props.thisAuthor.bio}</Linkify></p>
-                </div>
-            </div>
-            <hr className="my-8"/>
-            <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
-            {session ? (
-                <CommentItem
-                    authorId={session.userId}
-                    targetId={props.postData._id}
-                    parentCommentId={undefined}
-                    iteration={commentsIteration}
-                    setIteration={setCommentsIteration}
-                />
-            ) : (
-                <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
-            )}
-            {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
-                <div key={comment._id}>
-                    <CommentContainerItem
-                        iteration={commentsIteration}
-                        setIteration={setCommentsIteration}
-                        comment={comment}
-                        subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
-                    />
-                </div>
-            ))}
-            <hr className="my-8"/>
+            <hr className="my-12"/>
             <h3 className="up-ui-title">
                 Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
                 <a className="underline">{projectName}</a></Link>
