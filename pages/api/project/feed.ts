@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await dbConnect();
 
         const project = await ProjectModel.findById(req.query.projectId);
-        if (project.userId.toString() !== session.userId) return res.status(403).json({message: "Unauthed"});
+        if (project.userId.toString() !== session.userId && !project.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "Unauthed"});
 
         let conditions = {projectId: mongoose.Types.ObjectId(req.query.projectId)};
         if (req.query.search) conditions["$text"] = {"$search": req.query.search};
