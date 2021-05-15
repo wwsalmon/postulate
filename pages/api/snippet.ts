@@ -9,7 +9,7 @@ import dbConnect from "../../utils/dbConnect";
 import getIsEmpty from "../../utils/slate/getIsEmpty";
 import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
-import {findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
+import {findImages, findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
 import {LinkModel} from "../../models/link";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -80,7 +80,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const attachedImages = await ImageModel.find({attachedUrlName: req.body.urlName});
 
                 if (attachedImages.length) {
-                    const unusedImages = attachedImages.filter(d => !req.body.body.includes(d.key));
+                    const usedImages = findImages(req.body.body);
+                    const unusedImages = attachedImages.filter(d => !usedImages.some(x => x.includes(d.key)));
                     await deleteImages(unusedImages);
                 }
 

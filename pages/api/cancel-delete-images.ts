@@ -5,6 +5,7 @@ import {deleteImages} from "../../utils/deleteImages";
 import {PostModel} from "../../models/post";
 import {SnippetModel} from "../../models/snippet";
 import dbConnect from "../../utils/dbConnect";
+import {findImages} from "../../utils/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405);
@@ -25,7 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!thisAttachment) return res.status(404).json({message: "No post or snippet found at given ID"});
 
             const attachedImages = await ImageModel.find({ attachedUrlName: thisAttachment.urlName });
-            const unusedImages = attachedImages.filter(d => !thisAttachment.body.includes(d.key));
+            const usedImages = findImages(thisAttachment.slateBody);
+            const unusedImages = attachedImages.filter(d => !usedImages.some(x => x.includes(d.key)));
             const deletedImages = await deleteImages(unusedImages);
             return res.status(200).json({message: `Deleted ${deletedImages ? deletedImages.n : 0} images`});
         }

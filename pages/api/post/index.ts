@@ -13,7 +13,7 @@ import dbConnect from "../../../utils/dbConnect";
 import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
 import {serialize} from "remark-slate";
-import {findLinks, getCursorStages, postGraphStages} from "../../../utils/utils";
+import {findImages, findLinks, getCursorStages, postGraphStages} from "../../../utils/utils";
 import {LinkModel} from "../../../models/link";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -72,11 +72,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
 
-                        console.log(thisPost.urlName, attachedImages);
-
                         if (attachedImages.length) {
-                            const bodyString = JSON.stringify(req.body.body);
-                            const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));
+                            const usedImages = findImages(req.body.body);
+                            const unusedImages = attachedImages.filter(d => !usedImages.some(x => x.includes(d.key)));
                             await deleteImages(unusedImages);
                         }
 
