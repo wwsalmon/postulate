@@ -15,6 +15,7 @@ export default function SlateReadOnly({nodes}: { nodes: Node[] }) {
                     nodes: nodes,
                 })
             }}
+            className="whitespace-pre-wrap"
         />
     )
 }

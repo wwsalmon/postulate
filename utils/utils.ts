@@ -199,3 +199,12 @@ export const findLinks = (nodes: any[]) => {
     }
     return links;
 }
+
+export const findImages = (nodes: any[]) => {
+    let images = [];
+    for (let node of nodes) {
+        if (node.type === "img") images.push(node.url);
+        if (node.children) images.push(...findImages(node.children));
+    }
+    return images;
+}

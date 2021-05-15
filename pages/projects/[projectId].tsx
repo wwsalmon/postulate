@@ -493,7 +493,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                     <>
                         <ProjectStats projectId={projectId} statsIter={statsIter}/>
                         <hr className="my-8"/>
-                        <h3 className="up-ui-title mb-4">Subscribers ({subscriptions && subscriptions.subscriptions && subscriptions.subscriptions.length})</h3>
+                        <h3 className="up-ui-title mb-4">Subscribers {subscriptions && subscriptions.subscriptions && `(${subscriptions.subscriptions.length})`}</h3>
                         {subscriptions && subscriptions.subscriptions && subscriptions.subscriptions.map(subscription => (
                             <p>{subscription.email}</p>
                         ))}

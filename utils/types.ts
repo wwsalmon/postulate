@@ -177,6 +177,12 @@ export interface SubscriptionObjGraph extends SubscriptionObj {
     projectArr: DatedObj<ProjectObjWithOwner>[],
 }
 
+export interface EmailObj {
+    recipients: string[],
+    targetId: string,
+}
+
+
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
     _id: string,
