@@ -9,7 +9,7 @@ export default function PostItemCard({post}: {post: DatedObj<PostObjGraph>}) {
     return (
         <div className="border up-border-gray-200 rounded-lg p-4 h-52 shadow-md hover:shadow-xl hover:up-border-gray-700 transition">
             <div className="h-32">
-                <p className="font-bold text-sm uppercase up-gray-400">Post ({post.privacy !== "public" && post.privacy})</p>
+                <p className="font-bold text-sm uppercase up-gray-400">Post {post.privacy !== "public" && `(${post.privacy})`}</p>
                 <Link href={`/@${post.authorArr[0].username}/p/${post.urlName}`}>
                     <a>
                         <h3 className="font-medium my-2 content">{ellipsize(post.title, 70)}</h3>
