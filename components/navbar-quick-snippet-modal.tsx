@@ -7,7 +7,7 @@ import Select from "react-select";
 import axios from "axios";
 import {Node} from "slate";
 
-export default function NavbarQuickSnippetModal({setOpen, initProjectId, iteration, setIteration, callback, initBody, startNode}: {
+export default function NavbarQuickSnippetModal({setOpen, initProjectId, iteration, setIteration, callback, initBody, startNode, isQuick}: {
     setOpen: Dispatch<SetStateAction<boolean>>,
     initProjectId?: string,
     iteration?: number,
@@ -15,6 +15,7 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
     callback?: () => void,
     initBody?: Node[],
     startNode?: number,
+    isQuick?: boolean,
 }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSnippet, setIsSnippet] = useState<boolean>(true);
@@ -55,6 +56,7 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
                 type: "snippet",
                 projectId: projectId,
             });
+            localStorage.removeItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody");
             callback && callback();
             setIsLoading(false);
             setIsSnippet(true);
@@ -112,6 +114,7 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
                 disableSave={projectId === "none"}
                 initBody={initBody}
                 startNode={startNode}
+                isQuick={!!isQuick}
             />
         </div>
     );

@@ -18,6 +18,7 @@ import UpSEO from "../../components/up-seo";
 import MoreMenu from "../../components/more-menu";
 import MoreMenuItem from "../../components/more-menu-item";
 import {
+    FiArrowRightCircle,
     FiChevronDown,
     FiChevronUp,
     FiEdit,
@@ -50,6 +51,7 @@ import Accordion from "react-robust-accordion";
 import ProjectStats from "../../components/ProjectStats";
 import PaginationBar from "../../components/PaginationBar";
 import FilterBanner from "../../components/FilterBanner";
+import ProjectBrowser from "../../components/project-browser";
 
 export const SearchControl = ({snippetSearchQuery, setSnippetPage, setSnippetSearchQuery, breakpoint = "lg"}: {
     snippetSearchQuery: string,
@@ -132,6 +134,9 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
     const [statsIter, setStatsIter] = useState<number>(0);
     const [listView, setListView] = useState<boolean>(false);
     const [selectedSnippetsOpen, setSelectedSnippetsOpen] = useState<boolean>(false);
+    const [isMove, setIsMove] = useState<boolean>(false);
+    const [isDeleteSnippetsOpen, setIsDeleteSnippetsOpen] = useState<boolean>(false);
+    const [isDeleteSnippetsLoading, setDeleteSnippetsIsLoading] = useState<boolean>(false);
 
     const [{
         _id: projectId,
@@ -238,6 +243,43 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         }).catch(e => console.log(e));
     }
 
+    function onDeleteSnippets() {
+        setDeleteSnippetsIsLoading(true);
+
+        axios.delete("/api/snippet", {
+            data: {
+                ids: selectedSnippetIds
+            }
+        }).then(() => {
+            setSelectedSnippetIds([]);
+            setIsDeleteSnippetsOpen(false);
+            setDeleteSnippetsIsLoading(false);
+            setIteration(iteration + 1);
+            setStatsIter(statsIter + 1);
+        }).catch(e => {
+            console.log(e);
+            setDeleteSnippetsIsLoading(false);
+        });
+    }
+
+    function onMoveSnippets(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>) {
+        setIsLoading(true);
+
+        axios.post("/api/snippet", {
+            ids: selectedSnippetIds,
+            projectId: selectedProjectId,
+        }).then(() => {
+            setIsLoading(false);
+            setSelectedSnippetIds([]);
+            setIsMove(false);
+            setIteration(iteration + 1);
+            setStatsIter(statsIter + 1);
+        }).catch(e => {
+            console.log(e);
+            setIsLoading(false);
+        })
+    }
+
     useEffect(() => {
         function onNewSnippetShortcut(e) {
             e.preventDefault();
@@ -266,6 +308,30 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
         };
     });
 
+    const SelectedBarOptions = () => (
+        <div className="flex items-center w-full">
+            {selectedSnippets && selectedSnippets.snippets && selectedSnippets.snippets.every(d => d.userId === session.userId) && (
+                <>
+                    <button className="up-button text small ml-auto" onClick={() => setIsDeleteSnippetsOpen(true)}>
+                        <FiTrash/>
+                    </button>
+                    <button className="up-button text small mx-2" onClick={() => setIsMove(true)}>
+                        <FiArrowRightCircle/>
+                    </button>
+                </>
+            )}
+            <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
+                <a className="up-button text small">
+                    <div className="flex items-center h-full">
+                        <FiEdit/>
+                        <span className="ml-4 hidden sm:inline">New post from selected</span>
+                        <span className="font-normal ml-1 hidden sm:inline">(p)</span>
+                    </div>
+                </a>
+            </Link>
+        </div>
+    )
+
     return (
         <>
             <UpSEO title={props.projectData.name} description={props.projectData.description}/>
@@ -275,7 +341,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         <div className="flex items-center w-full h-20">
                             <div className="md:flex items-center">
                                 <h1 className="content font-bold mr-6">{props.projectData.name}</h1>
-                                <p className="up-gray-400">{ellipsize(props.projectData.description, 45)}</p>
+                                <p className="up-gray-400">{ellipsize(props.projectData.description, 35)}</p>
                             </div>
                             <div className="ml-auto md:mr-4">
                                 <MoreMenu>
@@ -394,16 +460,26 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                             )}
                         </button>
                         <div className="hidden sm:block ml-auto">
-                            <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
-                                <a className="up-button text small">
-                                    <div className="flex items-center h-full">
-                                        <FiEdit/>
-                                        <span className="ml-4">New post from selected</span>
-                                        <span className="font-normal ml-1">(p)</span>
-                                    </div>
-                                </a>
-                            </Link>
+                            <SelectedBarOptions/>
                         </div>
+                        <UpModal isOpen={isDeleteSnippetsOpen} setIsOpen={setIsDeleteSnippetsOpen}>
+                            <p>Are you sure you want to delete these snippets? This cannot be undone.</p>
+                            <div className="flex mt-4">
+                                <SpinnerButton isLoading={isDeleteSnippetsLoading} onClick={onDeleteSnippets}>
+                                    Delete
+                                </SpinnerButton>
+                                <button className="up-button text" onClick={() => setIsDeleteSnippetsOpen(false)}>Cancel</button>
+                            </div>
+                        </UpModal>
+                        <UpModal isOpen={isMove} setIsOpen={setIsMove} wide={true}>
+                            <h3 className="up-ui-title mb-4">Select a project to move these snippets to</h3>
+                            <ProjectBrowser
+                                setOpen={setIsMove}
+                                featuredProjectIds={[projectId]}
+                                buttonText="Move"
+                                onSubmit={onMoveSnippets}
+                            />
+                        </UpModal>
                     </div>
                     <div className="max-w-7xl mx-auto px-4">
                         <Accordion openState={selectedSnippetsOpen} setOpenState={setSelectedSnippetsOpen}>
@@ -427,14 +503,7 @@ export default function ProjectWorkspace(props: {projectData: DatedObj<ProjectOb
                         </Accordion>
                     </div>
                     <div className="max-w-7xl h-12 mx-auto px-4 flex items-center sm:hidden">
-                        <Link href={`/post/new?projectId=${projectId}&back=/projects/${projectId}&snippets=${encodeURIComponent(JSON.stringify(selectedSnippetIds))}`}>
-                            <a className="up-button text small ml-auto">
-                                <div className="flex items-center h-full">
-                                    <FiEdit/>
-                                    <span className="ml-4">New post from selected</span>
-                                </div>
-                            </a>
-                        </Link>
+                        <SelectedBarOptions/>
                     </div>
                 </div>
             )}

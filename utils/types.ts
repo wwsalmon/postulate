@@ -83,6 +83,8 @@ export interface SnippetObjGraph extends SnippetObj {
     linkArr: DatedObj<LinkObj>[];
 }
 
+export type privacyTypes = "public" | "private" | "unlisted" | "draft";
+
 export interface PostObj {
     urlName: string,
     projectId: string, // ID
@@ -91,7 +93,7 @@ export interface PostObj {
     body: string,
     slateBody?: Node[],
     tags?: string[],
-    privacy: "public" | "private" | "unlisted",
+    privacy: privacyTypes,
 }
 
 export interface PostObjGraph extends PostObj {

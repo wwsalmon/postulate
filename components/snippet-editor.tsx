@@ -13,7 +13,7 @@ import getIsEmpty from "../utils/slate/getIsEmpty";
 import isHotkey from "is-hotkey";
 import SlateEditorMoveToEnd from "./SlateEditorMoveToEnd";
 
-export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody, startNode}: {
+export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody, startNode, isQuick}: {
     isSnippet?: boolean,
     snippet?: DatedObj<SnippetObjGraph>,
     projectId?: string,
@@ -25,9 +25,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     disableSave?: boolean,
     initBody?: Node[],
     startNode?: number,
+    isQuick?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
-    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody")) || slateInitValue));
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
@@ -67,6 +68,10 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
         };
     });
 
+    useEffect(() => {
+        localStorage.setItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody", JSON.stringify(slateBody));
+    }, [slateBody]);
+
     return (
         <>
             {((snippet && snippet.url) || !isSnippetState) && (
@@ -78,7 +83,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     placeholder="Resource URL"
                 />
             )}
-            <div className="content prose w-full" style={{minHeight: 200}}>
+            <div className="content prose w-full relative" style={{minHeight: 200}}>
                 {/* if snippet with slateBody or new snippet */}
                 {(!snippet || snippet.slateBody) ? (
                     <SlateEditor

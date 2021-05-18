@@ -1,7 +1,7 @@
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
-import {DatedObj, EmailObj, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
+import {DatedObj, EmailObj, privacyTypes, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
 import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
@@ -12,19 +12,20 @@ import {fetcher, slateInitValue} from "../utils/utils";
 import {stripHtml} from "string-strip-html";
 import useSWR, {responseInterface} from "swr";
 import {format} from "date-fns";
+import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function NewPostEditor(props: {
     body?: string,
     slateBody?: Node[],
     title?: string,
     postId?: string,
-    privacy?: "public" | "unlisted" | "private",
+    privacy?: privacyTypes,
     tags?: string[],
     tempId: string,
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate: boolean, sendEmail: boolean) => void,
+    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -35,7 +36,7 @@ export default function NewPostEditor(props: {
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
-    const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
+    const [privacy, setPrivacy] = useState<privacyTypes>(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
     const [sendEmail, setSendEmail] = useState<boolean>(false);
 
@@ -61,6 +62,10 @@ export default function NewPostEditor(props: {
             label: "Private (not accessible by non-collaborators)",
             value: "private",
         },
+        {
+            label: "Draft (not accessible by non-collaborators)",
+            value: "draft",
+        }
     ];
 
     function promiseOptions(inputValue, cb) {
@@ -94,6 +99,21 @@ export default function NewPostEditor(props: {
 
         return () => titleElem.current && titleElem.current.removeEventListener("paste", pasteListener);
     }, [titleElem.current]);
+
+    useEffect(() => {
+        if (!slateBody.every(d => getIsEmpty(d))) {
+            localStorage.setItem("postulatePostBody", JSON.stringify(slateBody));
+        }
+    }, [slateBody]);
+
+    useEffect(() => {
+        if (!props.slateBody) {
+            if (localStorage.getItem("postulatePostBody")) {
+                const savedSlateBody = JSON.parse(localStorage.getItem("postulatePostBody"));
+                setSlateBody(savedSlateBody);
+            }
+        }
+    }, []);
 
     return (
         <>
@@ -193,7 +213,7 @@ export default function NewPostEditor(props: {
             <hr className="my-8"/>
 
             <div className="my-8 flex items-center">
-                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (
+                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (privacy === "public" || privacy === "unlisted") && (
                     <input
                         type="checkbox"
                         checked={sendEmail}
@@ -205,10 +225,10 @@ export default function NewPostEditor(props: {
                     <h3 className="up-ui-title">Send email to subscribers</h3>
                     {subscriptionsReady && !!subscriptionsLength ? (emailReady && emailExists) ? (
                         <p className="up-gray-400">An email about this post was sent to {thisEmail.recipients.length} subscriber{thisEmail.recipients.length > 1 ? "s" : ""} on {format(new Date(thisEmail.createdAt), "MMMM d, yyyy")}</p>
+                    ) : (privacy === "public" || privacy === "unlisted") ? (
+                        <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
                     ) : (
-                        <>
-                            <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
-                        </>
+                        <p className="up-gray-400">Make this post public or unlisted to send it to subscribers.</p>
                     ) : (
                         <p className="up-gray-400">You have no subscribers to this project yet.</p>
                     )}
@@ -218,10 +238,10 @@ export default function NewPostEditor(props: {
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, sendEmail)}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
                     isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
                 >
-                    {props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
+                    {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>
             </div>
