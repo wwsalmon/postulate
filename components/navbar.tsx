@@ -94,6 +94,7 @@ export default function Navbar() {
                                         autoDismiss: true,
                                         autoDismissTimeout: 3000,
                                     })}
+                                    isQuick={true}
                                 />
                             </UpModal>
                             <UpModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
