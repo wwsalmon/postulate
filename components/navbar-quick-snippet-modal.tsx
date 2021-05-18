@@ -56,7 +56,7 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
                 type: "snippet",
                 projectId: projectId,
             });
-            localStorage.removeItem(isQuick ? "quickSnippetBody" : "snippetBody");
+            localStorage.removeItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody");
             callback && callback();
             setIsLoading(false);
             setIsSnippet(true);

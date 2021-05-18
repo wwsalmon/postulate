@@ -28,7 +28,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     isQuick?: boolean,
 }) {
     const [body, setBody] = useState<string>(snippet ? snippet.body : "");
-    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "quickSnippetBody" : "snippetBody")) || slateInitValue));
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody")) || slateInitValue));
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
@@ -69,7 +69,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     });
 
     useEffect(() => {
-        localStorage.setItem(isQuick ? "quickSnippetBody" : "snippetBody", JSON.stringify(slateBody));
+        localStorage.setItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody", JSON.stringify(slateBody));
     }, [slateBody]);
 
     return (

@@ -12,6 +12,7 @@ import {fetcher, slateInitValue} from "../utils/utils";
 import {stripHtml} from "string-strip-html";
 import useSWR, {responseInterface} from "swr";
 import {format} from "date-fns";
+import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function NewPostEditor(props: {
     body?: string,
@@ -94,6 +95,21 @@ export default function NewPostEditor(props: {
 
         return () => titleElem.current && titleElem.current.removeEventListener("paste", pasteListener);
     }, [titleElem.current]);
+
+    useEffect(() => {
+        if (!slateBody.every(d => getIsEmpty(d))) {
+            localStorage.setItem("postulatePostBody", JSON.stringify(slateBody));
+        }
+    }, [slateBody]);
+
+    useEffect(() => {
+        if (!props.slateBody) {
+            if (localStorage.getItem("postulatePostBody")) {
+                const savedSlateBody = JSON.parse(localStorage.getItem("postulatePostBody"));
+                setSlateBody(savedSlateBody);
+            }
+        }
+    }, []);
 
     return (
         <>
