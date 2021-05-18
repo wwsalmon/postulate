@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.tempId) return res.status(406).json({message: "No post urlName found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
-                if (req.body.privacy !== "public" && req.body.privacy !== "private" && req.body.privacy !== "unlisted") return res.status(406).json({message: "Missing or invalid privacy setting"});
+                if (!["public", "private", "unlisted", "draft"].includes(req.body.privacy)) return res.status(406).json({message: "Missing or invalid privacy setting"});
 
                 const body = req.body.isSlate ? serialize({
                     type: "div",

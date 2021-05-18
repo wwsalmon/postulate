@@ -1,7 +1,7 @@
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
-import {DatedObj, EmailObj, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
+import {DatedObj, EmailObj, privacyTypes, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
 import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
@@ -19,13 +19,13 @@ export default function NewPostEditor(props: {
     slateBody?: Node[],
     title?: string,
     postId?: string,
-    privacy?: "public" | "unlisted" | "private",
+    privacy?: privacyTypes,
     tags?: string[],
     tempId: string,
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate: boolean, sendEmail: boolean) => void,
+    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -36,7 +36,7 @@ export default function NewPostEditor(props: {
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
-    const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
+    const [privacy, setPrivacy] = useState<privacyTypes>(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
     const [sendEmail, setSendEmail] = useState<boolean>(false);
 
@@ -62,6 +62,10 @@ export default function NewPostEditor(props: {
             label: "Private (not accessible by non-collaborators)",
             value: "private",
         },
+        {
+            label: "Draft (not accessible by non-collaborators)",
+            value: "draft",
+        }
     ];
 
     function promiseOptions(inputValue, cb) {
@@ -237,7 +241,7 @@ export default function NewPostEditor(props: {
                     onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
                     isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
                 >
-                    {props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
+                    {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>
             </div>
