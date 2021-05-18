@@ -17,14 +17,6 @@ export default function ManageSubscriptions({email, emailHash, authed}: {email: 
     const [iter, setIter] = useState<number>(0);
     const {data, error}: responseInterface<{subscriptions: DatedObj<SubscriptionObjGraph>[]}, any> = useSWR(`/api/subscription?emailHash=${encodeURIComponent(emailHash)}&iter=${iter}`, fetcher);
 
-    function onUnsubscribe(id: string) {
-        axios.delete(`/api/subscription?emailHash=${encodeURIComponent(emailHash)}&projectId=${id}`).then(() => {
-            setIter(iter + 1);
-        }).catch(e => {
-            console.log(e);
-        });
-    }
-
     return (
         <div className="max-w-4xl mx-auto px-4">
             <UpSEO title="Your subscriptions" noindex={true}/>
