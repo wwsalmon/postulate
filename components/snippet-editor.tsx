@@ -83,7 +83,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     placeholder="Resource URL"
                 />
             )}
-            <div className="content prose w-full" style={{minHeight: 200}}>
+            <div className="content prose w-full relative" style={{minHeight: 200}}>
                 {/* if snippet with slateBody or new snippet */}
                 {(!snippet || snippet.slateBody) ? (
                     <SlateEditor

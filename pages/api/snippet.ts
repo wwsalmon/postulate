@@ -9,7 +9,7 @@ import dbConnect from "../../utils/dbConnect";
 import getIsEmpty from "../../utils/slate/getIsEmpty";
 import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
-import {findImages, findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
+import {checkProjectPermission, findImages, findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
 import {LinkModel} from "../../models/link";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,6 +22,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         try {
             await dbConnect();
+
+            // if batch delete or move
+            if (req.body.ids && (req.method === "DELETE" || req.body.projectId)) {
+                if (!Array.isArray(req.body.ids) || !req.body.ids.length) return res.status(406).json({message: "No IDs found"});
+                const snippets = await SnippetModel.find({_id: {$in: req.body.ids}});
+                if (snippets.some(d => d.userId.toString() !== session.userId)) return res.status(403).json({message: "Unauthed"});
+                if (req.body.projectId) {
+                    const thisProject = await ProjectModel.findById(req.body.projectId);
+                    if (!thisProject) return res.status(404).json({message: "Project not found"});
+                    if (!checkProjectPermission(thisProject, session.userId)) return res.status(403).json({message: "Unauthed"});
+                    await SnippetModel.updateMany({_id: {$in: snippets.map(d => d._id)}}, {
+                        $set: {projectId: req.body.projectId},
+                    });
+                    return res.status(200).json({message: "Snippets successfully moved"});
+                } else {
+                    await SnippetModel.deleteMany({_id: {$in: snippets.map(d => d._id)}});
+                    return res.status(200).json({message: "Snippets successfully deleted"});
+                }
+            }
 
             let thisProject: any = null;
             let thisSnippet: any = null; // any typing for mongoose condition type thing

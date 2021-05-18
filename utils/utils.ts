@@ -1,6 +1,7 @@
 import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
 import {format} from "date-fns";
 import {Node} from "slate";
+import {DatedObj, ProjectObj} from "./types";
 
 export function cleanForJSON(input: any): any {
     return JSON.parse(JSON.stringify(input));
@@ -207,4 +208,8 @@ export const findImages = (nodes: any[]) => {
         if (node.children) images.push(...findImages(node.children));
     }
     return images;
+}
+
+export function checkProjectPermission(project: ProjectObj, userId: string) {
+    return project.userId.toString() === userId || project.collaborators.map(d => d.toString()).includes(userId);
 }
