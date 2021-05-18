@@ -209,7 +209,7 @@ export default function NewPostEditor(props: {
             <hr className="my-8"/>
 
             <div className="my-8 flex items-center">
-                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (
+                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (privacy === "public" || privacy === "unlisted") && (
                     <input
                         type="checkbox"
                         checked={sendEmail}
@@ -221,10 +221,10 @@ export default function NewPostEditor(props: {
                     <h3 className="up-ui-title">Send email to subscribers</h3>
                     {subscriptionsReady && !!subscriptionsLength ? (emailReady && emailExists) ? (
                         <p className="up-gray-400">An email about this post was sent to {thisEmail.recipients.length} subscriber{thisEmail.recipients.length > 1 ? "s" : ""} on {format(new Date(thisEmail.createdAt), "MMMM d, yyyy")}</p>
+                    ) : (privacy === "public" || privacy === "unlisted") ? (
+                        <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
                     ) : (
-                        <>
-                            <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
-                        </>
+                        <p className="up-gray-400">Make this post public or unlisted to send it to subscribers.</p>
                     ) : (
                         <p className="up-gray-400">You have no subscribers to this project yet.</p>
                     )}
@@ -234,7 +234,7 @@ export default function NewPostEditor(props: {
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, sendEmail)}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
                     isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
                 >
                     {props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
