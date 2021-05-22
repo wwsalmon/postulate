@@ -4,6 +4,7 @@ import Link from "next/link";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 import UpInlineButton from "./style/UpInlineButton";
+import {findImages} from "../utils/utils";
 
 export default function PublicPostItem({post, showProject, showAuthor, showLine = true}: {
     post: DatedObj<PostObjGraph>,
@@ -11,7 +12,7 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
     showAuthor?: boolean,
     showLine?: boolean,
 }) {
-    const imgUrl = post.body.match(/!\[.*?\]\((.*?)\)/) ? post.body.match(/!\[.*?\]\((.*?)\)/)[1] : null;
+    const images = findImages(post.slateBody);
     const author = post.authorArr[0];
     const project = post.projectArr[0];
     const owner = project.ownerArr[0];
@@ -53,7 +54,7 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
                                 </UpInlineButton>
                             </>
                         )}
-                        {imgUrl && (
+                        {images.length && (
                             <>
                                 {(showAuthor || showProject) && (
                                     <span className="up-gray-400 mx-2 hidden md:block">on</span>
@@ -71,7 +72,7 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
                                 ))}
                             </>
                         )}
-                        {imgUrl && (
+                        {images.length && (
                             <>
                                 <span className="up-gray-300 mx-2 hidden md:block">|</span>
                                 <span className="up-gray-400 hidden md:block">{readingTime(post.body).text}</span>
@@ -79,14 +80,14 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
                         )}
                     </div>
                 </div>
-                {imgUrl ? (
+                {images.length ? (
                     <Link href={`/@${author.username}/p/${post.urlName}`}>
                         <a className="w-32 pl-6 flex-shrink-0 block ml-auto">
-                            <img className="max-w-full shadow-md max-h-48" src={imgUrl} alt="Preview image for post"/>
+                            <img className="max-w-full shadow-md max-h-48" src={images[0]} alt="Preview image for post"/>
                         </a>
                     </Link>
                 ) : (
-                    <div className={`${imgUrl ? "ml-auto" : "ml-auto"} flex-shrink-0 text-right pl-6 hidden md:block`}>
+                    <div className={`ml-auto flex-shrink-0 text-right pl-6 hidden md:block`}>
                         <p>{format(new Date(post.createdAt), "MMMM d, yyyy")}</p>
                         <p className="up-gray-400">{readingTime(post.body).text}</p>
                     </div>
