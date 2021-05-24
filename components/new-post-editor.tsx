@@ -10,6 +10,7 @@ import {Node, Element} from "slate";
 import SlateEditor from "./SlateEditor";
 import {slateInitValue} from "../utils/utils";
 import {stripHtml} from "string-strip-html";
+import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function NewPostEditor(props: {
     body?: string,
@@ -28,7 +29,6 @@ export default function NewPostEditor(props: {
     isEditLoading: boolean,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
-    const [body, setBody] = useState<string>(props.body);
     const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
@@ -58,12 +58,12 @@ export default function NewPostEditor(props: {
     }
 
     useEffect(() => {
-        window.onbeforeunload = !!body ? () => true : undefined;
+        window.onbeforeunload = !slateBody.every(d => getIsEmpty(d)) ? () => true : undefined;
 
         return () => {
             window.onbeforeunload = undefined;
         };
-    }, [!!body]);
+    }, [!!slateBody]);
 
     useEffect(() => {
         function pasteListener(e) {
@@ -102,26 +102,14 @@ export default function NewPostEditor(props: {
                 )}
             </div>
             <div className="content prose w-full" style={{maxWidth: "unset", minHeight: 300}}>
-                {/* if post being edited has slateBody or if new post */}
-                {(slateBody || !props.title) ? (
-                    <SlateEditor
-                        body={slateBody}
-                        setBody={setSlateBody}
-                        projectId={projectId}
-                        urlName={props.tempId}
-                        isPost={true}
-                        id="postEditor"
-                    />
-                ) : (
-                    <MDEditor
-                        body={body}
-                        setBody={setBody}
-                        imageUploadEndpoint={`/api/upload?projectId=${projectId}&attachedType=post&attachedUrlName=${props.tempId}`}
-                        placeholder="Turn your snippets into a shareable post!"
-                        id={projectId + (props.postId || "new")}
-                        setInstance={props.setInstance}
-                    />
-                )}
+                <SlateEditor
+                    body={slateBody}
+                    setBody={setSlateBody}
+                    projectId={projectId}
+                    urlName={props.tempId}
+                    isPost={true}
+                    id="postEditor"
+                />
             </div>
 
             <hr className="my-8"/>
@@ -181,8 +169,8 @@ export default function NewPostEditor(props: {
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody)}
-                    isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody)}
+                    isDisabled={!slateBody || !slateBody.length || slateBody.every(d => getIsEmpty(d)) || !title}
                 >
                     {props.title ? "Save" : "Post"}
                 </SpinnerButton>
