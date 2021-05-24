@@ -22,6 +22,13 @@ export default function UpSEO({
         ] : [],
     }
 
+    let twitter = {
+        card: imgUrl ? "summary_large_image" : "summary",
+        site: "@postulate",
+        cardType: "summary",
+        images: imgUrl || "https://postulate.us/postulate-square.png",
+    }
+
     // if post page, add article info to openGraph
     if (router.pathname === "/[username]/p/[postUrlName]" && publishedDate && authorUsername) {
         openGraph["article"] = {
@@ -37,10 +44,7 @@ export default function UpSEO({
             title={fullTitle}
             description={description}
             openGraph={openGraph}
-            twitter={{
-                site: "@postulate",
-                cardType: "summary",
-            }}
+            twitter={twitter}
             noindex={noindex}
         />
     );
