@@ -19,8 +19,15 @@ export default function UpSEO({
         url: "https://postulate.us" + router.asPath,
         images: imgUrl ? [
             { url: imgUrl }
-        ] : [],
-    }
+        ] : [
+            { url: "https://postulate.us/postulate-square.png" }
+        ],
+    };
+
+    let twitter = {
+        site: "@postulate",
+        cardType: imgUrl ? "summary_large_image" : "summary",
+    };
 
     // if post page, add article info to openGraph
     if (router.pathname === "/[username]/p/[postUrlName]" && publishedDate && authorUsername) {
@@ -30,17 +37,14 @@ export default function UpSEO({
                 `https://postulate.us/@${authorUsername}`,
             ]
         }
-    }
+    };
 
     return (
         <NextSeo
             title={fullTitle}
             description={description}
             openGraph={openGraph}
-            twitter={{
-                site: "@postulate",
-                cardType: "summary",
-            }}
+            twitter={twitter}
             noindex={noindex}
         />
     );
