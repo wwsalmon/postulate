@@ -1,20 +1,16 @@
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
-import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
 import {DatedObj, EmailObj, privacyTypes, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
 import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
 import EasyMDE from "easymde";
-import {Node, Element} from "slate";
+import {Node} from "slate";
 import SlateEditor from "./SlateEditor";
 import {fetcher, slateInitValue} from "../utils/utils";
 import {stripHtml} from "string-strip-html";
-<<<<<<< HEAD
-=======
 import useSWR, {responseInterface} from "swr";
 import {format} from "date-fns";
->>>>>>> 83f1543c111fd51689677d76844e9f3d8447ae55
 import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function NewPostEditor(props: {
@@ -228,13 +224,8 @@ export default function NewPostEditor(props: {
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-<<<<<<< HEAD
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody)}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
                     isDisabled={!slateBody || !slateBody.length || slateBody.every(d => getIsEmpty(d)) || !title}
-=======
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
-                    isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
->>>>>>> 83f1543c111fd51689677d76844e9f3d8447ae55
                 >
                     {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
                 </SpinnerButton>
