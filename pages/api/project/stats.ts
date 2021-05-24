@@ -1,5 +1,4 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {getSession} from "next-auth/client";
 import dbConnect from "../../../utils/dbConnect";
 import {ProjectModel} from "../../../models/project";
 import mongoose from "mongoose";
@@ -8,10 +7,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== "GET") return res.status(405);
 
     if (!req.query.projectId || Array.isArray(req.query.projectId)) return res.status(406).json({message: "missing project ID"});
-
-    const session = await getSession({req});
-
-    if (!session) return res.status(403).json({message: "Unauthed"});
 
     try {
         await dbConnect();
@@ -62,8 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
 
         if (!thisProject.length) return res.status(404).json({message: "No project found for given ID"});
-
-        if (thisProject[0].userId.toString() !== session.userId && thisProject[0].collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "Unauthed"});
 
         const linkedSnippets = thisProject[0].linkedSnippets;
         const linkedSnippetsCount = linkedSnippets.length ? linkedSnippets[0].count : 0;

@@ -1,6 +1,7 @@
 import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
 import {format} from "date-fns";
 import {Node} from "slate";
+import {DatedObj, ProjectObj} from "./types";
 
 export function cleanForJSON(input: any): any {
     return JSON.parse(JSON.stringify(input));
@@ -147,6 +148,12 @@ export const snippetGraphStages = [
             localField: "userId",
             as: "authorArr",
         }},
+    {$lookup: {
+            from: "links",
+            foreignField: "nodeId",
+            localField: "_id",
+            as: "linkArr",
+        }}
 ];
 
 const userPipeline = [
@@ -184,3 +191,25 @@ export const getCursorStages = (page?: string, search?: boolean) => {
     if (page) retval.push({$skip: (+page - 1) * 10}, {$limit: 10});
     return retval;
 };
+
+export const findLinks = (nodes: any[]) => {
+    let links = [];
+    for (let node of nodes) {
+        if (node.type === "a") links.push(node.url);
+        if (node.children) links.push(...findLinks(node.children));
+    }
+    return links;
+}
+
+export const findImages = (nodes: any[]) => {
+    let images = [];
+    for (let node of nodes) {
+        if (node.type === "img") images.push(node.url);
+        if (node.children) images.push(...findImages(node.children));
+    }
+    return images;
+}
+
+export function checkProjectPermission(project: ProjectObj, userId: string) {
+    return project.userId.toString() === userId || project.collaborators.map(d => d.toString()).includes(userId);
+}

@@ -1,27 +1,17 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
-import {DatedObj, PostObj, ProjectObj, SnippetObj, SnippetObjGraph, UserObj} from "../utils/types";
+import {DatedObj, SnippetObjGraph} from "../utils/types";
 import {format} from "date-fns";
-import Parser from "html-react-parser";
-import MoreMenu from "./more-menu";
-import MoreMenuItem from "./more-menu-item";
-import {FiArrowRightCircle, FiEdit2, FiTrash} from "react-icons/fi";
 import showdown from "showdown";
 import showdownHtmlEscape from "showdown-htmlescape";
-import SpinnerButton from "./spinner-button";
 import axios from "axios";
-import UpModal from "./up-modal";
 import "easymde/dist/easymde.min.css";
 import {useSession} from "next-auth/client";
 import Link from "next/link";
-import {fetcher} from "../utils/utils";
-import useSWR from "swr";
-import SnippetEditor from "./snippet-editor";
 import EasyMDE from "easymde";
 import {Node} from "slate";
-import Linkify from "react-linkify";
-import ProjectBrowser from "./project-browser";
 import dynamic from "next/dynamic";
 import SnippetItemInner from "./SnippetItemInner";
+
 const SlateReadOnly = dynamic(() => import("./SlateReadOnly"));
 
 export default function SnippetItem({snippet, iteration, setIteration, availableTags, addNewTags, setTagsQuery, selectedSnippetIds, setSelectedSnippetIds, setStatsIter, statsIter}: {

@@ -5,6 +5,7 @@ import axios from "axios";
 import {WaitlistAPIRes} from "../utils/types";
 import UpSEO from "../components/up-seo";
 import Head from "next/head";
+import UpInlineButton from "../components/style/UpInlineButton";
 
 export default function Home() {
     const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
@@ -44,7 +45,8 @@ export default function Home() {
             <div className="w-full bg-white sticky top-0 z-50">
                 <div className="px-4 mx-auto max-w-5xl flex h-16 items-center">
                     <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
-                    <a href="#waitlist" className="up-button primary ml-auto small">Sign up for waitlist</a>
+                    <UpInlineButton href="/auth/signin" className="ml-auto mr-4">Sign in</UpInlineButton>
+                    <a href="#waitlist" className="up-button primary small">Sign up for waitlist</a>
                 </div>
             </div>
             <div className="px-4 mx-auto max-w-5xl py-16 text-center">

@@ -9,7 +9,7 @@ const PostSchema = new mongoose.Schema({
     body: {type: String, required: true},
     slateBody: {type: Object, required: false},
     tags: [{type: String, required: true}],
-    privacy: {type: String, required: true}, // "public", "private", "unlisted"
+    privacy: {type: String, required: true}, // "public", "private", "unlisted", "draft"
 }, {
     timestamps: true,
 });

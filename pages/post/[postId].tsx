@@ -1,6 +1,14 @@
 import React, {useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, PostObj, ProjectObj, SnippetObjGraph, UserObj} from "../../utils/types";
+import {
+    DatedObj,
+    EmailObj,
+    PostObj, privacyTypes,
+    ProjectObj,
+    SnippetObjGraph,
+    SubscriptionObjGraph,
+    UserObj
+} from "../../utils/types";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
@@ -46,7 +54,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate?: boolean) {
+    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate?: boolean, sendEmail?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/post", {
@@ -59,14 +67,14 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             tempId: tempId,
             selectedSnippetIds: selectedSnippetIds,
             isSlate: !!isSlate,
+            sendEmail: !!sendEmail,
         }).then(res => {
             // @ts-ignore
             window.analytics.track("Item created", {
                 type: "post",
                 projectId: projectId,
             });
-            instance && instance.clearAutosavedValue();
-            router.push(res.data.url);
+            router.push(privacy === "draft" ? `/projects/${projectId}` : res.data.url);
         }).catch(e => {
             console.log(e);
             setIsEditLoading(false);

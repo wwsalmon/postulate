@@ -1,15 +1,20 @@
 import React, {Dispatch, SetStateAction, useEffect, useRef, useState} from "react";
 import MDEditor from "./md-editor";
 import SpinnerButton from "./spinner-button";
-import {DatedObj, ProjectObj, UserObj} from "../utils/types";
+import {DatedObj, EmailObj, privacyTypes, ProjectObj, SubscriptionObjGraph, UserObj} from "../utils/types";
 import Select from "react-select";
 import AsyncCreatableSelect from "react-select/async-creatable";
 import axios from "axios";
 import EasyMDE from "easymde";
 import {Node, Element} from "slate";
 import SlateEditor from "./SlateEditor";
-import {slateInitValue} from "../utils/utils";
+import {fetcher, slateInitValue} from "../utils/utils";
 import {stripHtml} from "string-strip-html";
+<<<<<<< HEAD
+=======
+import useSWR, {responseInterface} from "swr";
+import {format} from "date-fns";
+>>>>>>> 83f1543c111fd51689677d76844e9f3d8447ae55
 import getIsEmpty from "../utils/slate/getIsEmpty";
 
 export default function NewPostEditor(props: {
@@ -17,13 +22,13 @@ export default function NewPostEditor(props: {
     slateBody?: Node[],
     title?: string,
     postId?: string,
-    privacy?: "public" | "unlisted" | "private",
+    privacy?: privacyTypes,
     tags?: string[],
     tempId: string,
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: "public" | "unlisted" | "private", tags: string[], isSlate: boolean) => void,
+    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -33,8 +38,18 @@ export default function NewPostEditor(props: {
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
     const [projectId, setProjectId] = useState<string>(props.startProjectId);
-    const [privacy, setPrivacy] = useState<"public" | "unlisted" | "private">(props.privacy || "public");
+    const [privacy, setPrivacy] = useState<privacyTypes>(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
+    const [sendEmail, setSendEmail] = useState<boolean>(false);
+
+    const {data: email, error: emailError}: responseInterface<{ email: DatedObj<EmailObj> }, any> = useSWR(`/api/email?targetId=${props.postId || ""}`, props.postId ? fetcher : () => null);
+    const {data: subscriptions, error: subscriptionsError}: responseInterface<{ subscriptions: DatedObj<SubscriptionObjGraph>[] }, any> = useSWR(`/api/subscription?projectId=${projectId}&stats=true`);
+
+    const emailReady = email && email.email;
+    const emailExists = emailReady && !!email.email._id;
+    const thisEmail = emailReady && emailExists && email.email;
+    const subscriptionsReady = subscriptions && subscriptions.subscriptions;
+    const subscriptionsLength = subscriptionsReady ? subscriptions.subscriptions.length : 0;
 
     const privacyOptions = [
         {
@@ -49,6 +64,10 @@ export default function NewPostEditor(props: {
             label: "Private (not accessible by non-collaborators)",
             value: "private",
         },
+        {
+            label: "Draft (not accessible by non-collaborators)",
+            value: "draft",
+        }
     ];
 
     function promiseOptions(inputValue, cb) {
@@ -82,6 +101,21 @@ export default function NewPostEditor(props: {
 
         return () => titleElem.current && titleElem.current.removeEventListener("paste", pasteListener);
     }, [titleElem.current]);
+
+    useEffect(() => {
+        if (!slateBody.every(d => getIsEmpty(d))) {
+            localStorage.setItem("postulatePostBody", JSON.stringify(slateBody));
+        }
+    }, [slateBody]);
+
+    useEffect(() => {
+        if (!props.slateBody) {
+            if (localStorage.getItem("postulatePostBody")) {
+                const savedSlateBody = JSON.parse(localStorage.getItem("postulatePostBody"));
+                setSlateBody(savedSlateBody);
+            }
+        }
+    }, []);
 
     return (
         <>
@@ -166,13 +200,43 @@ export default function NewPostEditor(props: {
                 <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag or type to create a new one</p>
             </div>
 
+            <hr className="my-8"/>
+
+            <div className="my-8 flex items-center">
+                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (privacy === "public" || privacy === "unlisted") && (
+                    <input
+                        type="checkbox"
+                        checked={sendEmail}
+                        onChange={e => setSendEmail(e.target.checked)}
+                        className="mr-4 w-4 h-4"
+                    />
+                )}
+                <div>
+                    <h3 className="up-ui-title">Send email to subscribers</h3>
+                    {subscriptionsReady && !!subscriptionsLength ? (emailReady && emailExists) ? (
+                        <p className="up-gray-400">An email about this post was sent to {thisEmail.recipients.length} subscriber{thisEmail.recipients.length > 1 ? "s" : ""} on {format(new Date(thisEmail.createdAt), "MMMM d, yyyy")}</p>
+                    ) : (privacy === "public" || privacy === "unlisted") ? (
+                        <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
+                    ) : (
+                        <p className="up-gray-400">Make this post public or unlisted to send it to subscribers.</p>
+                    ) : (
+                        <p className="up-gray-400">You have no subscribers to this project yet.</p>
+                    )}
+                </div>
+            </div>
+
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
+<<<<<<< HEAD
                     onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody)}
                     isDisabled={!slateBody || !slateBody.length || slateBody.every(d => getIsEmpty(d)) || !title}
+=======
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody || body, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
+                    isDisabled={(!body && (!slateBody || !slateBody.length)) || !title}
+>>>>>>> 83f1543c111fd51689677d76844e9f3d8447ae55
                 >
-                    {props.title ? "Save" : "Post"}
+                    {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}
                 </SpinnerButton>
                 <button className="up-button text" onClick={props.onCancelEdit} disabled={props.isEditLoading}>Cancel</button>
             </div>

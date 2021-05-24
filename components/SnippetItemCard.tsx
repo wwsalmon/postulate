@@ -6,6 +6,8 @@ import {FiCheck, FiCheckCircle, FiLink} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemInner from "./SnippetItemInner";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
+import {useSession} from "next-auth/client";
+import UpInlineButton from "./style/UpInlineButton";
 
 export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, selectedSnippetIds, setSelectedSnippetIds, showFullDate}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -20,6 +22,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
     setSelectedSnippetIds: Dispatch<SetStateAction<string[]>>,
     showFullDate?: boolean,
 }) {
+    const [session, loading] = useSession();
     const [modalOpen, setModalOpen] = useState<boolean>(false);
 
     const hasLinkedPosts = snippet.linkedPosts && !!snippet.linkedPosts.length;
@@ -50,7 +53,14 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         boxShadow: "rgb(255, 255, 255) 0px -40px 40px -10px inset",
                     }}/>
                 </button>
-                <div className="flex items-center mt-6 text-sm">
+                <div className="flex items-center mt-4 text-sm">
+                    {session.userId !== snippet.userId && (
+                        <img
+                            src={snippet.authorArr[0].image}
+                            alt={`Profile picture of ${snippet.authorArr[0].name}`}
+                            className="w-6 h-6 rounded-full mr-4 opacity-75"
+                        />
+                    )}
                     <p className="up-gray-500">
                         {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                     </p>
@@ -82,6 +92,21 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                             #{tag}
                         </button>
                     ))}
+                    {session.userId !== snippet.userId && (
+                        <>
+                            <span className="ml-auto mr-2 up-gray-300">by</span>
+                            <UpInlineButton href={`/@${snippet.authorArr[0].username}`}>
+                                <div className="flex items-center">
+                                    <img
+                                        src={snippet.authorArr[0].image}
+                                        alt={`Profile picture of ${snippet.authorArr[0].name}`}
+                                        className="w-6 h-6 rounded-full mr-2 opacity-75"
+                                    />
+                                    <span>{snippet.authorArr[0].name}</span>
+                                </div>
+                            </UpInlineButton>
+                        </>
+                    )}
                 </div>
                 <div style={{maxHeight: "calc(100vh - 240px)", minHeight: 300, overflowY: "auto"}} className="-mx-4 px-4 relative">
                     <SnippetItemInner

@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getSession} from "next-auth/client";
 import {ProjectModel} from "../../../models/project";
-import {PostObj} from "../../../utils/types";
+import {DatedObj, PostObj, ProjectObj} from "../../../utils/types";
 import {PostModel} from "../../../models/post";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -13,7 +13,59 @@ import dbConnect from "../../../utils/dbConnect";
 import {TagModel} from "../../../models/tag";
 import mongoose from "mongoose";
 import {serialize} from "remark-slate";
-import {getCursorStages, postGraphStages} from "../../../utils/utils";
+import {findImages, findLinks, getCursorStages, postGraphStages} from "../../../utils/utils";
+import {LinkModel} from "../../../models/link";
+import {SubscriptionModel} from "../../../models/subscription";
+import {AES} from "crypto-js";
+import axios from "axios";
+import ellipsize from "ellipsize";
+import {EmailModel} from "../../../models/email";
+
+async function sendEmails(thisProject: DatedObj<ProjectObj>, session: any, thisPost: DatedObj<PostObj> | PostObj, postId?: string) {
+    const recipients = await SubscriptionModel.find({targetId: thisPost.projectId});
+    if (recipients.length) {
+        const recipientEmails = recipients.map(d => d.email);
+        const sendVersions = recipientEmails.map(d => {
+            const emailHash = AES.encrypt(d, process.env.SUBSCRIBE_SECRET_KEY).toString();
+
+            return {
+                to: [{email: d}],
+                params: {
+                    MANAGELINK: `${process.env.HOSTNAME}/subscribe/${encodeURIComponent(emailHash)}`,
+                },
+            };
+        });
+
+        const thisAuthor = await UserModel.findOne({_id: session.userId});
+
+        const postData = {
+            messageVersions: sendVersions,
+            templateId: 13,
+            params: {
+                TITLE: thisPost.title,
+                POSTLINK: `${process.env.HOSTNAME}/@${session.username}/p/${thisPost.urlName}`,
+                PROJECTNAME: thisProject.name,
+                PROJECTLINK: `${process.env.HOSTNAME}/@${session.username}/${thisProject.urlName}`,
+                AUTHOR: thisAuthor.name,
+                AUTHORLINK: `${process.env.HOSTNAME}/@${session.username}`,
+                SHORTPREVIEW: ellipsize(thisPost.body, 50),
+                LONGPREVIEW: ellipsize(thisPost.body, 500),
+                DATE: format("createdAt" in thisPost ? new Date(thisPost.createdAt) : new Date(), "MMMM d, yyyy 'at' h:mm a"),
+            },
+        };
+
+        await axios.post("https://api.sendinblue.com/v3/smtp/email", postData, {
+            headers: { "api-key": process.env.SENDINBLUE_API_KEY },
+        });
+
+        await EmailModel.create({
+            recipients: recipientEmails,
+            targetId: "_id" in thisPost ? thisPost._id : postId,
+        });
+    }
+
+    return true;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -30,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.tempId) return res.status(406).json({message: "No post urlName found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
-                if (req.body.privacy !== "public" && req.body.privacy !== "private" && req.body.privacy !== "unlisted") return res.status(406).json({message: "Missing or invalid privacy setting"});
+                if (!["public", "private", "unlisted", "draft"].includes(req.body.privacy)) return res.status(406).json({message: "Missing or invalid privacy setting"});
 
                 const body = req.body.isSlate ? serialize({
                     type: "div",
@@ -51,6 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         if (newTags.length) await TagModel.insertMany(newTags.map(d => ({key: d})));
                     }
 
+                    // check links
+
+                    let linksToAdd = findLinks(req.body.body);
+
                     if (req.body.postId) {
                         const thisPost = await PostModel.findOne({ _id: req.body.postId });
                         if (!thisPost) return res.status(500).json({message: "No post exists for given ID"});
@@ -67,12 +123,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         // update attachments
                         const attachedImages = await ImageModel.find({ attachedUrlName: thisPost.urlName });
 
-                        console.log(thisPost.urlName, attachedImages);
-
                         if (attachedImages.length) {
-                            const bodyString = JSON.stringify(req.body.body);
-                            const unusedImages = attachedImages.filter(d => !bodyString.includes(d.key));
+                            const usedImages = findImages(req.body.body);
+                            const unusedImages = attachedImages.filter(d => !usedImages.some(x => x.includes(d.key)));
                             await deleteImages(unusedImages);
+                        }
+
+                        // find existing links
+                        const existingLinks = await LinkModel.find({nodeType: "post", nodeId: mongoose.Types.ObjectId(req.body.postId), targetType: "url"});
+                        // delete links no longer linked in snippet
+                        const linksToDelete = existingLinks.filter(d => !linksToAdd.includes(d.targetUrl)).map(d => d._id);
+                        if (linksToDelete.length) await LinkModel.deleteMany({_id: {$in: linksToDelete}});
+                        // update linksToAdd for new links
+                        linksToAdd = linksToAdd.filter(d => !existingLinks.some(x => x.targetUrl === d));
+                        if (linksToAdd.length) {
+                            // @ts-ignore TS wants _id for some reason
+                            await LinkModel.insertMany(linksToAdd.map(d => ({
+                                nodeType: "post",
+                                nodeId: req.body.postId,
+                                targetType: "url",
+                                targetUrl: d,
+                            })));
                         }
 
                         // update linked snippets
@@ -91,6 +162,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 $pull: { linkedPosts: thisPost._id }
                             });
                         }
+
+                        // send email notification
+                        if (req.body.sendEmail) await sendEmails(thisProject, session, thisPost);
 
                         res.status(200).json({
                             message: "Post successfully updated.",
@@ -132,12 +206,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             });
                         }
 
+                        // create links
+                        if (linksToAdd.length) {
+                            // @ts-ignore TS wants _id for some reason
+                            await LinkModel.insertMany(linksToAdd.map(d => ({
+                                nodeType: "post",
+                                nodeId: newPostObj._id,
+                                targetType: "url",
+                                targetUrl: d,
+                            })));
+                        }
+
                         // update linked snippets
                         if (req.body.selectedSnippetIds && req.body.selectedSnippetIds.length) {
                             await SnippetModel.updateMany({ _id: { $in: req.body.selectedSnippetIds } }, {
                                 $push: { linkedPosts: newPostObj._id }
                             });
                         }
+
+                        // send email notification
+                        if (req.body.sendEmail) await sendEmails(thisProject, session, newPost, newPostObj._id.toString());
 
                         res.status(200).json({
                             message: "Post successfully created.",
@@ -160,6 +248,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     // `req.body.tempId` is the same as `urlName` when sent from an existing post
                     const attachedImages = await ImageModel.find({attachedUrlName: req.body.tempId});
                     await deleteImages(attachedImages);
+
+                    // delete links
+                    await LinkModel.deleteMany({nodeId: req.body.postId});
 
                     // update linked snippets
                     await SnippetModel.updateMany({ linkedPosts: req.body.postId }, {

@@ -3,7 +3,7 @@ import {UserModel} from "../../../models/user";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
 import {
     CommentWithAuthor,
-    DatedObj,
+    DatedObj, LinkObj,
     PostObj,
     PostObjGraph,
     ProjectObj,
@@ -41,6 +41,9 @@ import {NotifsContext} from "../../_app";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import Linkify from "react-linkify";
 import UpInlineButton from "../../../components/style/UpInlineButton";
+import SnippetItemLinkPreview from "../../../components/SnippetItemLinkPreview";
+import UpButton from "../../../components/UpButton";
+import SubscriptionButton from "../../../components/SubscriptionButton";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -48,6 +51,7 @@ export default function PublicPost(props: {
     projectData: DatedObj<ProjectObj>,
     thisOwner: DatedObj<UserObj>,
     thisAuthor: DatedObj<UserObj>,
+    thisLinks: DatedObj<LinkObj>[],
 }) {
     const router = useRouter();
     const [session, loading] = useSession();
@@ -63,6 +67,7 @@ export default function PublicPost(props: {
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
+    const [linkedResourcesOpen, setLinkedResourcesOpen] = useState<boolean>(false);
 
     const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObjGraph>[]}, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
@@ -274,11 +279,19 @@ export default function PublicPost(props: {
             </div>
             {!session && (
                 <>
-                    <hr className="my-8"/>
+                    <hr className="my-12"/>
                     <InlineCTA/>
                 </>
             )}
-            <hr className="my-8"/>
+            <hr className="my-12"/>
+            {!isOwner && (
+                <>
+                    <h3 className="up-ui-title">Subscribe to this project</h3>
+                    <p className="up-gray-400 mb-8">Subscribe to get an email whenever a new post is published in {props.projectData.name} by {props.thisOwner.name}</p>
+                    <SubscriptionButton projectId={props.projectData._id}/>
+                </>
+            )}
+            <hr className="my-12"/>
             <h3 className="up-ui-title mb-8">Post author</h3>
             <div className="flex items-center opacity-50 hover:opacity-100 transition">
                 <Link href={`/@${props.thisAuthor.username}`}>
@@ -293,7 +306,7 @@ export default function PublicPost(props: {
                     <p><Linkify>{props.thisAuthor.bio}</Linkify></p>
                 </div>
             </div>
-            <hr className="my-8"/>
+            <hr className="my-12"/>
             <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
             {session ? (
                 <CommentItem
@@ -316,7 +329,33 @@ export default function PublicPost(props: {
                     />
                 </div>
             ))}
-            <hr className="my-8"/>
+            {!!props.thisLinks.length && (
+                <>
+                    <hr className="my-12"/>
+                    <h3 className="up-ui-title mb-8">Linked resources ({props.thisLinks.length})</h3>
+                    {props.thisLinks.slice(0,3).map(d => (
+                        <SnippetItemLinkPreview url={d.targetUrl}/>
+                    ))}
+                    {props.thisLinks.length > 3 && (
+                        <>
+                            <Accordion openState={viewLinkedSnippetsOpen} setOpenState={setViewLinkedSnippetsOpen}>
+                                {props.thisLinks.slice(3).map(d => (
+                                    <SnippetItemLinkPreview url={d.targetUrl}/>
+                                ))}
+                            </Accordion>
+                            <div className="flex">
+                                <UpButton text={true} onClick={() => setViewLinkedSnippetsOpen(!viewLinkedSnippetsOpen)} className="ml-auto">
+                                    <div className="flex items-center">
+                                        <span className="mr-2">{viewLinkedSnippetsOpen ? "Hide" : `Show ${props.thisLinks.length - 3} more`}</span>
+                                        {viewLinkedSnippetsOpen ? <FiChevronUp/> : <FiChevronDown/>}
+                                    </div>
+                                </UpButton>
+                            </div>
+                        </>
+                    )}
+                </>
+            )}
+            <hr className="my-12"/>
             <h3 className="up-ui-title">
                 Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
                 <a className="underline">{projectName}</a></Link>
@@ -393,6 +432,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                                 as: "linkedSnippetsArr",
                             }
                         },
+                        {
+                            $lookup: {
+                                from: "links",
+                                foreignField: "nodeId",
+                                localField: "_id",
+                                as: "linkArr",
+                            }
+                        }
                     ],
                     as: "postArr",
                 }
@@ -407,10 +454,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisAuthor = graphObj[0];
         const thisPost = thisAuthor.postArr[0];
         const linkedSnippets = thisPost.linkedSnippetsArr || [];
+        const thisLinks = thisPost.linkArr || [];
         const thisProject = thisPost.projectArr[0];
         const thisOwner = thisProject.ownerArr[0];
 
-        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), key: postUrlName }};
+        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), thisLinks: cleanForJSON(thisLinks), key: postUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };
