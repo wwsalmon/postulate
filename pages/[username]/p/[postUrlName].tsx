@@ -1,6 +1,6 @@
 import {GetServerSideProps} from "next";
 import {UserModel} from "../../../models/user";
-import {cleanForJSON, fetcher} from "../../../utils/utils";
+import {cleanForJSON, fetcher, findImages} from "../../../utils/utils";
 import {
     CommentWithAuthor,
     DatedObj, LinkObj,
@@ -133,7 +133,7 @@ export default function PublicPost(props: {
                 title={title}
                 description={body.substr(0, 200)}
                 projectName={props.projectData.name}
-                imgUrl={props.postData.body.match(/!\[.*?\]\((.*?)\)/) ? props.postData.body.match(/!\[.*?\]\((.*?)\)/)[1] : null}
+                imgUrl={findImages(props.postData.slateBody).length ?  findImages(props.postData.slateBody)[0] : null}
                 authorUsername={props.thisAuthor.username}
                 publishedDate={props.postData.createdAt}
                 noindex={props.postData.privacy !== "public"}
