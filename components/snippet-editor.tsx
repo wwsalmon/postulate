@@ -53,11 +53,6 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     }, [isSnippet]);
 
     useEffect(() => {
-        const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
-        if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
-
-        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
-
         function onSaveSnippetShortcut(e) {
             if (isHotkey("mod+s", e)) {
                 e.preventDefault();
@@ -69,6 +64,15 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
         };
 
         window.addEventListener("keydown", onSaveSnippetShortcut);
+
+        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
+
+        try {
+            const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
+            if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+        } catch (e) {
+            console.log(e);
+        }
 
         return () => {
             window.removeEventListener("keydown", onSaveSnippetShortcut);
