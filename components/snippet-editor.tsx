@@ -29,6 +29,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
 }) {
     const [autoSavedBody, setAutoSavedBody] = useState<Node[]>(null);
     const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
+    const [isMac, setIsMac] = useState<boolean>(false);
     const [autoSaveUsed, setAutoSaveUsed] = useState<boolean>(false);
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
@@ -54,6 +55,8 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     useEffect(() => {
         const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
         if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+
+        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
 
         function onSaveSnippetShortcut(e) {
             if (isHotkey("mod+s", e)) {
@@ -130,7 +133,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     onClick={onSaveEditFilled}
                     isDisabled={disableSaveFinal}
                 >
-                    Save<span className="font-normal hidden sm:inline"> (⌘s)</span>
+                    Save<span className="font-normal hidden sm:inline"> ({isMac ? "⌘" : "Ctrl+"}s)</span>
                 </SpinnerButton>
                 <button className="up-button text" onClick={() => onCancelEdit(urlName)}>Cancel</button>
             </div>
