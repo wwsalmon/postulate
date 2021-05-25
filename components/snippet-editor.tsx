@@ -67,8 +67,12 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
 
         if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
 
-        const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
-        if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+        try {
+            const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
+            if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+        } catch (e) {
+            console.log(e);
+        }
 
         return () => {
             window.removeEventListener("keydown", onSaveSnippetShortcut);
