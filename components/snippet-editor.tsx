@@ -27,24 +27,23 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     startNode?: number,
     isQuick?: boolean,
 }) {
-    const [body, setBody] = useState<string>(snippet ? snippet.body : "");
     const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody")) || slateInitValue));
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
 
-    const disableSaveFinal = disableSave || (isSnippetState && !(body || !slateBody.every(d => getIsEmpty(d)))) || (!isSnippetState && !url);
+    const disableSaveFinal = disableSave || (isSnippetState && slateBody.every(d => getIsEmpty(d))) || (!isSnippetState && !url);
 
-    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody));
+    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, (!snippet || !!snippet.slateBody));
 
     useEffect(() => {
-        window.onbeforeunload = !!body ? () => true : undefined;
+        window.onbeforeunload = !slateBody.every(d => getIsEmpty(d)) ? () => true : undefined;
 
         return () => {
             window.onbeforeunload = undefined;
         };
-    }, [!!body]);
+    }, [!!slateBody]);
 
     useEffect(() => {
         if (!snippet) setIsSnippetState(isSnippet);
@@ -84,30 +83,18 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 />
             )}
             <div className="content prose w-full relative" style={{minHeight: 200}}>
-                {/* if snippet with slateBody or new snippet */}
-                {(!snippet || snippet.slateBody) ? (
-                    <SlateEditor
-                        body={slateBody}
-                        setBody={setSlateBody}
-                        projectId={snippet ? snippet.projectId : projectId}
-                        urlName={urlName}
-                        isPost={false}
-                        id="snippetEditor"
-                    >
-                        {startNode !== undefined && initBody !== undefined && (
-                            <SlateEditorMoveToEnd initBody={initBody} startNode={startNode}/>
-                        )}
-                    </SlateEditor>
-                ) : (
-                    <MDEditor
-                        body={body}
-                        setBody={setBody}
-                        imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
-                        placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
-                        id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
-                        setInstance={setInstance}
-                    />
-                )}
+                <SlateEditor
+                    body={slateBody}
+                    setBody={setSlateBody}
+                    projectId={snippet ? snippet.projectId : projectId}
+                    urlName={urlName}
+                    isPost={false}
+                    id="snippetEditor"
+                >
+                    {startNode !== undefined && initBody !== undefined && (
+                        <SlateEditorMoveToEnd initBody={initBody} startNode={startNode}/>
+                    )}
+                </SlateEditor>
             </div>
             <hr className="my-6"/>
             <p className="up-ui-title mb-4">Tags</p>

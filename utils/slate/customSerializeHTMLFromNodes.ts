@@ -203,6 +203,14 @@ export const customSerializeHTMLFromNodes = (
                 `);
             }
 
+            if (node.type === "tweet") {
+                return encodeURIComponent(`
+                    <blockquote class="twitter-tweet">
+                        <a href="https://twitter.com/x/status/${node.tweetId}"></a>
+                    </blockquote>                
+                `);
+            }
+
             if (Text.isText(node)) {
                 return getLeaf(editor, {
                     plugins,

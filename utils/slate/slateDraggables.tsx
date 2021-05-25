@@ -18,9 +18,11 @@ import {
 } from "@udecode/slate-plugins";
 import {BiGridVertical} from "react-icons/bi";
 import {slateLoadingComponent} from "./slateLoadingComponent";
+import {slateTweetComponent} from "./slateTweetComponent";
 
 let components = createSlatePluginsComponents();
 components["loading"] = slateLoadingComponent;
+components["tweet"] = slateTweetComponent;
 
 const draggableComponents = withDraggables(components, [
     {
@@ -43,6 +45,7 @@ const draggableComponents = withDraggables(components, [
             ELEMENT_TABLE,
             ELEMENT_MEDIA_EMBED,
             ELEMENT_CODE_BLOCK,
+            "tweet",
         ],
         dragIcon: (
             <BiGridVertical/>

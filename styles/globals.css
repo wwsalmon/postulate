@@ -351,3 +351,7 @@ a.up-button.small:not(.primary):not(.text) {
     border-radius: 3px;
     padding: 0.2em 0.4em;
 }
+
+.slate-read-only-container p, .slate-read-only-container code, .slate-read-only-container pre, .slate-read-only-container blockquote {
+    white-space: pre-wrap;
+}

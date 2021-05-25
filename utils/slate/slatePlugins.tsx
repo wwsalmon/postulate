@@ -271,13 +271,6 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
         {
             pluginKeys: "tweet",
             renderElement: getRenderElement("tweet"),
-            serialize: {
-                element: ({ element }: TRenderElementProps) => (
-                    <>
-                        
-                    </>
-                )
-            }
             onKeyDown: editor => e => {
                 if (isHotkey("mod+shift+k", e)) {
                     e.preventDefault();
