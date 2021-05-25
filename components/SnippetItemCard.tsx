@@ -54,7 +54,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                     }}/>
                 </button>
                 <div className="flex items-center mt-4 text-sm">
-                    {session.userId !== snippet.userId && (
+                    {session && session.userId !== snippet.userId && (
                         <img
                             src={snippet.authorArr[0].image}
                             alt={`Profile picture of ${snippet.authorArr[0].name}`}

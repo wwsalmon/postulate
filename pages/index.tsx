@@ -1,16 +1,16 @@
 import {useState} from "react";
-import {FiBookOpen, FiEdit, FiGlobe} from "react-icons/fi";
+import {FiBookOpen, FiEdit, FiGlobe, FiMail, FiMessageSquare, FiSearch} from "react-icons/fi";
 import HomeStep from "../components/home-step";
 import axios from "axios";
 import {WaitlistAPIRes} from "../utils/types";
 import UpSEO from "../components/up-seo";
 import Head from "next/head";
 import UpInlineButton from "../components/style/UpInlineButton";
+import UpResponsiveH2 from "../components/UpResponsiveH2";
+import LandingPageSection from "../components/LandingPageSection";
+import {BiPaint} from "react-icons/bi";
 
 export default function Home() {
-    const badgeStyling = "w-12 h-12 rounded-full bg-gray-100 mb-4 flex items-center justify-center text-xl";
-    const thirdStyling = "mx-4 md:w-1/3 mb-12 md:mb-0 opacity-75 hover:opacity-100 transition";
-    const thirdContainerStyling = "md:flex -mx-4";
     const [email, setEmail] = useState<string>("");
     const [submitted, setSubmitted] = useState<WaitlistAPIRes>(null);
     const [error, setError] = useState<any>(null);
@@ -28,6 +28,7 @@ export default function Home() {
     }
 
     const containerClasses = "px-4 mx-auto max-w-5xl py-8";
+    const badgeClasses = "rounded-full up-bg-gray-100 w-10 h-10 mr-4 flex items-center justify-center";
 
     return (
         <>
@@ -49,27 +50,20 @@ export default function Home() {
                     <a href="#waitlist" className="up-button primary small">Sign up for waitlist</a>
                 </div>
             </div>
-            <div className="px-4 mx-auto max-w-5xl py-16 text-center">
-                <h1 className="max-w-2xl mx-auto md:text-5xl text-4xl up-font-display leading-tight md:leading-tight mb-8">
-                    <code className="text-2xl md:text-4xl bg-gray-200 p-2 rounded-md font-bold">10x</code> your <b>learning and writing output</b> by <b>taking public notes</b>
-                </h1>
-                {/*<hr className="my-10 max-w-sm mx-auto"/>*/}
-                <p className="max-w-xl mx-auto md:text-2xl text-xl leading-normal md:leading-normal">Postulate is a notetaking platform that helps you <b>publish your ideas instead of forgetting them.</b></p>
-                <img src="/sc1.jpg" alt="" className="max-w-xl mx-auto block shadow-xl my-10 w-full"/>
-            </div>
-            <div className="w-full up-primary" id="waitlist">
-                <div className={containerClasses}>
-                    <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Currently in closed beta</b><br/>Sign up for the waitlist</h2>
+            <div className="w-full" id="waitlist">
+                <div className="my-16 text-white text-center up-primary relative z-10 max-w-7xl px-4 mx-auto">
+                    <p className="sm:text-xl lg:text-2xl font-medium mb-3 opacity-75">Postulate helps you turn your notes into content, so you can</p>
+                    <h1 className="up-font-display text-3xl sm:text-4xl lg:text-5xl">
+                        <b>Publish your ideas </b>instead of forgetting them
+                    </h1>
+                    <div className="mt-12 flex">
                         {submitted ? (
-                            <div className="ml-auto">
                                 <p>
                                     You are in <strong>position {submitted && submitted.data.current_priority}</strong>.
                                     Get your friends to sign up with this link to move up in the list: <code>{submitted && submitted.data.referral_link}</code>
                                 </p>
-                            </div>
                         ) : (
-                            <div className="ml-auto flex">
+                            <div className="mx-auto flex">
                                 <input
                                     type="text"
                                     className="p-2 rounded-md text-black"
@@ -77,14 +71,28 @@ export default function Home() {
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                 />
-                                <button className="up-button primary ml-4" onClick={onWaitlistSubmit}>Sign up</button>
+                                <button className="up-button primary ml-4" onClick={onWaitlistSubmit}>Sign up for waitlist</button>
                             </div>
                         )}
                     </div>
                 </div>
+                <div className="relative">
+                    <div className="w-full up-primary absolute left-0" style={{transform: "skew(0deg, -5deg)", height: "100vh", top: "calc(-100vh + 30%)"}}/>
+                    <img src="/hero-graphic.svg" alt="Hero image" className="max-w-7xl px-4 w-full mx-auto block relative mb-24"/>
+                </div>
             </div>
-            <div className={containerClasses}>
-                <h2 className="up-ui-item-title mb-8">What users say</h2>
+            <div className="max-w-3xl px-4 mx-auto my-16">
+                <UpResponsiveH2 className="text-center mb-12">
+                    Other notetaking apps kill ideas.<br/><b>Postulate gives them superpowers.</b>
+                </UpResponsiveH2>
+                <p className="my-6 leading-relaxed">
+                    “Idea graveyard”. “Black hole.” “Take notes, then never see them again.” Apps like Notion and Roam are great for taking private notes, but they create huge choke points when you're trying to get your ideas out into the world.
+                </p>
+                <p className="my-6 leading-relaxed">
+                    Postulate is the first notetaking and writing tool designed for writers, not passive notetakers. After you capture your thoughts, Postulate pushes you to turn them into publishable blog posts, reducing friction and introducing gamification to make the writing process fun, easy, and consistent.
+                </p>
+            </div>
+            <div className="max-w-5xl mx-auto px-4">
                 <script type="text/javascript" src="https://testimonial.to/js/iframeResizer.min.js"/>
                 <iframe
                     id="testimonialto-postulate-homepage-light"
@@ -97,178 +105,115 @@ export default function Home() {
                     iFrameResize({log: false, checkOrigin: false}, "#testimonialto-postulate-homepage-light");
                 `}}/>
             </div>
-            <hr className="my-8"/>
-            <div className={containerClasses}>
-                <h2 className="up-ui-item-title mb-8">Postulate is...</h2>
-                <div className={thirdContainerStyling}>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiEdit/>
+            <LandingPageSection heading={(
+                <>
+                    Effortlessly capture your thoughts
+                </>
+            )} text={(
+                <p className="my-8">
+                    Never lose a valuable thought again: jot down ideas, reading summaries, conversation notes, or whatever else is on your mind and store them all in one place.
+                </p>
+            )} image={(
+                <img src="/landing/feature-notes.jpg" alt="Notetaking feature" className="w-full shadow-lg"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
+                    Turn your notes into writing
+                </>
+            )} text={(
+                <p className="my-8">
+                    Snippets aren't meant to stay private: notes are integrated right into Postulate's post editor, where they can be easily referenced and linked.
+                </p>
+            )} image={(
+                <img src="/landing/feature-editor.jpg" alt="Editor feature" className="w-full shadow-lg"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
+                    Gamify the writing process
+                </>
+            )} text={(
+                <p className="my-8">
+                    Snippet-to-post conversion metrics actively push you to publish your ideas, helping you keep up your output and making writing fun.
+                </p>
+            )} image={(
+                <img src="/landing/feature-stats.jpg" alt="Gamification feature" className="w-full shadow-lg"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
+                    A ready-out-of-the-box blog or newsletter
+                </>
+            )} text={(
+                <>
+                    <p className="my-8">
+                        Publishing on Postulate is the easiest way to give your content a beautiful and powerful online home.
+                    </p>
+                    <div className="flex items-center my-4">
+                        <div className={badgeClasses}>
+                            <FiSearch/>
                         </div>
-                        <h3 className="text-xl mb-2 font-bold">Your catch-all notetaking tool</h3>
-                        <p className="up-ui-subtitle">Record your ideas, work, reading, or anything else</p>
+                        <p>SEO optimization</p>
                     </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiGlobe/>
+                    <div className="flex items-center my-4">
+                        <div className={badgeClasses}>
+                            <BiPaint/>
                         </div>
-                        <h3 className="text-xl mb-2 font-bold">An effortless blogging platform</h3>
-                        <p className="up-ui-subtitle">Beautiful, shareable posts, minus any hassle</p>
+                        <p>Beautiful design</p>
                     </div>
-                    <div className={thirdStyling}>
-                        <div className={badgeStyling}>
-                            <FiBookOpen/>
+                    <div className="flex items-center my-4">
+                        <div className={badgeClasses}>
+                            <FiMail/>
                         </div>
-                        <h3 className="text-xl mb-2 font-bold">The world's comprehensive knowledge base</h3>
-                        <p className="up-ui-subtitle">A home for everything you - and everyone else on earth - have learned</p>
+                        <p>Email subscriptions</p>
                     </div>
-                </div>
-            </div>
-            <hr className="my-8"/>
-            <div className={containerClasses}>
-                <h2 className="up-ui-item-title mb-8">The Postulate manifesto</h2>
-                <p className="up-font-display text-3xl leading-normal my-8">"...among all notetaking strategies, the <b>only one that actually simplifies knowledge management</b> and makes it more effective is to <b>publish your learning, experiences, and insights in public.</b>"</p>
-                <p className="content">Read founder Samson Zhang's blog post <a href="https://www.samsonzhang.com/2021/01/27/how-i-use-learning-in-public-as-my-personal-knowledge-management-strategy.html" className="underline">How I Use Learning in Public as My Personal Knowledge Management Strategy</a></p>
-            </div>
-            <hr className="my-8"/>
-            <div className="px-4 mx-auto max-w-5xl py-8 mt-8">
-                <h2 className="up-ui-item-title">Here's how it works:</h2>
-                <HomeStep number={1} title={<>Jot down <strong>snippets</strong> as you build and learn </>}>
-                    <div className={thirdContainerStyling + " mt-8"}>
-                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
-                            <p className="up-ui-title mb-4">Time-based</p>
-                            <div className="shadow-xl p-4">
-                                <p>Today I started building the MVP for curate.it. Using Next.js + MongoDB as my stack...</p>
-                            </div>
+                    <div className="flex items-center my-4">
+                        <div className={badgeClasses}>
+                            <FiMessageSquare/>
                         </div>
-                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
-                            <p className="up-ui-title mb-4">Progress-based</p>
-                            <div className="shadow-xl p-4">
-                                <p>First, I ran <code>npx create-next-app curate.it</code>, then installed Typescript and Tailwind...</p>
-                            </div>
-                        </div>
-                        <div className={thirdStyling + " opacity-75 hover:opacity-100 transition"}>
-                            <p className="up-ui-title mb-4">Save outside resources</p>
-                            <div className="shadow-xl p-4">
-                                <div className="flex mb-4">
-                                    <img src="/nextauth.png" alt="NextAuth.js logo" className="w-6 h-6 mr-4"/>
-                                    <p>NextAuth.js | next-auth.js.org</p>
-                                </div>
-                                <p>Mind-blowingly easy way to set up auth in Next.js! Just create an...</p>
-                            </div>
-                        </div>
+                        <p>Comments and reactions</p>
                     </div>
-                </HomeStep>
-                <hr className="my-4"/>
-                <HomeStep number={2} title={<>Turn snippets into <strong>public posts</strong></>}>
-                    <div className="-mx-6 md:flex mt-8 items-center opacity-50 hover:opacity-75 transition">
-                        <div className="mx-6 md:w-1/3 mb-12 md:mb-0 hidden md:block">
-                            <div className="shadow-xl p-4 my-4">
-                                <p>Today I started building the MVP for curate.it. Using Next.js + MongoDB as my stack...</p>
-                            </div>
-                            <div className="shadow-xl p-4 my-4">
-                                <p>First, I ran <code>npx create-next-app curate.it</code>, then installed Typescript and Tailwind...</p>
-                            </div>
-                            <div className="shadow-xl p-4 my-4">
-                                <div className="flex mb-4">
-                                    <img src="/nextauth.png" alt="NextAuth.js logo" className="w-6 h-6 mr-4"/>
-                                    <p>NextAuth.js | next-auth.js.org</p>
-                                </div>
-                                <p>Mind-blowingly easy way to set up auth in Next.js! Just create an...</p>
-                            </div>
-                        </div>
-                        <div className="mx-6 md:w-2/3">
-                            <div className="prose content">
-                                <h2># How to Build a Social Platform Using Next.js and MongoDB</h2>
-                                <p>
-                                    Today, I built the MVP for curate.it, a platform for expert-curated lists and social bookmarking.
-                                    I used <b>**Next.js and MongoDB**</b> to build as fast as possible.
-                                    In this post, I'll give an overview of my setup, libraries I used, etc. to implement <b>**posts, notifications, comments, user profiles, and more.**</b>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </HomeStep>
-                <hr className="my-4"/>
-                <HomeStep number={3} title={<><strong>Share your knowledge</strong> through profile and project pages</>}>
-                    <div className="-mx-6 md:flex mt-12 opacity-50 hover:opacity-75 transition">
-                        <div className="mx-6 md:w-1/3 mb-12 md:mb-0">
-                            <div className="flex items-center">
-                                <img src="/sz-headshot.jpg" alt="Profile picture of Samson Zhang" className="rounded-full w-12 h-12 mr-4"/>
-                                <p className="content">Samson Zhang</p>
-                            </div>
-                            <hr className="my-4"/>
-                            <p className="up-ui-title">Projects</p>
-                            <p className="my-2">curate.it (4)</p>
-                            <p className="my-2">Physics research (2)</p>
-                            <p className="my-2">Revolutionary reading club (1)</p>
-                            <hr className="my-4"/>
-                            <p className="up-ui-title">Tags</p>
-                            <p className="my-2">#nextjs (4)</p>
-                            <p className="my-2">#webdev (4)</p>
-                            <p className="my-2">#swe (4)</p>
-                        </div>
-                        <div className="mx-6 md:w-2/3">
-                            <div className="mb-8">
-                                <p className="up-ui-item-title mb-2">How to Build a Social Platform Using Next.js and MongoDB</p>
-                                <p>April 10 in curate.it <b className="opacity-50">#nextjs #mongodb #webdev #swe</b></p>
-                            </div>
-                            <div className="mb-8">
-                                <p className="up-ui-item-title mb-2">How Do Transistors Work? The Building Blocks of Modern Computing</p>
-                                <p>April 2 in Physics Research <b className="opacity-50">#engineering #physics</b></p>
-                            </div>
-                            <div className="mb-8">
-                                <p className="up-ui-item-title mb-2">The Importance of Theory to Revolution | Notes on Lenin's "What Is to Be Done?", Chapter 1</p>
-                                <p>March 27 in Revolutionary Reading Club <b className="opacity-50">#book #socialscience</b></p>
-                            </div>
-                        </div>
-                    </div>
-                </HomeStep>
-            </div>
-            <hr className="my-8"/>
-            <div className={containerClasses}>
-                <h2 className="up-ui-item-title mb-8">Pricing</h2>
-                <div className={thirdContainerStyling}>
-                    <div className={thirdStyling}>
-                        <h3 className="text-2xl">Free</h3>
-                        <div className="prose">
-                            <p>Free forever</p>
-                            <ul>
-                                <li>Unlimited snippets</li>
-                                <li>Unlimited posts</li>
-                                <li>Up to 5 projects</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className={thirdStyling}>
-                        <h3 className="text-2xl">Professional</h3>
-                        <div className="prose">
-                            <p>$5 / month</p>
-                            <ul>
-                                <li>Everything in Free, plus...</li>
-                                <li>Unlimited projects</li>
-                                <li>Share projects with collaborators</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className={thirdStyling}>
-                        <h3 className="text-2xl">Creator</h3>
-                        <div className="prose">
-                            <p>$10 / month</p>
-                            <ul>
-                                <li>Everything in Professional, plus...</li>
-                                <li>Customize project page</li>
-                                <li>Email subscriptions for projects</li>
-                                <li>Monetize your content</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div className="w-full up-primary" id="waitlist">
+                </>
+            )} image={(
+                <img src="/landing/feature-blog.jpg" alt="Publishing feature" className="w-full shadow-lg"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
+                    ...or publish on the platform of your choice
+                </>
+            )} text={(
+                <p className="my-8">
+                    Use Postulate as a superpowered CMS for your publication on Medium, Ghost, NextJS, or another platform that we integrate with.
+                </p>
+            )} image={(
+                <img src="/landing/feature-logos.png" alt="Publishing on other platforms feature" className="w-full"/>
+            )}
+                comingSoon={true}
+            />
+            <LandingPageSection heading={(
+                <>
+                    Save links and quotes in one click
+                </>
+            )} text={(
+                <p className="my-8">
+                    Our Chrome extension makes Postulate the easiest way to bookmark and highlight the resources you want to come back to.
+                </p>
+            )} image={(
+                <img src="/landing/feature-chrome.svg" alt="Notetaking feature" className="w-full"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
+                    As fast as an IDE
+                </>
+            )} text={(
+                <p className="my-8">
+                    No clunky or laggy UI here: navigate through Postulate with keyboard shortcuts, quick switcher menus, and more.
+                </p>
+            )} image={(
+                <img src="/landing/feature-shortcuts.png" alt="Notetaking feature" className="w-full"/>
+            )}/>
+            <div className="w-full up-primary mt-16" id="waitlist">
                 <div className={containerClasses}>
                     <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>10x your learning and writing output</b><br/>Sign up for the waitlist</h2>
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Publish your ideas instead of forgetting them</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>

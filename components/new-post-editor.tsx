@@ -12,6 +12,7 @@ import {stripHtml} from "string-strip-html";
 import useSWR, {responseInterface} from "swr";
 import {format} from "date-fns";
 import getIsEmpty from "../utils/slate/getIsEmpty";
+import UpInlineButton from "./style/UpInlineButton";
 
 export default function NewPostEditor(props: {
     body?: string,
@@ -30,6 +31,8 @@ export default function NewPostEditor(props: {
     isEditLoading: boolean,
     setInstance: Dispatch<SetStateAction<EasyMDE>>,
 }) {
+    const [autoSavedBody, setAutoSavedBody] = useState<Node[]>(null);
+    const [autoSaveUsed, setAutoSaveUsed] = useState<boolean>(false);
     const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
@@ -105,12 +108,8 @@ export default function NewPostEditor(props: {
     }, [slateBody]);
 
     useEffect(() => {
-        if (!props.slateBody) {
-            if (localStorage.getItem("postulatePostBody")) {
-                const savedSlateBody = JSON.parse(localStorage.getItem("postulatePostBody"));
-                setSlateBody(savedSlateBody);
-            }
-        }
+        const initAutoSavedBody = JSON.parse(localStorage.getItem("postulatePostBody"));
+        if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
     }, []);
 
     return (
@@ -131,6 +130,19 @@ export default function NewPostEditor(props: {
                     </h1>
                 )}
             </div>
+            {autoSavedBody && !autoSaveUsed && (
+                <>
+                    <span>Autosave available: </span>
+                    <UpInlineButton
+                        onClick={() => {
+                            setSlateBody(autoSavedBody);
+                            setAutoSaveUsed(true);
+                        }}
+                    >
+                        Recover
+                    </UpInlineButton>
+                </>
+            )}
             <div className="content prose w-full" style={{maxWidth: "unset", minHeight: 300}}>
                 <SlateEditor
                     body={slateBody}

@@ -1,7 +1,6 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
-import MDEditor from "./md-editor";
 import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -12,6 +11,7 @@ import SlateEditor from "./SlateEditor";
 import getIsEmpty from "../utils/slate/getIsEmpty";
 import isHotkey from "is-hotkey";
 import SlateEditorMoveToEnd from "./SlateEditorMoveToEnd";
+import UpInlineButton from "./style/UpInlineButton";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody, startNode, isQuick}: {
     isSnippet?: boolean,
@@ -27,30 +27,37 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     startNode?: number,
     isQuick?: boolean,
 }) {
-    const [body, setBody] = useState<string>(snippet ? snippet.body : "");
-    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody")) || slateInitValue));
+    const [autoSavedBody, setAutoSavedBody] = useState<Node[]>(null);
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
+    const [isMac, setIsMac] = useState<boolean>(false);
+    const [autoSaveUsed, setAutoSaveUsed] = useState<boolean>(false);
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
 
-    const disableSaveFinal = disableSave || (isSnippetState && !(body || !slateBody.every(d => getIsEmpty(d)))) || (!isSnippetState && !url);
+    const disableSaveFinal = disableSave || (isSnippetState && slateBody.every(d => getIsEmpty(d))) || (!isSnippetState && !url);
 
-    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, (!snippet || snippet.slateBody) ? slateBody : body, url, tags, (!snippet || !!snippet.slateBody));
+    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, (!snippet || !!snippet.slateBody));
 
     useEffect(() => {
-        window.onbeforeunload = !!body ? () => true : undefined;
+        window.onbeforeunload = !slateBody.every(d => getIsEmpty(d)) ? () => true : undefined;
 
         return () => {
             window.onbeforeunload = undefined;
         };
-    }, [!!body]);
+    }, [!!slateBody]);
 
     useEffect(() => {
         if (!snippet) setIsSnippetState(isSnippet);
     }, [isSnippet]);
 
     useEffect(() => {
+        const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
+        if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+
+        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
+
         function onSaveSnippetShortcut(e) {
             if (isHotkey("mod+s", e)) {
                 e.preventDefault();
@@ -66,7 +73,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
         return () => {
             window.removeEventListener("keydown", onSaveSnippetShortcut);
         };
-    });
+    }, []);
 
     useEffect(() => {
         localStorage.setItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody", JSON.stringify(slateBody));
@@ -83,31 +90,32 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     placeholder="Resource URL"
                 />
             )}
-            <div className="content prose w-full relative" style={{minHeight: 200}}>
-                {/* if snippet with slateBody or new snippet */}
-                {(!snippet || snippet.slateBody) ? (
-                    <SlateEditor
-                        body={slateBody}
-                        setBody={setSlateBody}
-                        projectId={snippet ? snippet.projectId : projectId}
-                        urlName={urlName}
-                        isPost={false}
-                        id="snippetEditor"
+            {autoSavedBody && !autoSaveUsed && (
+                <>
+                    <span>Autosave available: </span>
+                    <UpInlineButton
+                        onClick={() => {
+                            setSlateBody(autoSavedBody);
+                            setAutoSaveUsed(true);
+                        }}
                     >
-                        {startNode !== undefined && initBody !== undefined && (
-                            <SlateEditorMoveToEnd initBody={initBody} startNode={startNode}/>
-                        )}
-                    </SlateEditor>
-                ) : (
-                    <MDEditor
-                        body={body}
-                        setBody={setBody}
-                        imageUploadEndpoint={`/api/upload?projectId=${snippet ? snippet.projectId : projectId}&attachedType=snippet&attachedUrlName=${urlName}`}
-                        placeholder={isSnippetState ? "Write down an interesting thought or development" : "Jot down some notes about this resource"}
-                        id={isSnippetState ? (projectId || snippet._id) + "snippet" : (projectId || snippet._id) + "resource"}
-                        setInstance={setInstance}
-                    />
-                )}
+                        Recover
+                    </UpInlineButton>
+                </>
+            )}
+            <div className="content prose w-full relative" style={{minHeight: 200}}>
+                <SlateEditor
+                    body={slateBody}
+                    setBody={setSlateBody}
+                    projectId={snippet ? snippet.projectId : projectId}
+                    urlName={urlName}
+                    isPost={false}
+                    id="snippetEditor"
+                >
+                    {startNode !== undefined && initBody !== undefined && (
+                        <SlateEditorMoveToEnd initBody={initBody} startNode={startNode}/>
+                    )}
+                </SlateEditor>
             </div>
             <hr className="my-6"/>
             <p className="up-ui-title mb-4">Tags</p>
@@ -125,7 +133,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     onClick={onSaveEditFilled}
                     isDisabled={disableSaveFinal}
                 >
-                    Save<span className="font-normal hidden sm:inline"> (⌘s)</span>
+                    Save<span className="font-normal hidden sm:inline"> ({isMac ? "⌘" : "Ctrl+"}s)</span>
                 </SpinnerButton>
                 <button className="up-button text" onClick={() => onCancelEdit(urlName)}>Cancel</button>
             </div>
