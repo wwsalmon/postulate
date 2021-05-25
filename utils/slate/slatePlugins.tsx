@@ -29,7 +29,7 @@ import {
     ExitBreakPluginOptions,
     getRenderElement,
     getSlatePluginType,
-    insertCodeBlock,
+    insertCodeBlock, insertNodes,
     isBlockAboveEmpty,
     isSelectionAtBlockStart,
     KEYS_HEADING,
@@ -41,7 +41,7 @@ import {
     SoftBreakPluginOptions,
     someNode,
     SPEditor,
-    toggleList,
+    toggleList, TRenderElementProps,
     unwrapList,
     unwrapNodes,
     upsertLinkAtSelection,
@@ -268,6 +268,37 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
             renderElement: getRenderElement("loading"),
             voidTypes: () => ["div"],
         },
+        {
+            pluginKeys: "tweet",
+            renderElement: getRenderElement("tweet"),
+            serialize: {
+                element: ({ element }: TRenderElementProps) => (
+                    <>
+                        
+                    </>
+                )
+            }
+            onKeyDown: editor => e => {
+                if (isHotkey("mod+shift+k", e)) {
+                    e.preventDefault();
+
+                    const tweetUrl = normalizeUrl(window.prompt("Enter the Tweet URL"));
+                    const tweetIdMatches = tweetUrl.match(/\/status\/([0-9]*)/);
+                    if (tweetIdMatches.length >= 2) {
+                        const tweetId = tweetIdMatches[1];
+
+                        insertNodes(editor, {
+                            type: "tweet",
+                            tweetId: tweetId,
+                            children: [{text: ""}],
+                        });
+                    } else {
+                        alert("Invalid Twitter url");
+                    }
+                }
+            },
+            voidTypes: () => ["div"],
+        }
     ];
 
     plugins.push(createCustomDeserializeHTMLPlugin({ plugins }));
