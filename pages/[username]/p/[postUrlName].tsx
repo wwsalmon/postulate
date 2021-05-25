@@ -44,6 +44,7 @@ import UpInlineButton from "../../../components/style/UpInlineButton";
 import SnippetItemLinkPreview from "../../../components/SnippetItemLinkPreview";
 import UpButton from "../../../components/UpButton";
 import SubscriptionButton from "../../../components/SubscriptionButton";
+import SubscriptionInsert from "../../../components/SubscriptionInsert";
 
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
@@ -273,7 +274,13 @@ export default function PublicPost(props: {
             <hr className="my-8"/>
             <div className="content prose">
                 {props.postData.slateBody ?
-                    <SlateReadOnly nodes={props.postData.slateBody}/>
+                    <SlateReadOnly
+                        nodes={props.postData.slateBody}
+                        projectId={props.projectData._id}
+                        projectName={props.projectData.name}
+                        ownerName={props.thisOwner.name}
+                        isOwner={isOwner}
+                    />
                     : Parser(markdownConverter.makeHtml(body))
                 }
             </div>
@@ -284,13 +291,12 @@ export default function PublicPost(props: {
                 </>
             )}
             <hr className="my-12"/>
-            {!isOwner && (
-                <>
-                    <h3 className="up-ui-title">Subscribe to this project</h3>
-                    <p className="up-gray-400 mb-8">Subscribe to get an email whenever a new post is published in {props.projectData.name} by {props.thisOwner.name}</p>
-                    <SubscriptionButton projectId={props.projectData._id}/>
-                </>
-            )}
+            <SubscriptionInsert
+                projectId={props.projectData._id}
+                projectName={props.projectData.name}
+                ownerName={props.thisOwner.name}
+                isOwner={isOwner}
+            />
             <hr className="my-12"/>
             <h3 className="up-ui-title mb-8">Post author</h3>
             <div className="flex items-center opacity-50 hover:opacity-100 transition">

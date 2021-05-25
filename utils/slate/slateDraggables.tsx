@@ -19,10 +19,12 @@ import {
 import {BiGridVertical} from "react-icons/bi";
 import {slateLoadingComponent} from "./slateLoadingComponent";
 import {slateTweetComponent} from "./slateTweetComponent";
+import {slateCTAComponent} from "./slateCTAComponent";
 
 let components = createSlatePluginsComponents();
 components["loading"] = slateLoadingComponent;
 components["tweet"] = slateTweetComponent;
+components["cta"] = slateCTAComponent;
 
 const draggableComponents = withDraggables(components, [
     {
@@ -46,6 +48,7 @@ const draggableComponents = withDraggables(components, [
             ELEMENT_MEDIA_EMBED,
             ELEMENT_CODE_BLOCK,
             "tweet",
+            "cta",
         ],
         dragIcon: (
             <BiGridVertical/>

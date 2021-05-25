@@ -291,6 +291,21 @@ export const pluginsFactory = (projectId?: string, urlName?: string, isPost?: bo
                 }
             },
             voidTypes: () => ["div"],
+        },
+        {
+            pluginKeys: "cta",
+            renderElement: getRenderElement("cta"),
+            onKeyDown: editor => e => {
+                if (isPost && isHotkey("mod+shift+c", e)) {
+                    e.preventDefault();
+
+                    insertNodes(editor, {
+                        type: "cta",
+                        children: [{text: ""}],
+                    });
+                }
+            },
+            voidTypes: () => ["div"],
         }
     ];
 

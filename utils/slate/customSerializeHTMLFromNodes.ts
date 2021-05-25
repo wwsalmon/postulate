@@ -211,6 +211,10 @@ export const customSerializeHTMLFromNodes = (
                 `);
             }
 
+            if (node.type === "cta") {
+                return encodeURIComponent(`[[cta]]`);
+            }
+
             if (Text.isText(node)) {
                 return getLeaf(editor, {
                     plugins,
