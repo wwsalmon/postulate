@@ -1,7 +1,6 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
-import MDEditor from "./md-editor";
 import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -12,6 +11,7 @@ import SlateEditor from "./SlateEditor";
 import getIsEmpty from "../utils/slate/getIsEmpty";
 import isHotkey from "is-hotkey";
 import SlateEditorMoveToEnd from "./SlateEditorMoveToEnd";
+import UpInlineButton from "./style/UpInlineButton";
 
 export default function SnippetEditor({isSnippet = false, snippet = null, projectId = null, availableTags, isLoading, onSaveEdit, onCancelEdit, setInstance, disableSave, initBody, startNode, isQuick}: {
     isSnippet?: boolean,
@@ -27,7 +27,9 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     startNode?: number,
     isQuick?: boolean,
 }) {
-    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody")) || slateInitValue));
+    const [autoSavedBody, setAutoSavedBody] = useState<Node[]>(null);
+    const [slateBody, setSlateBody] = useState<Node[]>(snippet ? (snippet.slateBody || slateInitValue) : (initBody || slateInitValue));
+    const [autoSaveUsed, setAutoSaveUsed] = useState<boolean>(false);
     const [url, setUrl] = useState<string>(snippet ? snippet.url : "");
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
@@ -50,6 +52,9 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     }, [isSnippet]);
 
     useEffect(() => {
+        const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
+        if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
+
         function onSaveSnippetShortcut(e) {
             if (isHotkey("mod+s", e)) {
                 e.preventDefault();
@@ -65,7 +70,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
         return () => {
             window.removeEventListener("keydown", onSaveSnippetShortcut);
         };
-    });
+    }, []);
 
     useEffect(() => {
         localStorage.setItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody", JSON.stringify(slateBody));
@@ -81,6 +86,19 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     onChange={e => setUrl(e.target.value)}
                     placeholder="Resource URL"
                 />
+            )}
+            {autoSavedBody && !autoSaveUsed && (
+                <>
+                    <span>Autosave available: </span>
+                    <UpInlineButton
+                        onClick={() => {
+                            setSlateBody(autoSavedBody);
+                            setAutoSaveUsed(true);
+                        }}
+                    >
+                        Recover
+                    </UpInlineButton>
+                </>
             )}
             <div className="content prose w-full relative" style={{minHeight: 200}}>
                 <SlateEditor
