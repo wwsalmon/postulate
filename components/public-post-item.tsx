@@ -54,7 +54,7 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
                                 </UpInlineButton>
                             </>
                         )}
-                        {images.length && (
+                        {!!images.length && (
                             <>
                                 {(showAuthor || showProject) && (
                                     <span className="up-gray-400 mx-2 hidden md:block">on</span>
@@ -72,7 +72,7 @@ export default function PublicPostItem({post, showProject, showAuthor, showLine 
                                 ))}
                             </>
                         )}
-                        {images.length && (
+                        {!!images.length && (
                             <>
                                 <span className="up-gray-300 mx-2 hidden md:block">|</span>
                                 <span className="up-gray-400 hidden md:block">{readingTime(post.body).text}</span>
