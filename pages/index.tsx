@@ -44,10 +44,11 @@ export default function Home() {
                 `}}/>
             </Head>
             <div className="w-full bg-white sticky top-0 z-50">
-                <div className="px-4 mx-auto max-w-5xl flex h-16 items-center">
-                    <img src="/logo.svg" alt="Postulate logo" className="h-10"/>
-                    <UpInlineButton href="/auth/signin" className="ml-auto mr-4">Sign in</UpInlineButton>
-                    <a href="#waitlist" className="up-button primary small">Sign up for waitlist</a>
+                <div className="px-4 mx-auto max-w-5xl flex h-16 items-center w-full">
+                    <img src="/logo.svg" alt="Postulate logo" className="h-10 hidden sm:block"/>
+                    <img src="/postulate-tile.svg" alt="Postulate logo" className="h-10 sm:hidden"/>
+                    <UpInlineButton href="/auth/signin" className="ml-auto hidden sm:inline-block">Sign in</UpInlineButton>
+                    <a href="#waitlist" className="up-button primary small ml-auto sm:ml-4">Sign up for waitlist</a>
                 </div>
             </div>
             <div className="w-full" id="waitlist">
