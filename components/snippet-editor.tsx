@@ -38,7 +38,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
 
     const disableSaveFinal = disableSave || (isSnippetState && slateBody.every(d => getIsEmpty(d))) || (!isSnippetState && !url);
 
-    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, (!snippet || !!snippet.slateBody));
+    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, true);
 
     useEffect(() => {
         window.onbeforeunload = !slateBody.every(d => getIsEmpty(d)) ? () => true : undefined;
@@ -56,27 +56,30 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
         function onSaveSnippetShortcut(e) {
             if (isHotkey("mod+s", e)) {
                 e.preventDefault();
-                console.log("save");
                 if (!disableSaveFinal) {
                     onSaveEditFilled();
                 }
             }
-        };
+        }
 
         window.addEventListener("keydown", onSaveSnippetShortcut);
 
-        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
+        return () => {
+            window.removeEventListener("keydown", onSaveSnippetShortcut);
+        };
+    }, [slateBody]);
 
+    useEffect(() => {
+        if (window.navigator.userAgent.includes("Mac")) setIsMac(true);
+    }, []);
+
+    useEffect(() => {
         try {
             const initAutoSavedBody = JSON.parse(localStorage.getItem(isQuick ? "postulateQuickSnippetBody" : "postulateSnippetBody"));
             if (initAutoSavedBody) setAutoSavedBody(initAutoSavedBody);
         } catch (e) {
             console.log(e);
         }
-
-        return () => {
-            window.removeEventListener("keydown", onSaveSnippetShortcut);
-        };
     }, []);
 
     useEffect(() => {
