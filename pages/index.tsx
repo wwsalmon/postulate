@@ -79,22 +79,23 @@ export default function Home() {
                 </div>
                 <div className="relative">
                     <div className="w-full up-primary absolute left-0" style={{transform: "skew(0deg, -5deg)", height: "100vh", top: "calc(-100vh + 30%)"}}/>
-                    <img src="/sc2.png" alt="Hero image" className="max-w-5xl px-4 w-full mx-auto block relative mb-24"/>
+                    <img src="/sc2.png" alt="Hero image" className="max-w-3xl px-4 w-full mx-auto block relative mb-24"/>
                 </div>
             </div>
-            {/*<div className="max-w-5xl mx-auto px-4">*/}
-            {/*    <script type="text/javascript" src="https://testimonial.to/js/iframeResizer.min.js"/>*/}
-            {/*    <iframe*/}
-            {/*        id="testimonialto-postulate-homepage-light"*/}
-            {/*        src="https://embed.testimonial.to/w/postulate-homepage?theme=light&card=small"*/}
-            {/*        frameBorder="0"*/}
-            {/*        scrolling="no"*/}
-            {/*        width="100%"*/}
-            {/*    />*/}
-            {/*    <script type="text/javascript" dangerouslySetInnerHTML={{__html: `*/}
-            {/*        iFrameResize({log: false, checkOrigin: false}, "#testimonialto-postulate-homepage-light");*/}
-            {/*    `}}/>*/}
-            {/*</div>*/}
+            <div className="max-w-5xl mx-auto px-4">
+                <hr className="my-16"/>
+                <div className="lg:flex items-center">
+                    <div className="lg:w-64 mb-4 lg:mb-0">
+                        <img src="/annia.jpg" className="w-16 h-16 rounded-full mb-4" alt="Photo of Annia Mirza, author of Legit"/>
+                        <p className="content"><b>Annia Mirza</b></p>
+                        <p>Uses Postulate to write weekly newsletters for 2K+ <a href="https://www.readlegit.com/" className="underline">Legit.</a> subscribers</p>
+                    </div>
+                    <div className="prose up-font-display lg:ml-auto content">
+                        <p>"My old note-taking process felt incredibly splintered - I was pasting links I would later lose and  jotting down notes I would later forget about in the process of hopping to and from Notion and Google Docs.</p>
+                        <p>"Postulate has <b>consolidated this entire process:</b> it lets me quickly jot down notes and thoughts as they occur, easily save links (and connect these link to my notes so I never forget about them!) and, overall, has made me a <b>calmer, less sporadic writer.</b>"</p>
+                    </div>
+                </div>
+            </div>
             <LandingPageSection heading={(
                 <>
                     Effortlessly capture your thoughts
@@ -202,8 +203,8 @@ export default function Home() {
             )}/>
             <div className="w-full up-primary mt-16" id="waitlist">
                 <div className={containerClasses}>
-                    <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Write faster and with more confidence than ever before</b><br/>Sign up for the waitlist</h2>
+                    <div className="md:flex items-center">
+                        <h2 className="flex-shrink-0 mr-8 mb-4 md:mb-0"><b>Write faster and with more confidence than ever before</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
