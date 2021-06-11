@@ -52,60 +52,49 @@ export default function Home() {
                 </div>
             </div>
             <div className="w-full" id="waitlist">
-                <div className="my-16 text-white text-center up-primary relative z-10 max-w-7xl px-4 mx-auto">
-                    <p className="sm:text-xl lg:text-2xl font-medium mb-3 opacity-75">Postulate helps you turn your notes into content, so you can</p>
-                    <h1 className="up-font-display text-3xl sm:text-4xl lg:text-5xl">
-                        <b>Publish your ideas </b>instead of forgetting them
+                <div className="my-16 text-white sm:text-center up-primary relative z-10 px-4 mx-auto">
+                    <h1 className="up-font-display text-3xl sm:text-4xl" style={{lineHeight: 1.2}}>
+                        Postulate is a notetaking app that helps you write <br className="hidden md:block"/><b>faster and with more confidence</b> than ever before.
                     </h1>
+                    <p className="max-w-3xl mx-auto sm:text-xl my-8">Keep your notes and research in one place. Link and reference them as you write. Supercharge your blog or newsletter writing process with Postulate.</p>
                     <div className="mt-12 flex">
                         {submitted ? (
-                                <p>
+                                <p className="mx-auto">
                                     You are in <strong>position {submitted && submitted.data.current_priority}</strong>.
                                     Get your friends to sign up with this link to move up in the list: <code>{submitted && submitted.data.referral_link}</code>
                                 </p>
                         ) : (
-                            <div className="mx-auto flex">
+                            <div className="mx-auto flex flex-col sm:flex-row w-full sm:w-auto">
                                 <input
                                     type="text"
-                                    className="p-2 rounded-md text-black"
+                                    className="p-2 rounded-md text-black w-full sm:w-auto"
                                     placeholder="Enter your email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                 />
-                                <button className="up-button primary ml-4" onClick={onWaitlistSubmit}>Sign up for waitlist</button>
+                                <button className="up-button primary ml-auto mt-2 sm:ml-4 sm:mt-0" onClick={onWaitlistSubmit}>Sign up for waitlist</button>
                             </div>
                         )}
                     </div>
                 </div>
                 <div className="relative">
                     <div className="w-full up-primary absolute left-0" style={{transform: "skew(0deg, -5deg)", height: "100vh", top: "calc(-100vh + 30%)"}}/>
-                    <img src="/hero-graphic.svg" alt="Hero image" className="max-w-7xl px-4 w-full mx-auto block relative mb-24"/>
+                    <img src="/sc2.png" alt="Hero image" className="max-w-5xl px-4 w-full mx-auto block relative mb-24"/>
                 </div>
             </div>
-            <div className="max-w-3xl px-4 mx-auto my-16">
-                <UpResponsiveH2 className="text-center mb-12">
-                    Other notetaking apps kill ideas.<br/><b>Postulate gives them superpowers.</b>
-                </UpResponsiveH2>
-                <p className="my-6 leading-relaxed">
-                    “Idea graveyard”. “Black hole.” “Take notes, then never see them again.” Apps like Notion and Roam are great for taking private notes, but they create huge choke points when you're trying to get your ideas out into the world.
-                </p>
-                <p className="my-6 leading-relaxed">
-                    Postulate is the first notetaking and writing tool designed for writers, not passive notetakers. After you capture your thoughts, Postulate pushes you to turn them into publishable blog posts, reducing friction and introducing gamification to make the writing process fun, easy, and consistent.
-                </p>
-            </div>
-            <div className="max-w-5xl mx-auto px-4">
-                <script type="text/javascript" src="https://testimonial.to/js/iframeResizer.min.js"/>
-                <iframe
-                    id="testimonialto-postulate-homepage-light"
-                    src="https://embed.testimonial.to/w/postulate-homepage?theme=light&card=small"
-                    frameBorder="0"
-                    scrolling="no"
-                    width="100%"
-                />
-                <script type="text/javascript" dangerouslySetInnerHTML={{__html: `
-                    iFrameResize({log: false, checkOrigin: false}, "#testimonialto-postulate-homepage-light");
-                `}}/>
-            </div>
+            {/*<div className="max-w-5xl mx-auto px-4">*/}
+            {/*    <script type="text/javascript" src="https://testimonial.to/js/iframeResizer.min.js"/>*/}
+            {/*    <iframe*/}
+            {/*        id="testimonialto-postulate-homepage-light"*/}
+            {/*        src="https://embed.testimonial.to/w/postulate-homepage?theme=light&card=small"*/}
+            {/*        frameBorder="0"*/}
+            {/*        scrolling="no"*/}
+            {/*        width="100%"*/}
+            {/*    />*/}
+            {/*    <script type="text/javascript" dangerouslySetInnerHTML={{__html: `*/}
+            {/*        iFrameResize({log: false, checkOrigin: false}, "#testimonialto-postulate-homepage-light");*/}
+            {/*    `}}/>*/}
+            {/*</div>*/}
             <LandingPageSection heading={(
                 <>
                     Effortlessly capture your thoughts
@@ -119,6 +108,17 @@ export default function Home() {
             )}/>
             <LandingPageSection heading={(
                 <>
+                    Save links and quotes in one click
+                </>
+            )} text={(
+                <p className="my-8">
+                    Our Chrome extension makes Postulate the easiest way to bookmark and highlight the resources you want to come back to.
+                </p>
+            )} image={(
+                <img src="/landing/feature-chrome.svg" alt="Notetaking feature" className="w-full"/>
+            )}/>
+            <LandingPageSection heading={(
+                <>
                     Turn your notes into writing
                 </>
             )} text={(
@@ -127,17 +127,6 @@ export default function Home() {
                 </p>
             )} image={(
                 <img src="/landing/feature-editor.jpg" alt="Editor feature" className="w-full shadow-lg"/>
-            )}/>
-            <LandingPageSection heading={(
-                <>
-                    Gamify the writing process
-                </>
-            )} text={(
-                <p className="my-8">
-                    Snippet-to-post conversion metrics actively push you to publish your ideas, helping you keep up your output and making writing fun.
-                </p>
-            )} image={(
-                <img src="/landing/feature-stats.jpg" alt="Gamification feature" className="w-full shadow-lg"/>
             )}/>
             <LandingPageSection heading={(
                 <>
@@ -191,17 +180,6 @@ export default function Home() {
             />
             <LandingPageSection heading={(
                 <>
-                    Save links and quotes in one click
-                </>
-            )} text={(
-                <p className="my-8">
-                    Our Chrome extension makes Postulate the easiest way to bookmark and highlight the resources you want to come back to.
-                </p>
-            )} image={(
-                <img src="/landing/feature-chrome.svg" alt="Notetaking feature" className="w-full"/>
-            )}/>
-            <LandingPageSection heading={(
-                <>
                     As fast as an IDE
                 </>
             )} text={(
@@ -211,10 +189,21 @@ export default function Home() {
             )} image={(
                 <img src="/landing/feature-shortcuts.png" alt="Notetaking feature" className="w-full"/>
             )}/>
+            <LandingPageSection heading={(
+                <>
+                    Gamify the writing process
+                </>
+            )} text={(
+                <p className="my-8">
+                    Snippet-to-post conversion metrics actively push you to publish your ideas, helping you keep up your output and making writing fun.
+                </p>
+            )} image={(
+                <img src="/landing/feature-stats.jpg" alt="Gamification feature" className="w-full shadow-lg"/>
+            )}/>
             <div className="w-full up-primary mt-16" id="waitlist">
                 <div className={containerClasses}>
                     <div className="sm:flex items-center">
-                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Publish your ideas instead of forgetting them</b><br/>Sign up for the waitlist</h2>
+                        <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>Write faster and with more confidence than ever before</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
                             <div className="ml-auto">
                                 <p>
