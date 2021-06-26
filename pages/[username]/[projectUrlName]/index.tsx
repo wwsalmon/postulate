@@ -29,6 +29,7 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
     
     return (
         <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
+            <UpSEO title={projectData.name}/>
             {/*<UpInlineButton href={`/@${thisUser.username}`} className="inline-flex items-center mb-8">*/}
             {/*    <FiArrowLeft/>*/}
             {/*    <span className="ml-2">*/}
