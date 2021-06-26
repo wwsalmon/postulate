@@ -1,16 +1,56 @@
-import React from "react";
-import ProfileProject from "../../../components/profile/ProfileProject";
+import React, {useState} from "react";
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
-import {cleanForJSON} from "../../../utils/utils";
-import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
+import {cleanForJSON, fetcher} from "../../../utils/utils";
+import {DatedObj, PostObjGraph, ProjectObj} from "../../../utils/types";
 import {UserObjWithProjects} from "../index";
+import ProfileShell from "../../../components/ProfileShell";
+import H1 from "../../../components/style/H1";
+import H2 from "../../../components/style/H2";
+import Masonry from "react-masonry-component";
+import PostFeedItem from "../../../components/PostFeedItem";
+import PaginationBar from "../../../components/PaginationBar";
+import Skeleton from "react-loading-skeleton";
+import useSWR, {responseInterface} from "swr";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObjWithProjects>}) {
+    const [postPage, setPostPage] = useState<number>(1);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
+
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData ? projectData._id : "featured"}&page=${postPage}&search=${searchQuery}`, fetcher);
+
+    const postsReady = posts && posts.posts;
+    
     return (
-        <ProfileProject thisUser={thisUser} thisProject={projectData}/>
+        <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
+                <H1>{projectData.name}</H1>
+                {projectData.description && (
+                    <H2 className="mt-2">{projectData.description}</H2>
+                )}
+                {postsReady ? posts.posts.length ?(
+                    <>
+                        <Masonry className="mt-12 -mx-8 w-full" options={{transitionDuration: 0}}>
+                            {posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
+                        </Masonry>
+                        <PaginationBar
+                            page={postPage}
+                            count={postsReady ? posts.count : 0}
+                            label="posts"
+                            setPage={setPostPage}
+                            className="mb-12"
+                        />
+                    </>
+                ) : searchQuery ? (
+                    <p>No posts matching search query.</p>
+                ) : (
+                    <p>No public posts have been published in this project yet.</p>
+                ) : (
+                    <Skeleton count={1} className="h-32 w-full mt-12"/>
+                )}
+        </ProfileShell>
     );
 }
 
@@ -48,9 +88,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisUser = userArr[0];
 
-        const thisProject = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });
+        const projectData = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });
 
-        return { props: { projectData: cleanForJSON(thisProject), thisUser: cleanForJSON(thisUser), key: projectUrlName }};
+        return { props: { projectData: cleanForJSON(projectData), thisUser: cleanForJSON(thisUser), key: projectUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

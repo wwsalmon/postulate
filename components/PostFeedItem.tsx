@@ -48,7 +48,7 @@ export default function PostFeedItem({post, className, i}: { post: DatedObj<Post
                     </p>
                 </div>
                 <LinkWrapper className="ml-auto">
-                    <p className="up-gray-300 font-medium">{readingTime(post.body).text} ></p>
+                    <p className="up-gray-300 font-medium">{readingTime(post.body).text} &gt;</p>
                 </LinkWrapper>
             </div>
         </div>
