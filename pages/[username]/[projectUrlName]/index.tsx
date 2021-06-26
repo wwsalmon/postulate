@@ -42,13 +42,15 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 </UpInlineButton>
                 <span className="mx-2 up-gray-300">/</span>
             </div>
-            <H1>{projectData.name}</H1>
-            {projectData.description && (
-                <H2 className="mt-2">{projectData.description}</H2>
-            )}
+            <div className="mb-12">
+                <H1>{projectData.name}</H1>
+                {projectData.description && (
+                    <H2 className="mt-2">{projectData.description}</H2>
+                )}
+            </div>
             {postsReady ? posts.posts.length ?(
                 <>
-                    <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
+                    <Masonry className="md:-mx-8 w-full" options={{transitionDuration: 0}}>
                         {posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
                     </Masonry>
                     <PaginationBar
