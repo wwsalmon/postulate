@@ -22,7 +22,7 @@ export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithPro
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <H1>All projects</H1>
-            <div className="grid grid-cols-4 gap-4 my-12">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 my-12">
                 {thisUser.projectsArr.map(project => (
                     <ProfileProjectItem
                         project={project}
