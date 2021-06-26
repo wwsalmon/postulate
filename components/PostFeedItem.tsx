@@ -21,7 +21,10 @@ export default function PostFeedItem({post, className, i}: { post: DatedObj<Post
     )
 
     return (
-        <div className={"w-1/2 px-8 inline-block mb-12 " + (className || "")}>
+        <div className={"md:w-1/2 md:px-8 inline-block mb-12 " + (className || "")}>
+            {i === 1 && (
+                <hr className="up-border-gray-400 mb-12 md:hidden"/>
+            )}
             {!(i === 0 || i === 1) && (
                 <hr className="up-border-gray-400 mb-12"/>
             )}

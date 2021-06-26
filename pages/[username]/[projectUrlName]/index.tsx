@@ -48,7 +48,7 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
             )}
             {postsReady ? posts.posts.length ?(
                 <>
-                    <Masonry className="mt-12 -mx-8 w-full" options={{transitionDuration: 0}}>
+                    <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
                         {posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
                     </Masonry>
                     <PaginationBar
