@@ -15,6 +15,7 @@ import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
 import Mousetrap from "mousetrap";
 import { useToasts } from "react-toast-notifications";
 import NavbarSwitcher from "./NavbarSwitcher";
+import UpInlineButton from "./style/UpInlineButton";
 
 export default function Navbar() {
     const [session, loading] = useSession();
@@ -172,6 +173,9 @@ export default function Navbar() {
                         <p>Loading...</p>
                     ) : (
                         <>
+                            <UpInlineButton href="/auth/signin" className="hidden sm:inline-block mr-3">
+                                Sign in
+                            </UpInlineButton>
                             <Link href="/#waitlist">
                                 <a className="up-button primary small">Sign up for waitlist</a>
                             </Link>
