@@ -37,9 +37,9 @@ export default function App({Component, pageProps}: AppProps) {
                 <div id="app-root">
                     <Component {...pageProps} />
                 </div>
-                {router.route !== "/" && (
-                    <Footer/>
-                )}
+                {/*{router.route !== "/" && (*/}
+                {/*    <Footer/>*/}
+                {/*)}*/}
             </Provider>
         </NotifsContext.Provider>
     )

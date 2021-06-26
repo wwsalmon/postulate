@@ -1,14 +1,15 @@
 import React, {Dispatch, SetStateAction} from "react";
 
-export default function PaginationBar({page, count, label, setPage}: {
+export default function PaginationBar({page, count, label, setPage, className}: {
     page: number,
     count: number,
     label: string,
     setPage: Dispatch<SetStateAction<number>>,
+    className?: string,
 }) {
     return (
-        <>
-            <p className="up-gray-400 mt-16">
+        <div className={className || ""}>
+            <p className={"up-gray-400 mt-12"}>
                 Showing {label} {(page - 1) * 10 + 1}
                 -{(page < Math.floor(count / 10)) ? page * 10 : count} of {count}
             </p>
@@ -23,6 +24,6 @@ export default function PaginationBar({page, count, label, setPage}: {
                     ))}
                 </div>
             )}
-        </>
+        </div>
     );
 }

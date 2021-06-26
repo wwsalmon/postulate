@@ -9,7 +9,7 @@ import {DatedObj, SubscriptionObjGraph} from "../../../utils/types";
 import {fetcher} from "../../../utils/utils";
 import {useState} from "react";
 import axios from "axios";
-import UpH1 from "../../../components/style/UpH1";
+import H1 from "../../../components/style/H1";
 import UpSEO from "../../../components/up-seo";
 import SubscriptionItem from "../../../components/SubscriptionItem";
 
@@ -25,7 +25,7 @@ export default function ManageSubscriptions({email, emailHash, authed}: {email: 
                     Managing subscriptions for <b>{email}</b>
                 </p>
             </UpBanner>
-            <UpH1 className="mb-8">Your subscriptions</UpH1>
+            <H1 className="mb-8">Your subscriptions</H1>
             <p className="my-8">You are currently receiving email notifications for posts published in the following projects:</p>
             {data && data.subscriptions && data.subscriptions.length ? data.subscriptions.map((subscription, i) => (
                 <SubscriptionItem

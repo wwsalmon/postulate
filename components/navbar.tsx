@@ -57,8 +57,8 @@ export default function Navbar() {
     }, [loading]);
 
     return (
-        <div className="w-full bg-white sticky mb-8 top-0 z-30">
-            <div className="max-w-7xl mx-auto h-16 flex items-center px-4">
+        <div className="w-full bg-white sticky mb-8 top-0 z-30 shadow-sm border-b up-border-gray-200">
+            <div className="mx-auto h-16 flex items-center px-4">
                 <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10 mr-10"/></a></Link>
                 {session && session.username && (
                     <>
