@@ -3,7 +3,7 @@ import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {DatedObj, PostObjGraph, ProjectObj, UserObj} from "../../utils/types";
-import React, {useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
@@ -15,37 +15,85 @@ import Masonry from "react-masonry-component";
 import PostFeedItem from "../../components/PostFeedItem";
 import PaginationBar from "../../components/PaginationBar";
 import UpSEO from "../../components/up-seo";
+import ProfileProjectItem from "../../components/ProfileProjectItem";
+import {FiPlus} from "react-icons/fi";
+import {useSession} from "next-auth/client";
+import UpModal from "../../components/up-modal";
+import axios from "axios";
+import ProjectBrowser from "../../components/project-browser";
 
 export interface UserObjWithProjects extends UserObj {
     projectsArr: DatedObj<ProjectObj>[],
 }
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWithProjects> }) {
+    const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [addFeaturedOpen, setAddFeaturedOpen] = useState<boolean>(false);
+    const [featuredIter, setFeaturedIter] = useState<number>(0);
+    const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObj>[]>(thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id)));
+    const isOwner = session && (session.userId === thisUser._id);
 
-    const featuredProjects = thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id));
+    useEffect(() => {
+        axios.get(`/api/project?userId=${thisUser._id}&featured=true`).then(res => {
+            setFeaturedProjects(res.data.projects);
+        }).catch(e => console.log(e));
+    }, [featuredIter]);
 
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
+
+    function onSubmitFeaturedProject(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
+        setIsLoading(true);
+
+        axios.post(`/api/project/feature`, {id: selectedProjectId}).then(() => {
+            setIsLoading(false);
+            setFeaturedIter(featuredIter + 1);
+            setAddFeaturedOpen(false);
+        }).catch(e => {
+            setIsLoading(false);
+            console.log(e);
+        });
+    }
 
     return (
         <ProfileShell thisUser={thisUser} featured={true}>
             <UpSEO title={`${thisUser.name}`}/>
             <H1>Welcome to {thisUser.name.split(" ")[0]}'s Postulate</H1>
             <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
-            <H4 className="mt-12 mb-8">Featured repositories</H4>
+            <H4 className="mt-12 mb-8">Pinned repositories</H4>
             <div className="grid grid-cols-4 gap-4">
                 {featuredProjects.map(project => (
-                    <div className="p-4 shadow-sm rounded-md border hover:shadow-md transition cursor-pointer">
-                        <Link href={"/@" + thisUser.username + "/" + project.urlName}>
-                            <a>
-                                <H3 className="mb-2">{project.name}</H3>
-                                <p className="break-words up-gray-400">{project.description}</p>
-                            </a>
-                        </Link>
-                    </div>
+                    <ProfileProjectItem
+                        project={project}
+                        thisUser={thisUser}
+                        iter={featuredIter}
+                        setIter={setFeaturedIter}
+                    />
                 ))}
+                {isOwner && (
+                    <>
+                        <button
+                            className="flex items-center justify-center up-gray-300 rounded-md hover:up-gray-700 hover:shadow transition"
+                            style={{minHeight: 160}}
+                            onClick={() => setAddFeaturedOpen(true)}
+                        >
+                            <div className="flex items-center justify-center rounded-full h-8 w-8 border">
+                                <FiPlus/>
+                            </div>
+                        </button>
+                        <UpModal isOpen={addFeaturedOpen} setIsOpen={setAddFeaturedOpen} wide={true}>
+                            <h3 className="up-ui-title mb-4">Select a project to feature</h3>
+                            <ProjectBrowser
+                                setOpen={setAddFeaturedOpen}
+                                featuredProjectIds={featuredProjects.map(d => d._id)}
+                                buttonText="Add"
+                                onSubmit={onSubmitFeaturedProject}
+                            />
+                        </UpModal>
+                    </>
+                )}
             </div>
             <hr className="my-16"/>
             <H4 className="mb-8">Latest posts</H4>

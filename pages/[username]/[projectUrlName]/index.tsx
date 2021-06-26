@@ -14,6 +14,9 @@ import PostFeedItem from "../../../components/PostFeedItem";
 import PaginationBar from "../../../components/PaginationBar";
 import Skeleton from "react-loading-skeleton";
 import useSWR, {responseInterface} from "swr";
+import UpInlineButton from "../../../components/style/UpInlineButton";
+import {FiArrowLeft} from "react-icons/fi";
+import UpSEO from "../../../components/up-seo";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObj>, thisUser: DatedObj<UserObjWithProjects>}) {
     const [postPage, setPostPage] = useState<number>(1);
@@ -26,30 +29,42 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
     
     return (
         <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
-                <H1>{projectData.name}</H1>
-                {projectData.description && (
-                    <H2 className="mt-2">{projectData.description}</H2>
-                )}
-                {postsReady ? posts.posts.length ?(
-                    <>
-                        <Masonry className="mt-12 -mx-8 w-full" options={{transitionDuration: 0}}>
-                            {posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
-                        </Masonry>
-                        <PaginationBar
-                            page={postPage}
-                            count={postsReady ? posts.count : 0}
-                            label="posts"
-                            setPage={setPostPage}
-                            className="mb-12"
-                        />
-                    </>
-                ) : searchQuery ? (
-                    <p>No posts matching search query.</p>
-                ) : (
-                    <p>No public posts have been published in this project yet.</p>
-                ) : (
-                    <Skeleton count={1} className="h-32 w-full mt-12"/>
-                )}
+            {/*<UpInlineButton href={`/@${thisUser.username}`} className="inline-flex items-center mb-8">*/}
+            {/*    <FiArrowLeft/>*/}
+            {/*    <span className="ml-2">*/}
+            {/*        Back to profile*/}
+            {/*    </span>*/}
+            {/*</UpInlineButton>*/}
+            <div className="flex items-center mb-8">
+                <UpInlineButton href={`/@${thisUser.username}`} light={true}>
+                    {thisUser.name}
+                </UpInlineButton>
+                <span className="mx-2 up-gray-300">/</span>
+            </div>
+            <H1>{projectData.name}</H1>
+            {projectData.description && (
+                <H2 className="mt-2">{projectData.description}</H2>
+            )}
+            {postsReady ? posts.posts.length ?(
+                <>
+                    <Masonry className="mt-12 -mx-8 w-full" options={{transitionDuration: 0}}>
+                        {posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
+                    </Masonry>
+                    <PaginationBar
+                        page={postPage}
+                        count={postsReady ? posts.count : 0}
+                        label="posts"
+                        setPage={setPostPage}
+                        className="mb-12"
+                    />
+                </>
+            ) : searchQuery ? (
+                <p>No posts matching search query.</p>
+            ) : (
+                <p>No public posts have been published in this project yet.</p>
+            ) : (
+                <Skeleton count={1} className="h-32 w-full mt-12"/>
+            )}
         </ProfileShell>
     );
 }
