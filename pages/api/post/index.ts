@@ -118,6 +118,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         thisPost.privacy = req.body.privacy;
                         thisPost.tags = req.body.tags;
 
+                        if (req.body.date) thisPost.createdAt = req.body.date;
+
                         await thisPost.save();
 
                         // update attachments
@@ -179,7 +181,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             "-" + short.generate();
 
                         // assume isSlate always true
-                        const newPost: PostObj = {
+                        let newPost: PostObj = {
                             urlName: urlName,
                             projectId: req.body.projectId,
                             userId: session.userId,
@@ -189,6 +191,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             privacy: req.body.privacy,
                             tags: req.body.tags,
                         }
+
+                        if (req.body.date) newPost["createdAt"] = req.body.date;
 
                         const newPostObj = await PostModel.create(newPost);
 
