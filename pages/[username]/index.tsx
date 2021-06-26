@@ -8,19 +8,18 @@ import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
 import H4 from "../../components/style/H4";
-import Link from "next/link";
-import H3 from "../../components/style/H3";
 import useSWR, {responseInterface} from "swr";
 import Masonry from "react-masonry-component";
 import PostFeedItem from "../../components/PostFeedItem";
 import PaginationBar from "../../components/PaginationBar";
 import UpSEO from "../../components/up-seo";
 import ProfileProjectItem from "../../components/ProfileProjectItem";
-import {FiPlus} from "react-icons/fi";
+import {FiArrowRight, FiPlus} from "react-icons/fi";
 import {useSession} from "next-auth/client";
 import UpModal from "../../components/up-modal";
 import axios from "axios";
 import ProjectBrowser from "../../components/project-browser";
+import UpInlineButton from "../../components/style/UpInlineButton";
 
 export interface UserObjWithProjects extends UserObj {
     projectsArr: DatedObj<ProjectObj>[],
@@ -64,7 +63,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWith
             <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
             <H4 className="mt-12 mb-8">Pinned repositories</H4>
             <div className="grid grid-cols-4 gap-4">
-                {featuredProjects.map(project => (
+                {featuredProjects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => (
                     <ProfileProjectItem
                         project={project}
                         thisUser={thisUser}
@@ -94,6 +93,12 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWith
                         </UpModal>
                     </>
                 )}
+            </div>
+            <div className="flex justify-end my-8">
+                <UpInlineButton href={`/@${thisUser.username}/projects`} className="flex items-center" light={true}>
+                    <span className="mr-2">All projects</span>
+                    <FiArrowRight/>
+                </UpInlineButton>
             </div>
             <hr className="my-16"/>
             <H4 className="mb-8">Latest posts</H4>

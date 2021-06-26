@@ -8,13 +8,29 @@ import {FiX} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SpinnerButton from "./spinner-button";
 import axios from "axios";
+import ellipsize from "ellipsize";
+import UpSEO from "./up-seo";
 
-export default function ProfileProjectItem({project, thisUser, iter, setIter}: {
+interface ProfileProjectItemPropsBase {
     project: DatedObj<ProjectObj>,
     thisUser: DatedObj<UserObjWithProjects>,
+}
+
+interface ProfileProjectItemPropsFeatured extends ProfileProjectItemPropsBase {
     iter: number,
     setIter: Dispatch<SetStateAction<number>>,
-}) {
+    all?: never,
+}
+
+interface ProfileProjectItemPropsAll extends ProfileProjectItemPropsBase {
+    iter?: never,
+    setIter?: never,
+    all: true,
+}
+
+type ProfileProjectItemProps = ProfileProjectItemPropsFeatured | ProfileProjectItemPropsAll;
+
+export default function ProfileProjectItem({project, thisUser, iter, setIter, all}: ProfileProjectItemProps) {
     const [session, loading] = useSession();
     const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
@@ -38,14 +54,18 @@ export default function ProfileProjectItem({project, thisUser, iter, setIter}: {
     }
 
     return (
-        <div className="p-4 rounded-md border up-border-gray-200 hover:shadow transition cursor-pointer relative up-hover-parent">
+        <div
+            className="p-4 rounded-md border up-border-gray-200 hover:shadow transition cursor-pointer relative up-hover-parent"
+            style={{minHeight: 120}}
+        >
+            <UpSEO title={`${thisUser.name}'s projects`}/>
             <Link href={"/@" + thisUser.username + "/" + project.urlName}>
                 <a>
                     <H3 className="mb-2">{project.name}</H3>
-                    <p className="break-words up-gray-400">{project.description}</p>
+                    <p className="break-words up-gray-400">{ellipsize(project.description, 50)}</p>
                 </a>
             </Link>
-            {isOwner && (
+            {isOwner && !all && (
                 <>
                     <div className="up-hover-child absolute bottom-2 right-2">
                         <button
