@@ -59,8 +59,8 @@ export default function Navbar() {
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30 shadow-sm border-b up-border-gray-200">
-            <div className="mx-auto h-16 flex items-center px-4">
-                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-10 mr-10"/></a></Link>
+            <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
+                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-8 sm:h-10 mr-10"/></a></Link>
                 {session && session.username && (
                     <>
                         <Link href={"/projects"}>
@@ -156,7 +156,7 @@ export default function Navbar() {
                                 </button>
                             )}
                             <button className="up-hover-button ml-6 relative">
-                                <img src={session ? session.user.image : ""} className="w-8 rounded-full"/>
+                                <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
                                 <div className="up-hover-dropdown mt-8">
                                     {session.username && (
                                         <>

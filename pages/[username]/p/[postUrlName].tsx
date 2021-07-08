@@ -76,7 +76,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                 noindex={postData.privacy !== "public"}
             />
             <div className="max-w-3xl">
-                <div className="flex items-center mb-8">
+                <div className="items-center mb-8 hidden lg:flex">
                     <UpInlineButton href={`/@${thisOwner.username}`} light={true}>
                         {thisOwner.name}
                     </UpInlineButton>

@@ -36,7 +36,7 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
             {/*        Back to profile*/}
             {/*    </span>*/}
             {/*</UpInlineButton>*/}
-            <div className="flex items-center mb-8">
+            <div className="items-center mb-8 hidden lg:flex">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}
                 </UpInlineButton>

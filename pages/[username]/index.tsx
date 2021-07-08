@@ -62,7 +62,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWith
             <H1>Welcome to {thisUser.name.split(" ")[0]}'s Postulate</H1>
             <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
             <H4 className="mt-12 mb-8">Pinned repositories</H4>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {featuredProjects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => (
                     <ProfileProjectItem
                         project={project}
