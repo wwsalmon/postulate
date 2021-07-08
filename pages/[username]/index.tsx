@@ -96,7 +96,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWith
             </div>
             <div className="flex justify-end my-8">
                 <UpInlineButton href={`/@${thisUser.username}/projects`} className="flex items-center" light={true}>
-                    <span className="mr-2">All projects</span>
+                    <span className="mr-2">All projects ({thisUser.projectsArr.length})</span>
                     <FiArrowRight/>
                 </UpInlineButton>
             </div>
