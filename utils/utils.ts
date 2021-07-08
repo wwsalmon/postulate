@@ -1,5 +1,5 @@
 import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
-import {format} from "date-fns";
+import {format, subDays} from "date-fns";
 import {Node} from "slate";
 import {DatedObj, ProjectObj} from "./types";
 
@@ -37,6 +37,59 @@ type ToolbarButton =
     | 'guide';
 
 export const simpleMDEToolbar: ReadonlyArray<"|" | ToolbarButton | ToolbarIcon | ToolbarDropdownIcon> = ["bold", "italic", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "preview", "guide"]
+
+export const projectWithStatsGraphStages = [
+    {
+        $lookup: {
+            from: "posts",
+            let: {projectId: "$_id"},
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {$eq: ["$projectId", "$$projectId"]},
+                                {$gte: ["$createdAt", subDays(new Date(), 5 * 7)]},
+                            ],
+                        }
+                    },
+                },
+                {
+                    $group: {
+                        _id: {$week: "$createdAt"},
+                        count: {$sum: 1},
+                    },
+                },
+            ],
+            as: "postsArr",
+        },
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {projectId: "$_id"},
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {$eq: ["$projectId", "$$projectId"]},
+                                {$gte: ["$createdAt", subDays(new Date(), 5 * 7)]},
+                            ],
+                        }
+                    },
+                },
+                {
+                    $group: {
+                        _id: {$week: "$createdAt"},
+                        count: {$sum: 1},
+                    },
+                },
+            ],
+            as: "snippetsArr",
+        },
+    },
+];
 
 export const aggregatePipeline = [
     {
@@ -91,8 +144,59 @@ export const aggregatePipeline = [
             ],
             as: "linkedSnippets"
         }
-    }
+    },
+    ...projectWithStatsGraphStages,
 ];
+
+export const UserObjWithGraphAggregationPipeline = [
+    {$lookup:
+            {
+                from: "projects",
+                let: {"userId": "$_id"},
+                pipeline: [
+                    {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                    ...projectWithStatsGraphStages,
+                ],
+                as: "projectsArr",
+            }
+    },
+    {
+        $lookup: {
+            from: "posts",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                {$project: {"createdAt": 1}},
+            ],
+            as: "postsArr",
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                {$project: {"createdAt": 1}},
+            ],
+            as: "snippetsArr",
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$and: [
+                                {$eq: ["$userId", "$$userId"]},
+                                {$ne: ["$linkedPosts", []]},
+                            ]}}},
+                {$count: "count"},
+            ],
+            as: "linkedSnippetsArr",
+        }
+    },
+]
 
 export function arrToDict(arr: {createdAt: string}[]): {[key: string]: number} {
     if (!arr) return {};

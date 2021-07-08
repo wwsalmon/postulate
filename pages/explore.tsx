@@ -1,4 +1,4 @@
-import UpH1 from "../components/style/UpH1";
+import H1 from "../components/style/H1";
 import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import PublicPostItem from "../components/public-post-item";
@@ -16,7 +16,7 @@ export default function Explore({}: {  }) {
     return (
         <div className="px-4 mx-auto max-w-4xl">
             <UpSEO title="Explore"/>
-            <UpH1 className="mb-4">Explore</UpH1>
+            <H1 className="mb-4">Explore</H1>
             <p className="up-gray-500">The latest public posts from users across the platform</p>
             <hr className="my-8"/>
             <UserSearch/>

@@ -1,5 +1,6 @@
 import {SessionBase} from "next-auth/_utils";
 import {Node} from "slate";
+import {ReactNode} from "react";
 
 export interface WaitlistAPIRes {
     data: {
@@ -38,6 +39,16 @@ export interface ProjectObj {
     availableTags: string[],
 }
 
+export interface UserObjWithProjects extends UserObj {
+    projectsArr: DatedObj<ProjectObjWithStats>[],
+}
+
+export interface UserObjGraph extends UserObjWithProjects {
+    postsArr: {createdAt: string}[],
+    snippetsArr: {createdAt: string}[],
+    linkedSnippetsArr: {count: number}[],
+}
+
 export interface ProjectObjWithOwner extends ProjectObj {
     ownerArr: DatedObj<UserObj>[],
 }
@@ -53,7 +64,24 @@ export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
     ownerArr: IdObj<UserObjBasic>[],
 }
 
-export interface ProjectObjWithCounts extends ProjectObj {
+export interface ProjectObjWithPageStats extends ProjectObj {
+    postsArr: {createdAt: string}[],
+    snippetsArr: {createdAt: string}[],
+    linkedSnippetsArr: {count: number}[],
+}
+
+export interface ProjectObjWithStats extends ProjectObj {
+    postsArr: {
+        _id: number,
+        count: number,
+    }[],
+    snippetsArr: {
+        _id: number,
+        count: number,
+    }[],
+}
+
+export interface ProjectObjWithCounts extends ProjectObjWithStats {
     posts: {count: number}[],
     snippets: {count: number}[],
     linkedSnippets: {count: number}[],
@@ -184,6 +212,11 @@ export interface EmailObj {
     targetId: string,
 }
 
+export interface TabInfo {
+    name: string,
+    icon?: ReactNode,
+    text: ReactNode,
+}
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {

@@ -25,7 +25,7 @@ export default function NewPostEditor(props: {
     startProjectId: string,
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean) => void,
+    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean, date?: Date) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -40,6 +40,8 @@ export default function NewPostEditor(props: {
     const [privacy, setPrivacy] = useState<privacyTypes>(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
     const [sendEmail, setSendEmail] = useState<boolean>(false);
+    const [backDate, setBackDate] = useState<boolean>(false);
+    const [date, setDate] = useState<string>("");
 
     const {data: email, error: emailError}: responseInterface<{ email: DatedObj<EmailObj> }, any> = useSWR(`/api/email?targetId=${props.postId || ""}`, props.postId ? fetcher : () => null);
     const {data: subscriptions, error: subscriptionsError}: responseInterface<{ subscriptions: DatedObj<SubscriptionObjGraph>[] }, any> = useSWR(`/api/subscription?projectId=${projectId}&stats=true`);
@@ -119,6 +121,8 @@ export default function NewPostEditor(props: {
                     className="w-full up-h1 mb-4 py-2 relative z-10"
                     contentEditable
                     onInput={e => setTitle(e.currentTarget.textContent)}
+                    // @ts-ignore
+                    onPaste={e => setTitle(e.target.textContent)}
                     ref={titleElem}
                     suppressContentEditableWarning
                 >
@@ -208,6 +212,24 @@ export default function NewPostEditor(props: {
                 <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag or type to create a new one</p>
             </div>
 
+            <div className="my-8">
+                <div className="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="backDate"
+                        checked={backDate}
+                        onChange={e => setBackDate(e.target.checked)}
+                        className="mr-4 w-4 h-4"
+                    />
+                    <label htmlFor="backDate" className="up-gray-400">Backdate this post</label>
+                </div>
+                {backDate && (
+                    <div className="my-4">
+                        <input type="date" value={date} onChange={e => setDate(e.target.value)} className="border p-2 bg-white up-border-gray-300 h-10 w-full rounded-md"/>
+                    </div>
+                )}
+            </div>
+
             <hr className="my-8"/>
 
             <div className="my-8 flex items-center">
@@ -236,7 +258,7 @@ export default function NewPostEditor(props: {
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail)}
+                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail, backDate && date && new Date(date))}
                     isDisabled={!slateBody || !slateBody.length || slateBody.every(d => getIsEmpty(d)) || !title}
                 >
                     {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}

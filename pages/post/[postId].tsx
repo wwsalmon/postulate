@@ -54,10 +54,10 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate?: boolean, sendEmail?: boolean) {
+    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate?: boolean, sendEmail?: boolean, date?: Date) {
         setIsEditLoading(true);
 
-        axios.post("/api/post", {
+        let postData = {
             projectId: projectId || "",
             postId: props.post ? props.post._id : "",
             title: title,
@@ -68,7 +68,11 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             selectedSnippetIds: selectedSnippetIds,
             isSlate: !!isSlate,
             sendEmail: !!sendEmail,
-        }).then(res => {
+        };
+
+        if (date) postData["date"] = date;
+
+        axios.post("/api/post", postData).then(res => {
             // @ts-ignore
             window.analytics.track("Item created", {
                 type: "post",
