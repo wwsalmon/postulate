@@ -20,12 +20,23 @@ import UpModal from "../../components/up-modal";
 import axios from "axios";
 import ProjectBrowser from "../../components/project-browser";
 import UpInlineButton from "../../components/style/UpInlineButton";
+import ActivityGrid, {ActivityDay} from "../../components/ActivityGrid";
+import {format} from "date-fns";
+import ActivityGraph from "../../components/ActivityGraph";
+import ActivityTabs from "../../components/ActivityTabs";
 
 export interface UserObjWithProjects extends UserObj {
     projectsArr: DatedObj<ProjectObj>[],
 }
 
-export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWithProjects> }) {
+export interface UserObjGraph extends UserObj {
+    projectsArr: DatedObj<ProjectObj>[],
+    postsArr: {createdAt: string}[],
+    snippetsArr: {createdAt: string}[],
+    linkedSnippetsArr: {count: number}[],
+}
+
+export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGraph> }) {
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
@@ -100,7 +111,14 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjWith
                     <FiArrowRight/>
                 </UpInlineButton>
             </div>
-            <hr className="my-16"/>
+            <hr className="my-12"/>
+            <H4 className="mb-8">Activity</H4>
+            <ActivityTabs
+                snippetsArr={thisUser.snippetsArr}
+                postsArr={thisUser.postsArr}
+                linkedSnippetsArr={thisUser.linkedSnippetsArr}
+            />
+            <hr className="my-12"/>
             <H4 className="mb-8">Latest posts</H4>
             <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
                 {posts && posts.posts && posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
@@ -140,6 +158,42 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     foreignField: "userId",
                     localField: "_id",
                     as: "projectsArr",
+                }
+            },
+            {
+                $lookup: {
+                    from: "posts",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        {$project: {"createdAt": 1}},
+                    ],
+                    as: "postsArr",
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        {$project: {"createdAt": 1}},
+                    ],
+                    as: "snippetsArr",
+                }
+            },
+            {
+                $lookup: {
+                    from: "snippets",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$and: [
+                                        {$eq: ["$userId", "$$userId"]},
+                                        {$ne: ["$linkedPosts", []]},
+                                    ]}}},
+                        {$count: "count"},
+                    ],
+                    as: "linkedSnippetsArr",
                 }
             },
         ]);
