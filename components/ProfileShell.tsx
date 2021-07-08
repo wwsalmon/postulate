@@ -4,6 +4,7 @@ import H3 from "./style/H3";
 import Link from "next/link";
 import Linkify from "react-linkify";
 import {UserObjWithProjects} from "../pages/[username]";
+import ProfileSidebarProjectItem from "./ProfileSidebarProjectItem";
 
 export default function ProfileShell({thisUser, children, featured, selectedProjectId}: {thisUser: DatedObj<UserObjWithProjects>, children: ReactNode, featured?: boolean, selectedProjectId?: string}) {
     const featuredProjects = thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id));
@@ -21,48 +22,23 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
                             </a>
                         </Link>
                         <p className="up-gray-400 mb-12 underline-links"><Linkify>{thisUser.bio}</Linkify></p>
-                        <Link href={`/@${thisUser.username}`}>
-                            <a
-                                className={(featured ? "-ml-4 bg-white border rounded-l-lg up-border-gray-200 border-r-0 " : "up-gray-400 ") + "cursor-pointer flex items-center font-medium relative h-12"}
-                                style={{
-                                    right: -1,
-                                    paddingLeft: featured ? "calc(1rem - 1px)" : 0,
-                                    width: featured ? "calc(100% + 1px + 1rem)" : "calc(100% + 1px)"
-                                }}
-                            >
-                                Home
-                            </a>
-                        </Link>
+                        <ProfileSidebarProjectItem name="Home" href={`/@${thisUser.username}`} selected={featured}/>
                         {!featured && !featuredProjects.some(d => d._id === selectedProjectId) && ((() => {
                             const thisProject = thisUser.projectsArr.find(d => d._id === selectedProjectId);
                             return (
-                                <Link href={`/@${thisUser.username}/${thisProject.urlName}`}>
-                                    <a
-                                        className={(thisProject._id === selectedProjectId ? "-ml-4 bg-white border rounded-l-lg up-border-gray-200 border-r-0 " : "up-gray-400 ") + "cursor-pointer flex items-center font-medium relative h-12"}
-                                        style={{
-                                            right: -1,
-                                            paddingLeft: thisProject._id === selectedProjectId ? "calc(1rem - 1px)" : 0,
-                                            width: thisProject._id === selectedProjectId ? "calc(100% + 1px + 1rem)" : "calc(100% + 1px)"
-                                        }}
-                                    >
-                                        {thisProject.name}
-                                    </a>
-                                </Link>                                
+                                <ProfileSidebarProjectItem
+                                    name={thisProject.name}
+                                    href={`/@${thisUser.username}/${thisProject.urlName}`}
+                                    selected={thisProject._id === selectedProjectId}
+                                />                          
                             )
                         })())}
                         {featuredProjects.map(project => (
-                            <Link href={`/@${thisUser.username}/${project.urlName}`}>
-                                <a
-                                    className={(project._id === selectedProjectId ? "-ml-4 bg-white border rounded-l-lg up-border-gray-200 border-r-0 " : "up-gray-400 ") + "cursor-pointer flex items-center font-medium relative h-12"}
-                                    style={{
-                                        right: -1,
-                                        paddingLeft: project._id === selectedProjectId ? "calc(1rem - 1px)" : 0,
-                                        width: project._id === selectedProjectId ? "calc(100% + 1px + 1rem)" : "calc(100% + 1px)"
-                                    }}
-                                >
-                                    {project.name}
-                                </a>
-                            </Link>
+                            <ProfileSidebarProjectItem
+                                name={project.name}
+                                href={`/@${thisUser.username}/${project.urlName}`}
+                                selected={project._id === selectedProjectId}
+                            />
                         ))}
                     </div>
                     <div className="lg:pl-12 w-full bg-white h-full -my-8 pt-12" style={{minHeight: "calc(100vh - 64px)"}}>
