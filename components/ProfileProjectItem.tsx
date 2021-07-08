@@ -1,18 +1,19 @@
-import {DatedObj, ProjectObj} from "../utils/types";
+import {DatedObj, ProjectObj, ProjectObjWithStats} from "../utils/types";
 import {UserObjWithProjects} from "../pages/[username]";
 import Link from "next/link";
 import H3 from "./style/H3";
 import React, {Dispatch, SetStateAction, useState} from "react";
 import {useSession} from "next-auth/client";
-import {FiX} from "react-icons/fi";
+import {FiActivity, FiX} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SpinnerButton from "./spinner-button";
 import axios from "axios";
 import ellipsize from "ellipsize";
 import UpSEO from "./up-seo";
+import {getWeek} from "date-fns";
 
 interface ProfileProjectItemPropsBase {
-    project: DatedObj<ProjectObj>,
+    project: DatedObj<ProjectObjWithStats>,
     thisUser: DatedObj<UserObjWithProjects>,
 }
 
@@ -30,11 +31,28 @@ interface ProfileProjectItemPropsAll extends ProfileProjectItemPropsBase {
 
 type ProfileProjectItemProps = ProfileProjectItemPropsFeatured | ProfileProjectItemPropsAll;
 
+interface WeekStat {
+    week: number,
+    count: number,
+}
+
+function getCount(arr: {_id: number, count: number}[], week: number) {
+    return arr.filter(x => x._id === week).reduce((a, b) => a + b.count, 0)
+}
+
 export default function ProfileProjectItem({project, thisUser, iter, setIter, all}: ProfileProjectItemProps) {
     const [session, loading] = useSession();
     const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
     const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
     const isOwner = session && (session.userId === project.userId);
+
+    const thisWeek = getWeek(new Date());
+    const weeks = [4, 3, 2, 1, 0].map(d => thisWeek - d);
+    const weekStats: WeekStat[] = [4, 3, 2, 1, 0].map(d => ({
+        week: thisWeek - d,
+        count: getCount(project.postsArr, thisWeek - d) + getCount(project.snippetsArr, thisWeek - d),
+    }));
+    const maxCount = Math.max(...weekStats.map(d => d.count));
 
     function onDelete() {
         setDeleteLoading(true);
@@ -60,9 +78,21 @@ export default function ProfileProjectItem({project, thisUser, iter, setIter, al
         >
             <UpSEO title={`${thisUser.name}'s projects`}/>
             <Link href={"/@" + thisUser.username + "/" + project.urlName}>
-                <a>
+                <a className="flex flex-col h-full">
                     <H3 className="mb-2">{project.name}</H3>
-                    <p className="break-words up-gray-400">{ellipsize(project.description, 50)}</p>
+                    <p className="break-words up-gray-400 mb-4">{ellipsize(project.description, 50)}</p>
+                    <div className="grid mt-auto items-center" style={{gridTemplateColumns: "24px repeat(5, 16px)"}}>
+                        <FiActivity className="up-gray-300 text-sm"/>
+                        {weekStats.map(weekStat => (
+                            <div style={{
+                                width: 12,
+                                height: 12,
+                                backgroundColor: weekStat.count ? "#0026ff" : "#000000",
+                                opacity: weekStat.count ? (weekStat.count / maxCount / 2) : 0.05,
+                                borderRadius: 7,
+                            }} key={project._id + weekStat.week}/>
+                        ))}
+                    </div>
                 </a>
             </Link>
             {isOwner && !all && (

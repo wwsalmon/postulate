@@ -1,8 +1,8 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObj, UserObj} from "../../utils/types";
+import {cleanForJSON, fetcher, projectWithStatsGraphStages} from "../../utils/utils";
+import {DatedObj, PostObjGraph, ProjectObj, ProjectObjWithStats, UserObj} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
@@ -21,16 +21,15 @@ import axios from "axios";
 import ProjectBrowser from "../../components/project-browser";
 import UpInlineButton from "../../components/style/UpInlineButton";
 import ActivityGrid, {ActivityDay} from "../../components/ActivityGrid";
-import {format} from "date-fns";
+import {format, subDays} from "date-fns";
 import ActivityGraph from "../../components/ActivityGraph";
 import ActivityTabs from "../../components/ActivityTabs";
 
 export interface UserObjWithProjects extends UserObj {
-    projectsArr: DatedObj<ProjectObj>[],
+    projectsArr: DatedObj<ProjectObjWithStats>[],
 }
 
-export interface UserObjGraph extends UserObj {
-    projectsArr: DatedObj<ProjectObj>[],
+export interface UserObjGraph extends UserObjWithProjects {
     postsArr: {createdAt: string}[],
     snippetsArr: {createdAt: string}[],
     linkedSnippetsArr: {count: number}[],
@@ -43,7 +42,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [addFeaturedOpen, setAddFeaturedOpen] = useState<boolean>(false);
     const [featuredIter, setFeaturedIter] = useState<number>(0);
-    const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObj>[]>(thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id)));
+    const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObjWithStats>[]>(thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id)));
     const isOwner = session && (session.userId === thisUser._id);
 
     useEffect(() => {
@@ -150,13 +149,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         await dbConnect();
 
+        const fiveWeeksAgo = subDays(new Date(), 5 * 7);
+
         const userObj = await UserModel.aggregate([
             {$match: {username: username}},
             {$lookup:
                 {
                     from: "projects",
-                    foreignField: "userId",
-                    localField: "_id",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        ...projectWithStatsGraphStages,
+                    ],
                     as: "projectsArr",
                 }
             },

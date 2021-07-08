@@ -53,7 +53,18 @@ export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
     ownerArr: IdObj<UserObjBasic>[],
 }
 
-export interface ProjectObjWithCounts extends ProjectObj {
+export interface ProjectObjWithStats extends ProjectObj {
+    postsArr: {
+        _id: number,
+        count: number,
+    }[],
+    snippetsArr: {
+        _id: number,
+        count: number,
+    }[],
+}
+
+export interface ProjectObjWithCounts extends ProjectObjWithStats {
     posts: {count: number}[],
     snippets: {count: number}[],
     linkedSnippets: {count: number}[],

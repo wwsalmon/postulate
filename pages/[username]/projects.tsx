@@ -1,15 +1,13 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {ProjectModel} from "../../models/project";
-import {cleanForJSON} from "../../utils/utils";
+import {cleanForJSON, projectWithStatsGraphStages} from "../../utils/utils";
 import {DatedObj} from "../../utils/types";
 import {UserObjWithProjects} from "./index";
 import ProfileShell from "../../components/ProfileShell";
 import UpInlineButton from "../../components/style/UpInlineButton";
 import React from "react";
 import H1 from "../../components/style/H1";
-import H4 from "../../components/style/H4";
 import ProfileProjectItem from "../../components/ProfileProjectItem";
 
 export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithProjects> }) {
@@ -22,7 +20,7 @@ export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithPro
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <H1>All projects</H1>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 my-12">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">
                 {thisUser.projectsArr.map(project => (
                     <ProfileProjectItem
                         project={project}
@@ -53,12 +51,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const userObj = await UserModel.aggregate([
             {$match: {username: username}},
             {$lookup:
-                    {
-                        from: "projects",
-                        foreignField: "userId",
-                        localField: "_id",
-                        as: "projectsArr",
-                    }
+                {
+                    from: "projects",
+                    let: {"userId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                        ...projectWithStatsGraphStages,
+                    ],
+                    as: "projectsArr",
+                },
             },
         ]);
 
