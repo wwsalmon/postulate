@@ -1,4 +1,4 @@
-import {ReactNode, useEffect, useRef, useState} from "react";
+import {ReactNode, useState} from "react";
 import {addDays, format, subDays} from "date-fns";
 import ResizeObserver from "react-resize-observer";
 
@@ -92,6 +92,7 @@ export default function ActivityGrid({data, label, color}: { data: ActivityDay[]
                             height: 14,
                             gridRow: d.day + 2,
                             gridColumn: d.week + 2,
+                            borderRadius: 3,
                         }}
                         key={format(d.date, "yyyy-MM-dd")}
                     />

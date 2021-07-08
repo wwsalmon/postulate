@@ -24,7 +24,7 @@ export default function ActivityGraph({snippetsArr, postsArr}: {snippetsArr: {cr
 
     function onResize(rect) {
         const gridWidth = rect.width;
-        const newNumCols = Math.floor((gridWidth - 64) / 16);
+        const newNumCols = Math.floor((gridWidth - 64) / 8);
         setNumCols(newNumCols);
         setSnippetsGraphArr(makeGraphArr(snippetsArr, newNumCols));
         setPostsGraphArr(makeGraphArr(postsArr, newNumCols));

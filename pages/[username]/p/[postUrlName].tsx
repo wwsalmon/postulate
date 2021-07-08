@@ -10,16 +10,14 @@ import {
     ProjectObj,
     ReactionObj,
     SnippetObjGraph,
-    UserObj
+    UserObj,
+    UserObjWithProjects
 } from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
-import {UserObjWithProjects} from "../index";
 import UpSEO from "../../../components/up-seo";
 import React, {useState} from "react";
-import H1 from "../../../components/style/H1";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import UpInlineButton from "../../../components/style/UpInlineButton";
-import {FiArrowLeft} from "react-icons/fi";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 import useSWR, {responseInterface} from "swr";

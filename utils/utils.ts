@@ -148,6 +148,56 @@ export const aggregatePipeline = [
     ...projectWithStatsGraphStages,
 ];
 
+export const UserObjWithGraphAggregationPipeline = [
+    {$lookup:
+            {
+                from: "projects",
+                let: {"userId": "$_id"},
+                pipeline: [
+                    {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                    ...projectWithStatsGraphStages,
+                ],
+                as: "projectsArr",
+            }
+    },
+    {
+        $lookup: {
+            from: "posts",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                {$project: {"createdAt": 1}},
+            ],
+            as: "postsArr",
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
+                {$project: {"createdAt": 1}},
+            ],
+            as: "snippetsArr",
+        }
+    },
+    {
+        $lookup: {
+            from: "snippets",
+            let: {"userId": "$_id"},
+            pipeline: [
+                {$match: {$expr: {$and: [
+                                {$eq: ["$userId", "$$userId"]},
+                                {$ne: ["$linkedPosts", []]},
+                            ]}}},
+                {$count: "count"},
+            ],
+            as: "linkedSnippetsArr",
+        }
+    },
+]
+
 export function arrToDict(arr: {createdAt: string}[]): {[key: string]: number} {
     if (!arr) return {};
     return arr

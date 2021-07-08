@@ -1,9 +1,8 @@
-import {DatedObj} from "../utils/types";
+import {DatedObj, UserObjWithProjects} from "../utils/types";
 import React, {ReactNode, useState} from "react";
 import H3 from "./style/H3";
 import Link from "next/link";
 import Linkify from "react-linkify";
-import {UserObjWithProjects} from "../pages/[username]";
 import ProfileSidebarProjectItem from "./ProfileSidebarProjectItem";
 import {FiMenu, FiX} from "react-icons/fi";
 import UpInlineButton from "./style/UpInlineButton";

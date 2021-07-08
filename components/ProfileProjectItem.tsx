@@ -1,5 +1,4 @@
-import {DatedObj, ProjectObj, ProjectObjWithStats} from "../utils/types";
-import {UserObjWithProjects} from "../pages/[username]";
+import {DatedObj, ProjectObjWithStats, UserObjWithProjects} from "../utils/types";
 import Link from "next/link";
 import H3 from "./style/H3";
 import React, {Dispatch, SetStateAction, useState} from "react";

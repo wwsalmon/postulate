@@ -1,8 +1,8 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {cleanForJSON, fetcher, projectWithStatsGraphStages} from "../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObj, ProjectObjWithStats, UserObj} from "../../utils/types";
+import {cleanForJSON, fetcher, UserObjWithGraphAggregationPipeline} from "../../utils/utils";
+import {DatedObj, PostObjGraph, ProjectObjWithStats, UserObjGraph} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
@@ -20,20 +20,8 @@ import UpModal from "../../components/up-modal";
 import axios from "axios";
 import ProjectBrowser from "../../components/project-browser";
 import UpInlineButton from "../../components/style/UpInlineButton";
-import ActivityGrid, {ActivityDay} from "../../components/ActivityGrid";
-import {format, subDays} from "date-fns";
-import ActivityGraph from "../../components/ActivityGraph";
+import {subDays} from "date-fns";
 import ActivityTabs from "../../components/ActivityTabs";
-
-export interface UserObjWithProjects extends UserObj {
-    projectsArr: DatedObj<ProjectObjWithStats>[],
-}
-
-export interface UserObjGraph extends UserObjWithProjects {
-    postsArr: {createdAt: string}[],
-    snippetsArr: {createdAt: string}[],
-    linkedSnippetsArr: {count: number}[],
-}
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGraph> }) {
     const [session, loading] = useSession();
@@ -153,53 +141,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const userObj = await UserModel.aggregate([
             {$match: {username: username}},
-            {$lookup:
-                {
-                    from: "projects",
-                    let: {"userId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
-                        ...projectWithStatsGraphStages,
-                    ],
-                    as: "projectsArr",
-                }
-            },
-            {
-                $lookup: {
-                    from: "posts",
-                    let: {"userId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
-                        {$project: {"createdAt": 1}},
-                    ],
-                    as: "postsArr",
-                }
-            },
-            {
-                $lookup: {
-                    from: "snippets",
-                    let: {"userId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$eq: ["$userId", "$$userId"]}}},
-                        {$project: {"createdAt": 1}},
-                    ],
-                    as: "snippetsArr",
-                }
-            },
-            {
-                $lookup: {
-                    from: "snippets",
-                    let: {"userId": "$_id"},
-                    pipeline: [
-                        {$match: {$expr: {$and: [
-                                        {$eq: ["$userId", "$$userId"]},
-                                        {$ne: ["$linkedPosts", []]},
-                                    ]}}},
-                        {$count: "count"},
-                    ],
-                    as: "linkedSnippetsArr",
-                }
-            },
+            ...UserObjWithGraphAggregationPipeline,
         ]);
 
         if (!userObj.length) return { notFound: true };

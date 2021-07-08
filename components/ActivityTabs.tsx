@@ -3,8 +3,10 @@ import ActivityGrid, {ActivityDay} from "./ActivityGrid";
 import {format} from "date-fns";
 import ActivityGraph from "./ActivityGraph";
 import {FiEdit, FiMessageSquare} from "react-icons/fi";
+import Tabs from "./Tabs";
+import {TabInfo} from "../utils/types";
 
-function makeGridArr(arr: {createdAt: string}[]) {
+export function makeGridArr(arr: {createdAt: string}[]) {
     let gridArr: ActivityDay[] = [];
     for (let item of arr) {
         const existingIndex = gridArr.findIndex(d => d.date === format(new Date(item.createdAt), "yyyy-MM-dd"));
@@ -18,12 +20,6 @@ function makeGridArr(arr: {createdAt: string}[]) {
 }
 
 type TabTypes = "snippets" | "posts" | "all";
-
-interface TabInfo {
-    name: TabTypes,
-    icon: ReactNode,
-    text: ReactNode,
-}
 
 export default function ActivityTabs({snippetsArr, postsArr, linkedSnippetsArr}: {snippetsArr: {createdAt: string}[], postsArr: {createdAt: string}[], linkedSnippetsArr: {count: number}[]}) {
     const [tab, setTab] = useState<TabTypes>("posts");
@@ -53,17 +49,7 @@ export default function ActivityTabs({snippetsArr, postsArr, linkedSnippetsArr}:
 
     return (
         <>
-            <div className="flex items-center mb-8">
-                {tabInfo.map(thisTab => (
-                    <button
-                        className={`flex items-center mr-6 transition pb-2 border-b-2 ${tab === thisTab.name ? "font-bold up-border-gray-700" : "up-gray-400 hover:text-black border-transparent"}`}
-                        onClick={() => setTab(thisTab.name)}
-                    >
-                        {thisTab.icon}
-                        <p className={thisTab.icon ? "ml-2" : ""}>{thisTab.text}</p>
-                    </button>
-                ))}
-            </div>
+            <Tabs tabInfo={tabInfo} tab={tab} setTab={setTab}/>
             {{
                 snippets: (
                     <ActivityGrid data={makeGridArr(snippetsArr)}/>

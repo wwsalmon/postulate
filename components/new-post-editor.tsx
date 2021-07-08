@@ -121,6 +121,7 @@ export default function NewPostEditor(props: {
                     className="w-full up-h1 mb-4 py-2 relative z-10"
                     contentEditable
                     onInput={e => setTitle(e.currentTarget.textContent)}
+                    // @ts-ignore
                     onPaste={e => setTitle(e.target.textContent)}
                     ref={titleElem}
                     suppressContentEditableWarning
