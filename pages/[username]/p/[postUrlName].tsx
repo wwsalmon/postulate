@@ -26,6 +26,8 @@ import useSWR, {responseInterface} from "swr";
 import CommentItem from "../../../components/comment-item";
 import CommentContainerItem from "../../../components/comment-container-item";
 import {useSession} from "next-auth/client";
+import {RiHeartFill, RiHeartLine} from "react-icons/ri";
+import axios from "axios";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -39,12 +41,28 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
 
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
+    const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
 
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
+    const isOwner = session && (session.userId === thisAuthor._id);
     
     const {data: linkedSnippetsData, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(linkedSnippets)}`, fetcher);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${postData._id}&iter=${commentsIteration}`);
+
+    function onLike() {
+        if (session) {
+            axios.post("/api/reaction", {
+                targetId: postData._id,
+            }).then(() => {
+                setReactionsIteration(reactionsIteration + 1);
+            }).catch(e => {
+                console.log(e);
+            });
+        } else {
+            setReactionsUnauthModalOpen(true);
+        }
+    }
 
     return (
         <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
@@ -57,50 +75,68 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                 publishedDate={postData.createdAt}
                 noindex={postData.privacy !== "public"}
             />
-            <div className="flex items-center mb-8">
-                <UpInlineButton href={`/@${thisOwner.username}`} light={true}>
-                    {thisOwner.name}
-                </UpInlineButton>
-                <span className="mx-2 up-gray-300">/</span>
-                <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
-                    {projectName}
-                </UpInlineButton>
-                <span className="mx-2 up-gray-300"> / </span>
-            </div>
-            <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>
-            <p className="up-gray-400 mt-4">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}</p>
-            <div className="content prose my-8">
-                <SlateReadOnly
-                    nodes={postData.slateBody}
-                    projectId={projectData._id}
-                    projectName={projectData.name}
-                    ownerName={thisOwner.name}
-                    isOwner={false}
-                />
-            </div>
-            <hr className="my-12"/>
-            <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
-            {session ? (
-                <CommentItem
-                    authorId={session.userId}
-                    targetId={postData._id}
-                    parentCommentId={undefined}
-                    iteration={commentsIteration}
-                    setIteration={setCommentsIteration}
-                />
-            ) : (
-                <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
-            )}
-            {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
-                <div key={comment._id}>
-                    <CommentContainerItem
-                        iteration={commentsIteration}
-                        setIteration={setCommentsIteration}
-                        comment={comment}
-                        subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
+            <div className="max-w-3xl">
+                <div className="flex items-center mb-8">
+                    <UpInlineButton href={`/@${thisOwner.username}`} light={true}>
+                        {thisOwner.name}
+                    </UpInlineButton>
+                    <span className="mx-2 up-gray-300">/</span>
+                    <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
+                        {projectName}
+                    </UpInlineButton>
+                    <span className="mx-2 up-gray-300"> / </span>
+                </div>
+                <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>
+                <div className="flex items-center mt-4 border-b pb-8">
+                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}</p>
+                    {reactions && reactions.data && (
+                        <div className="ml-auto flex items-center">
+                            {reactions.data.length > 0 && (
+                                <span className="opacity-25">{reactions.data.length}</span>
+                            )}
+                            <button className="up-button text small -my-6 ml-2" onClick={onLike} disabled={isOwner}>
+                                {(session && reactions.data.some(d => d.userId === session.userId)) ? (
+                                    <RiHeartFill/>
+                                ) : (
+                                    <RiHeartLine/>
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </div>
+                <div className="content prose my-8">
+                    <SlateReadOnly
+                        nodes={postData.slateBody}
+                        projectId={projectData._id}
+                        projectName={projectData.name}
+                        ownerName={thisOwner.name}
+                        isOwner={false}
                     />
                 </div>
-            ))}
+                <hr className="my-12"/>
+                <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
+                {session ? (
+                    <CommentItem
+                        authorId={session.userId}
+                        targetId={postData._id}
+                        parentCommentId={undefined}
+                        iteration={commentsIteration}
+                        setIteration={setCommentsIteration}
+                    />
+                ) : (
+                    <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
+                )}
+                {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
+                    <div key={comment._id}>
+                        <CommentContainerItem
+                            iteration={commentsIteration}
+                            setIteration={setCommentsIteration}
+                            comment={comment}
+                            subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
+                        />
+                    </div>
+                ))}
+            </div>
         </ProfileShell>
     );
 }
