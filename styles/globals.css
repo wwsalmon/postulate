@@ -193,6 +193,9 @@ body, div.chart-container {
     }
 }
 
+.underline-links a {
+    text-decoration: underline;
+}
 
 .up-h1 {
     font-size: 36px;

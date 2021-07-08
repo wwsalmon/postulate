@@ -14,9 +14,13 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
             <div className="max-w-7xl mx-auto px-4 relative z-10">
                 <div className="lg:flex">
                     <div className="hidden lg:block lg:w-80 up-bg-gray-50 -my-8 h-full pt-12 border-r up-border-gray-200 sticky top-16" style={{minHeight: "calc(100vh - 64px)"}}>
-                        <img src={thisUser.image} alt={`Profile picture of ${thisUser.name}`} className="w-12 h-12 rounded-full"/>
-                        <H3 className="my-4">{thisUser.name}</H3>
-                        <p className="up-gray-400 mb-12"><Linkify>{thisUser.bio}</Linkify></p>
+                        <Link href={`/@${thisUser.username}`}>
+                            <a>
+                                <img src={thisUser.image} alt={`Profile picture of ${thisUser.name}`} className="w-12 h-12 rounded-full"/>
+                                <H3 className="my-4">{thisUser.name}</H3>
+                            </a>
+                        </Link>
+                        <p className="up-gray-400 mb-12 underline-links"><Linkify>{thisUser.bio}</Linkify></p>
                         <Link href={`/@${thisUser.username}`}>
                             <a
                                 className={(featured ? "-ml-4 bg-white border rounded-l-lg up-border-gray-200 border-r-0 " : "up-gray-400 ") + "cursor-pointer flex items-center font-medium relative h-12"}
