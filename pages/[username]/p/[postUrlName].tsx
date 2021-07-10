@@ -15,7 +15,7 @@ import {
 } from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
 import UpSEO from "../../../components/up-seo";
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {format} from "date-fns";
@@ -26,6 +26,16 @@ import CommentContainerItem from "../../../components/comment-container-item";
 import {useSession} from "next-auth/client";
 import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import axios from "axios";
+import MoreMenu from "../../../components/more-menu";
+import MoreMenuItem from "../../../components/more-menu-item";
+import SpinnerButton from "../../../components/spinner-button";
+import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
+import UpModal from "../../../components/up-modal";
+import {useRouter} from "next/router";
+import UpBanner from "../../../components/UpBanner";
+import SnippetItemReduced from "../../../components/snippet-item-reduced";
+import Accordion from "react-robust-accordion";
+import {NotifsContext} from "../../_app";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -36,10 +46,15 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
     thisLinks: DatedObj<LinkObj>[],
 }) {
     const [session, loading] = useSession();
+    const router = useRouter();
+    const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
 
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
 
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
     const isOwner = session && (session.userId === thisAuthor._id);
@@ -47,6 +62,8 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
     const {data: linkedSnippetsData, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(linkedSnippets)}`, fetcher);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${postData._id}&iter=${commentsIteration}`);
+
+    const linkedSnippetsReady = linkedSnippetsData && linkedSnippetsData.snippets && !!linkedSnippetsData.snippets.length;
 
     function onLike() {
         if (session) {
@@ -61,6 +78,34 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
             setReactionsUnauthModalOpen(true);
         }
     }
+
+    function onDelete() {
+        setIsDeleteLoading(true);
+
+        axios.delete("/api/post", {
+            data: {
+                postId: postData._id,
+                tempId: postData.urlName,
+            }
+        }).then(() => {
+            router.push(`/@${thisOwner.username}/${projectUrlName}`);
+        }).catch(e => {
+            setIsDeleteLoading(false);
+            console.log(e);
+        });
+    }
+
+    useEffect(() => {
+        if (router.query.notif) {
+            axios.post("/api/notification", {
+                id: router.query.notif,
+            }).then(() => {
+                setNotifsIteration(notifsIteration + 1);
+            }).catch(e => {
+                console.log(e);
+            })
+        }
+    }, [router.query]);
 
     return (
         <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
@@ -84,9 +129,30 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     </UpInlineButton>
                     <span className="mx-2 up-gray-300"> / </span>
                 </div>
-                <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>
+                <div className="flex">
+                    <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>
+                    <div className="ml-auto">
+                        {isOwner && (
+                            <div className="ml-auto">
+                                <MoreMenu>
+                                    <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/post/${postData._id}?back=${encodeURIComponent(document.location.href)}`}/>
+                                    <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
+                                </MoreMenu>
+                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
+                                    <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+                                    <div className="flex mt-4">
+                                        <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
+                                            Delete
+                                        </SpinnerButton>
+                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
+                                    </div>
+                                </UpModal>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <div className="flex items-center mt-4 border-b pb-8">
-                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}</p>
+                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}{!isOwner && !!linkedSnippets.length && ` | ${linkedSnippets.length} linked snippets`}</p>
                     {reactions && reactions.data && (
                         <div className="ml-auto flex items-center">
                             {reactions.data.length > 0 && (
@@ -102,6 +168,38 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                         </div>
                     )}
                 </div>
+                {isOwner && !!linkedSnippets.length && (
+                    <UpBanner className="my-8">
+                        <Accordion
+                            label={(
+                                <div className="w-full flex items-center">
+                                    <h3 className="up-ui-title">View linked snippets ({linkedSnippets.length})</h3>
+                                    <div className="ml-auto">
+                                        {viewLinkedSnippetsOpen ? (
+                                            <FiChevronUp/>
+                                        ) : (
+                                            <FiChevronDown/>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            className="w-full"
+                            openState={viewLinkedSnippetsOpen}
+                            setOpenState={setViewLinkedSnippetsOpen}
+                        >
+                            <p className="mt-4 opacity-25">Only you (the author of this post) can see linked snippets. Public viewers will only be able to see the count of linked snippets.</p>
+                            <hr className="my-8"/>
+                            {linkedSnippetsReady && linkedSnippetsData.snippets.map((snippet, i, a) => (
+                                <div key={snippet._id}>
+                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                                        <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
+                                    )}
+                                    <SnippetItemReduced snippet={snippet} isPostPage={true}/>
+                                </div>
+                            ))}
+                        </Accordion>
+                    </UpBanner>
+                )}
                 <div className="content prose my-8">
                     <SlateReadOnly
                         nodes={postData.slateBody}
