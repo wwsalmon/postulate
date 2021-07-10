@@ -15,7 +15,7 @@ import {
 } from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
 import UpSEO from "../../../components/up-seo";
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import SlateReadOnly from "../../../components/SlateReadOnly";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {format} from "date-fns";
@@ -35,6 +35,7 @@ import {useRouter} from "next/router";
 import UpBanner from "../../../components/UpBanner";
 import SnippetItemReduced from "../../../components/snippet-item-reduced";
 import Accordion from "react-robust-accordion";
+import {NotifsContext} from "../../_app";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -46,6 +47,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
 }) {
     const [session, loading] = useSession();
     const router = useRouter();
+    const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
 
     const [reactionsIteration, setReactionsIteration] = useState<number>(0);
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
@@ -92,6 +94,18 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
             console.log(e);
         });
     }
+
+    useEffect(() => {
+        if (router.query.notif) {
+            axios.post("/api/notification", {
+                id: router.query.notif,
+            }).then(() => {
+                setNotifsIteration(notifsIteration + 1);
+            }).catch(e => {
+                console.log(e);
+            })
+        }
+    }, [router.query]);
 
     return (
         <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
