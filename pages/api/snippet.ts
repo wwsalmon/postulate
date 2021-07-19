@@ -135,6 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         tags: req.body.tags,
                         userId: session.userId,
                         linkedPosts: [],
+                        privacy: req.body.privacy || "private",
                     }
 
                     const createdSnippet = await SnippetModel.create(newSnippet);
