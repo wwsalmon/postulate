@@ -152,7 +152,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     </div>
                 </div>
                 <div className="flex items-center mt-4 border-b pb-8">
-                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}{!isOwner && !!linkedSnippets.length && ` | ${linkedSnippets.length} linked snippets`}</p>
+                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}{!isOwner && !!linkedSnippets.length && ` | ${linkedSnippets.length} linked snippet${linkedSnippets.length === 1 ? "" : "s"}`}</p>
                     {reactions && reactions.data && (
                         <div className="ml-auto flex items-center">
                             {reactions.data.length > 0 && (
