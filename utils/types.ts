@@ -103,6 +103,7 @@ export interface SnippetObj {
     url: string,
     tags: string[],
     linkedPosts: string[], // array of IDs
+    privacy: "public" | "private",
 }
 
 export interface SnippetObjGraph extends SnippetObj {
