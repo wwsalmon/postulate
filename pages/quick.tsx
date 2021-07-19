@@ -53,11 +53,7 @@ export default function QuickSnippetPage() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await getSession(context);
 
-    if (!session || !session.userId) {
-        context.res.setHeader("location", session ? "/auth/newaccount" : "/auth/signin");
-        context.res.statusCode = 302;
-        context.res.end();
-    }
+    if (!session || !session.userId) return {redirect: {permanent: false, destination: session ? "/auth/newaccount" : "/auth/signin"}};
 
     return {props: {}};
 };

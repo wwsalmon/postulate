@@ -173,13 +173,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await getSession(context);
 
-    if (!session) {
-        context.res.setHeader("location", session ? "/projects" : "/auth/signin");
-        context.res.statusCode = 302;
-        context.res.end();
-
-        return {props: {}};
-    }
+    if (!session) return {redirect: {permanent: false, destination: session ? "/projects" : "/auth/signin"}};
 
     if (Array.isArray(context.params.postId)) return {notFound: true};
 

@@ -676,12 +676,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // check auth
     const session = await getSession(context);
 
-    if (!session || !session.userId) {
-        context.res.setHeader("location", session ? "/auth/newaccount" : "/auth/signin");
-        context.res.statusCode = 302;
-        context.res.end();
-        return {props: {}};
-    }
+    if (!session || !session.userId) return {redirect: {permanent: false, destination: session ? "/auth/newaccount" : "/auth/signin"}};
 
     // fetch project info from MongoDB
     try {
