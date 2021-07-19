@@ -50,17 +50,19 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
                         <p className="up-gray-500">
                             {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                         </p>
-                        {hasLinkedPosts && (
-                            <div className="ml-auto flex items-center">
-                                {snippet.privacy === "private" && (
-                                    <div className="mr-6">
-                                        <FiLock/>
-                                    </div>
-                                )}
-                                <FiLink/>
-                                <span className="ml-2">{snippet.linkedPosts.length}</span>
-                            </div>
-                        )}
+                        <div className="ml-auto flex items-center">
+                            {snippet.privacy === "private" && (
+                                <div className="mr-6">
+                                    <FiLock className="up-gray-300"/>
+                                </div>
+                            )}
+                            {hasLinkedPosts && (
+                                <>
+                                    <FiLink/>
+                                    <span className="ml-2">{snippet.linkedPosts.length}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
                     <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
                         <div className="md:flex items-center py-4 bg-white">

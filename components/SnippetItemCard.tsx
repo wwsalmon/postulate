@@ -64,19 +64,21 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                     <p className="up-gray-500">
                         {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                     </p>
-                    {hasLinkedPosts && (
-                        <div className="ml-auto flex items-center">
-                            {snippet.privacy === "private" && (
-                                <div className="mr-6">
-                                    <FiLock/>
-                                </div>
-                            )}
-                            <FiLink/>
-                            <span className="ml-2">{snippet.linkedPosts.length}</span>
-                        </div>
-                    )}
+                    <div className="ml-auto flex items-center">
+                        {snippet.privacy === "private" && (
+                            <div className={hasLinkedPosts ? "mr-6" : ""}>
+                                <FiLock className="up-gray-300"/>
+                            </div>
+                        )}
+                        {hasLinkedPosts && (
+                            <>
+                                <FiLink/>
+                                <span className="ml-2">{snippet.linkedPosts.length}</span>
+                            </>
+                        )}
+                    </div>
                     {hasTags && (
-                        <div className={`flex items-center ${hasLinkedPosts ? "" : "ml-auto"}`}>
+                        <div className={`flex items-center ${(hasLinkedPosts || snippet.privacy === "private") ? "ml-2" : "ml-auto"}`}>
                             {snippet.tags.map(tag => (
                                 <button className="up-gray-400 font-bold ml-2" onClick={() => setTagsQuery([tag])}>
                                     #{tag}
@@ -99,7 +101,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                     ))}
                     {session.userId !== snippet.userId && (
                         <>
-                            <span className="ml-auto mr-2 up-gray-300">by</span>
+                            <span className={`${hasTags ? "ml-6" : "ml-auto"} mr-2 up-gray-300`}>by</span>
                             <UpInlineButton href={`/@${snippet.authorArr[0].username}`}>
                                 <div className="flex items-center">
                                     <img
