@@ -29,7 +29,7 @@ import axios from "axios";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
 import SpinnerButton from "../../../components/spinner-button";
-import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash} from "react-icons/fi";
+import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash, FiUser} from "react-icons/fi";
 import UpModal from "../../../components/up-modal";
 import {useRouter} from "next/router";
 import UpBanner from "../../../components/UpBanner";
@@ -40,6 +40,7 @@ import Tabs from "../../../components/Tabs";
 import SnippetItemCard from "../../../components/SnippetItemCard";
 import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
 import Link from "next/link";
+import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -127,11 +128,14 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     <UpInlineButton href={`/@${thisOwner.username}`} light={true}>
                         {thisOwner.name}
                     </UpInlineButton>
-                    <span className="mx-2 up-gray-300">/</span>
-                    <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
-                        {projectName}
-                    </UpInlineButton>
-                    <span className="mx-2 up-gray-300"> / </span>
+                    <span className="mx-3 up-gray-300">/</span>
+                    <div className="flex items-center">
+                        <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
+                            {projectName}
+                        </UpInlineButton>
+                        {isOwner && <ProjectDashboardDropdown projectId={projectId}/>}
+                    </div>
+                    <span className="mx-3 up-gray-300"> / </span>
                 </div>
                 <div className="flex">
                     <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>

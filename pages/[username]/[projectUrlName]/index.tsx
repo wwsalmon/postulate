@@ -17,8 +17,11 @@ import UpInlineButton from "../../../components/style/UpInlineButton";
 import UpSEO from "../../../components/up-seo";
 import Tabs from "../../../components/Tabs";
 import ActivityTabs from "../../../components/ActivityTabs";
+import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
+import {useSession} from "next-auth/client";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
+    const [session, loading] = useSession();
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
@@ -27,15 +30,11 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
 
     const postsReady = posts && posts.posts;
 
+    const isOwner = session && session.userId === projectData.userId;
+
     return (
         <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
             <UpSEO title={projectData.name}/>
-            {/*<UpInlineButton href={`/@${thisUser.username}`} className="inline-flex items-center mb-8">*/}
-            {/*    <FiArrowLeft/>*/}
-            {/*    <span className="ml-2">*/}
-            {/*        Back to profile*/}
-            {/*    </span>*/}
-            {/*</UpInlineButton>*/}
             <div className="items-center mb-8 hidden lg:flex">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}
@@ -43,7 +42,10 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <div className="mb-12">
-                <H1>{projectData.name}</H1>
+                <div className="flex items-center">
+                    <H1>{projectData.name}</H1>
+                    {isOwner && <ProjectDashboardDropdown projectId={projectData._id} className="ml-2"/>}
+                </div>
                 {projectData.description && (
                     <H2 className="mt-2">{projectData.description}</H2>
                 )}
