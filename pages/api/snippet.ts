@@ -182,9 +182,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
-
         if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
         if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+
+        const session = await getSession({ req });
 
         try {
             await dbConnect();
@@ -204,7 +205,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             const cursorStages = getCursorStages(req.query.page);
 
-            const snippets = await SnippetModel.aggregate([
+            let snippets = await SnippetModel.aggregate([
                 {$match: conditions},
                 ...snippetGraphStages,
                 {$sort: {createdAt: req.query.sort ? +req.query.sort : - 1}},
@@ -214,6 +215,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const count = await SnippetModel
                 .find(conditions)
                 .count();
+
+            if (!session || (snippets.length && session.userId !== snippets[0].userId.toString())) {
+                snippets = snippets.map(d => (d.privacy === "public") ? d : (() => {
+                    let retval = {...d};
+                    delete retval.body;
+                    delete retval.slateBody;
+                    delete retval.tags;
+                    delete retval.linkedPosts;
+                    return retval;
+                })());
+            }
 
             res.status(200).json({snippets: snippets, items: snippets, count: count});
 
