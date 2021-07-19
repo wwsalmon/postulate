@@ -2,7 +2,7 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {useState} from "react";
-import {FiLink, FiLock} from "react-icons/fi";
+import {FiGlobe, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
@@ -51,11 +51,13 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
                             {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                         </p>
                         <div className="ml-auto flex items-center">
-                            {snippet.privacy === "private" && (
-                                <div className="mr-6">
-                                    <FiLock className="up-gray-300"/>
-                                </div>
-                            )}
+                            <div className={"up-gray-300 " + (hasLinkedPosts ? "mr-6" : "")}>
+                                {snippet.privacy === "private" ? (
+                                    <FiLock/>
+                                ) : (
+                                    <FiGlobe/>
+                                )}
+                            </div>
                             {hasLinkedPosts && (
                                 <>
                                     <FiLink/>

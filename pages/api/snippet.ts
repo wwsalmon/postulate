@@ -120,6 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     if (req.body.isSlate) thisSnippet.slateBody = req.body.body;
                     thisSnippet.url = req.body.url || "";
                     thisSnippet.tags = req.body.tags || [];
+                    thisSnippet.privacy = req.body.privacy || "private";
 
                     await thisSnippet.save();
                 } else {

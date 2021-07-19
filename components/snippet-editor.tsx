@@ -1,6 +1,7 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
+import Select from "react-select";
 import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -19,7 +20,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     projectId?: string,
     availableTags: string[],
     isLoading: boolean,
-    onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) => void,
+    onSaveEdit: (urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], privacy: "public" | "private", isSlate: boolean) => void,
     onCancelEdit: (urlName: string) => void,
     setInstance?: Dispatch<SetStateAction<EasyMDE>>,
     disableSave?: boolean,
@@ -35,10 +36,11 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
+    const [privacy, setPrivacy] = useState<"private" | "public">(snippet ? snippet.privacy : "private");
 
     const disableSaveFinal = disableSave || (isSnippetState && slateBody.every(d => getIsEmpty(d))) || (!isSnippetState && !url);
 
-    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, true);
+    const onSaveEditFilled = () => onSaveEdit(urlName, isSnippetState, slateBody, url, tags, privacy, true);
 
     useEffect(() => {
         window.onbeforeunload = !slateBody.every(d => getIsEmpty(d)) ? () => true : undefined;
@@ -125,14 +127,27 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 </SlateEditor>
             </div>
             <hr className="my-6"/>
-            <p className="up-ui-title mb-4">Tags</p>
-            <Creatable
-                options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
-                value={tags ? tags.map(d => ({label: d, value: d})) : []}
-                onChange={(newValue) => setTags(newValue.map(d => d.value))}
-                isMulti
-            />
-            <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or type to create a new one</p>
+            <div className="sm:grid grid-cols-2 gap-x-4">
+                <div>
+                    <p className="up-ui-title mb-4">Privacy</p>
+                    <Select
+                        options={[{label: "Public", value: "public"}, {label: "Private", value: "private"}]}
+                        value={{label: privacy.charAt(0).toUpperCase() + privacy.substr(1), value: privacy}}
+                        onChange={newValue => setPrivacy(newValue.value)}
+                    />
+                </div>
+                <hr className="sm:hidden"/>
+                <div>
+                    <p className="up-ui-title mb-4">Tags</p>
+                    <Creatable
+                        options={availableTags ? availableTags.map(d => ({label: d, value: d})) : []}
+                        value={tags ? tags.map(d => ({label: d, value: d})) : []}
+                        onChange={(newValue) => setTags(newValue.map(d => d.value))}
+                        isMulti
+                    />
+                    <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or create a new one</p>
+                </div>
+            </div>
             <hr className="my-6"/>
             <div className="flex">
                 <SpinnerButton

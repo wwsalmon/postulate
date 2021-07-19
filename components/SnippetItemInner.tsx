@@ -58,7 +58,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
-    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
+    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], privacy: "public" | "private", isSlate?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/snippet", {
@@ -68,6 +68,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             tags: tags || [],
             urlName: snippet.urlName,
             isSlate: !!isSlate,
+            privacy: privacy,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIteration(iteration + 1);

@@ -2,7 +2,7 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {Dispatch, SetStateAction, useState} from "react";
-import {FiCheck, FiCheckCircle, FiLink, FiLock} from "react-icons/fi";
+import {FiCheck, FiCheckCircle, FiGlobe, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemInner from "./SnippetItemInner";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
@@ -65,11 +65,13 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                     </p>
                     <div className="ml-auto flex items-center">
-                        {snippet.privacy === "private" && (
-                            <div className={hasLinkedPosts ? "mr-6" : ""}>
+                        <div className={hasLinkedPosts ? "mr-6" : ""}>
+                            {snippet.privacy === "private" ? (
                                 <FiLock className="up-gray-300"/>
-                            </div>
-                        )}
+                            ) : (
+                                <FiGlobe/>
+                            )}
+                        </div>
                         {hasLinkedPosts && (
                             <>
                                 <FiLink/>
@@ -78,7 +80,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         )}
                     </div>
                     {hasTags && (
-                        <div className={`flex items-center ${(hasLinkedPosts || snippet.privacy === "private") ? "ml-2" : "ml-auto"}`}>
+                        <div className={`flex items-center ml-2`}>
                             {snippet.tags.map(tag => (
                                 <button className="up-gray-400 font-bold ml-2" onClick={() => setTagsQuery([tag])}>
                                     #{tag}
@@ -90,6 +92,13 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
             </div>
             <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
                 <div className="md:flex items-center py-4 bg-white">
+                    <div className="mr-4" title={`Privacy: ${snippet.privacy}`}>
+                        {snippet.privacy === "private" ? (
+                            <FiLock className="up-gray-300"/>
+                        ) : (
+                            <FiGlobe/>
+                        )}
+                    </div>
                     <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
                     {hasTags && snippet.tags.map((tag, i) => (
                         <button
