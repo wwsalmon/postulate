@@ -40,7 +40,7 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
                         }}/>
                     </button>
                     <div className="flex items-center mt-4 text-sm">
-                        {session && session.userId !== snippet.userId && (
+                        {session && (session.userId !== snippet.userId) && (
                             <img
                                 src={snippet.authorArr[0].image}
                                 alt={`Profile picture of ${snippet.authorArr[0].name}`}
@@ -77,7 +77,7 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
                                     #{tag}
                                 </button>
                             ))}
-                            {session.userId !== snippet.userId && (
+                            {session && (session.userId !== snippet.userId) && (
                                 <>
                                     <span className="ml-auto mr-2 up-gray-300">by</span>
                                     <UpInlineButton href={`/@${snippet.authorArr[0].username}`}>
