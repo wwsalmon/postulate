@@ -15,7 +15,7 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
 
     const SidebarContents = (props: {mobile?: boolean}) => (
         <div className={`overflow-y-auto -mx-4 px-4 ${props.mobile ? "" : "pt-12"}`} style={{
-            height: props.mobile ? "calc(100vh - 3rem - 64px)" : "calc(100vh - 3rem)"
+            height: props.mobile ? "calc(100vh - 4rem - 64px)" : "calc(100vh - 4rem)"
         }}>
             <Link href={`/@${thisUser.username}`}>
                 <a>

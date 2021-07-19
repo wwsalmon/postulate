@@ -2,7 +2,7 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {Dispatch, SetStateAction, useState} from "react";
-import {FiCheck, FiCheckCircle, FiLink} from "react-icons/fi";
+import {FiCheck, FiCheckCircle, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemInner from "./SnippetItemInner";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
@@ -66,6 +66,11 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                     </p>
                     {hasLinkedPosts && (
                         <div className="ml-auto flex items-center">
+                            {snippet.privacy === "private" && (
+                                <div className="mr-6">
+                                    <FiLock/>
+                                </div>
+                            )}
                             <FiLink/>
                             <span className="ml-2">{snippet.linkedPosts.length}</span>
                         </div>

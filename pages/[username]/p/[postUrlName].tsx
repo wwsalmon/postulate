@@ -36,6 +36,10 @@ import UpBanner from "../../../components/UpBanner";
 import SnippetItemReduced from "../../../components/snippet-item-reduced";
 import Accordion from "react-robust-accordion";
 import {NotifsContext} from "../../_app";
+import Tabs from "../../../components/Tabs";
+import SnippetItemCard from "../../../components/SnippetItemCard";
+import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
+import Link from "next/link";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -54,7 +58,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
     const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
-    const [viewLinkedSnippetsOpen, setViewLinkedSnippetsOpen] = useState<boolean>(false);
+    const [tab, setTab] = useState<"comments" | "snippets">("comments");
 
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
     const isOwner = session && (session.userId === thisAuthor._id);
@@ -152,7 +156,22 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     </div>
                 </div>
                 <div className="flex items-center mt-4 border-b pb-8">
-                    <p className="up-gray-400">{format(new Date(postData.createdAt), "MMMM d, yyyy")} | {readingTime(postData.body).text}{!isOwner && !!linkedSnippets.length && ` | ${linkedSnippets.length} linked snippet${linkedSnippets.length === 1 ? "" : "s"}`}</p>
+                    <p className="up-gray-400">
+                        {
+                            format(new Date(postData.createdAt), "MMMM d, yyyy")
+                        } | {
+                            readingTime(postData.body).text
+                        }{
+                            !!linkedSnippets.length && (
+                                <>
+                                    <span> | </span>
+                                    <a href="#snippets" className="underline" onClick={() => setTab("snippets")}>
+                                        {linkedSnippets.length} linked snippet{linkedSnippets.length === 1 ? "" : "s"}
+                                    </a>
+                                </>
+                            )
+                        }
+                    </p>
                     {reactions && reactions.data && (
                         <div className="ml-auto flex items-center">
                             {reactions.data.length > 0 && (
@@ -168,38 +187,6 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                         </div>
                     )}
                 </div>
-                {isOwner && !!linkedSnippets.length && (
-                    <UpBanner className="my-8">
-                        <Accordion
-                            label={(
-                                <div className="w-full flex items-center">
-                                    <h3 className="up-ui-title">View linked snippets ({linkedSnippets.length})</h3>
-                                    <div className="ml-auto">
-                                        {viewLinkedSnippetsOpen ? (
-                                            <FiChevronUp/>
-                                        ) : (
-                                            <FiChevronDown/>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                            className="w-full"
-                            openState={viewLinkedSnippetsOpen}
-                            setOpenState={setViewLinkedSnippetsOpen}
-                        >
-                            <p className="mt-4 opacity-25">Only you (the author of this post) can see linked snippets. Public viewers will only be able to see the count of linked snippets.</p>
-                            <hr className="my-8"/>
-                            {linkedSnippetsReady && linkedSnippetsData.snippets.map((snippet, i, a) => (
-                                <div key={snippet._id}>
-                                    {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
-                                        <p className="opacity-50 mt-8 pb-4">{format(new Date(snippet.createdAt), "EEEE, MMMM d")}</p>
-                                    )}
-                                    <SnippetItemReduced snippet={snippet} isPostPage={true}/>
-                                </div>
-                            ))}
-                        </Accordion>
-                    </UpBanner>
-                )}
                 <div className="content prose my-8">
                     <SlateReadOnly
                         nodes={postData.slateBody}
@@ -210,28 +197,66 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     />
                 </div>
                 <hr className="my-12"/>
-                <h3 className="up-ui-title mb-8">Comments ({(comments && comments.data) ? comments.data.length : "loading..."})</h3>
-                {session ? (
-                    <CommentItem
-                        authorId={session.userId}
-                        targetId={postData._id}
-                        parentCommentId={undefined}
-                        iteration={commentsIteration}
-                        setIteration={setCommentsIteration}
-                    />
-                ) : (
-                    <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
+                <Tabs
+                    tabInfo={[
+                        {
+                            name: "comments",
+                            text: <>
+                                Comments ({(comments && comments.data) ? comments.data.length : "loading..."
+                            })</>,
+                        },
+                        {
+                            name: "snippets",
+                            text: <>
+                                Snippets ({linkedSnippets.length})
+                            </>,
+                        }
+                    ]}
+                    tab={tab}
+                    setTab={setTab}
+                    className="pb-4"
+                    id="snippets"
+                />
+                {tab === "comments" && (
+                    <>
+                        {session ? (
+                            <CommentItem
+                                authorId={session.userId}
+                                targetId={postData._id}
+                                parentCommentId={undefined}
+                                iteration={commentsIteration}
+                                setIteration={setCommentsIteration}
+                            />
+                        ) : (
+                            <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
+                        )}
+                        {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
+                            <div key={comment._id}>
+                                <CommentContainerItem
+                                    iteration={commentsIteration}
+                                    setIteration={setCommentsIteration}
+                                    comment={comment}
+                                    subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
+                                />
+                            </div>
+                        ))}
+                    </>
                 )}
-                {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
-                    <div key={comment._id}>
-                        <CommentContainerItem
-                            iteration={commentsIteration}
-                            setIteration={setCommentsIteration}
-                            comment={comment}
-                            subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
-                        />
+                {tab === "snippets" && (
+                    <div className="grid grid-cols-2 gap-4 mb-12">
+                        {linkedSnippets.length ? linkedSnippetsReady ? (
+                            <>
+                                {linkedSnippetsData.snippets.map(snippet => (
+                                    <SnippetItemCardReadOnly snippet={snippet} showFullDate={true}/>
+                                ))}
+                            </>
+                        ) : (
+                            <p>Loading...</p>
+                        ) : (
+                            <p>This post doesn't have any snippets linked to it.</p>
+                        )}
                     </div>
-                ))}
+                )}
             </div>
         </ProfileShell>
     );

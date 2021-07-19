@@ -219,10 +219,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (!session || (snippets.length && session.userId !== snippets[0].userId.toString())) {
                 snippets = snippets.map(d => (d.privacy === "public") ? d : (() => {
                     let retval = {...d};
-                    delete retval.body;
-                    delete retval.slateBody;
-                    delete retval.tags;
-                    delete retval.linkedPosts;
+                    retval.body = retval.slateBody = retval.tags = retval.linkedPosts = null;
                     return retval;
                 })());
             }
