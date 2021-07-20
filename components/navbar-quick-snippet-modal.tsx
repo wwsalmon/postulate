@@ -39,7 +39,7 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
         return thisProject ? thisProject.availableTags : [];
     }
 
-    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], privacy: "public" | "private", isSlate: boolean) {
+    function onSubmit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate: boolean) {
         setIsLoading(true);
 
         axios.post("/api/snippet", {
@@ -50,7 +50,6 @@ export default function NavbarQuickSnippetModal({setOpen, initProjectId, iterati
             url: url || "",
             tags: tags || [],
             isSlate: isSlate,
-            privacy: privacy,
         }).then(() => {
             // @ts-ignore
             window.analytics.track("Item created", {

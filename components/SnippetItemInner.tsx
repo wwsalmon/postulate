@@ -7,7 +7,7 @@ import SlateReadOnly from "./SlateReadOnly";
 import SnippetEditor from "./snippet-editor";
 import MoreMenu from "./more-menu";
 import MoreMenuItem from "./more-menu-item";
-import {FiArrowRightCircle, FiEdit2, FiTrash} from "react-icons/fi";
+import {FiArrowRightCircle, FiEdit2, FiGlobe, FiLock, FiTrash} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SpinnerButton from "./spinner-button";
 import ProjectBrowser from "./project-browser";
@@ -33,6 +33,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [isMove, setIsMove] = useState<boolean>(false);
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
+    const [isPrivacyLoading, setIsPrivacyLoading] = useState<boolean>(false);
 
     function onDelete() {
         setIsLoading(true);
@@ -58,7 +59,7 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
         axios.post("/api/cancel-delete-images", {type: "snippet", id: snippet._id.toString()});
     }
 
-    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], privacy: "public" | "private", isSlate?: boolean) {
+    function onSaveEdit(urlName: string, isSnippet: boolean, body: string | Node[], url: string, tags: string[], isSlate?: boolean) {
         setIsEditLoading(true);
 
         axios.post("/api/snippet", {
@@ -68,7 +69,6 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             tags: tags || [],
             urlName: snippet.urlName,
             isSlate: !!isSlate,
-            privacy: privacy,
         }).then(res => {
             if (res.data.newTags.length) addNewTags(res.data.newTags);
             setIteration(iteration + 1);
@@ -90,6 +90,22 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             if (setOpen) setOpen(false);
         }).catch(e => {
             setIsLoading(false);
+            console.log(e);
+        });
+    }
+
+    function onTogglePrivacy() {
+        setIsPrivacyLoading(true);
+
+        axios.post("/api/snippet", {
+            id: snippet._id,
+            privacy: snippet.privacy === "public" ? "private" : "public",
+        }).then(() => {
+            setIteration(iteration + 1);
+            setIsPrivacyLoading(false);
+            if (setOpen) setOpen(false);
+        }).catch(e => {
+            setIsPrivacyLoading(false);
             console.log(e);
         });
     }
@@ -120,6 +136,12 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
             <MoreMenu>
                 <MoreMenuItem text="Edit (e)" icon={<FiEdit2/>} onClick={() => setIsEdit(true)}/>
                 <MoreMenuItem text="Move (m)" icon={<FiArrowRightCircle/>} onClick={() => setIsMove(true)}/>
+                <MoreMenuItem
+                    text={isPrivacyLoading ? "Loading..." : `Make ${snippet.privacy === "public" ? "private" : "public"}`}
+                    icon={snippet.privacy === "public" ? <FiLock/> : <FiGlobe/>}
+                    onClick={onTogglePrivacy}
+                    disabled={isPrivacyLoading}
+                />
                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
             </MoreMenu>
             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>

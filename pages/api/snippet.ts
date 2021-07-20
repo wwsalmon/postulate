@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (req.body.id) {
                 thisSnippet = await SnippetModel.findOne({ _id: req.body.id });
 
-                if (!thisSnippet) return res.status(406).json({message: "No snippet found with given ID."});
+                if (!thisSnippet) return res.status(404).json({message: "No snippet found with given ID."});
 
                 thisProject = await ProjectModel.findOne({ _id: thisSnippet.projectId });
 
@@ -65,12 +65,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // if update or create, else delete
             if (req.method === "POST") {
                 // moving snippet to a different project, else updating or creating
-                if (req.body.id && req.body.projectId) {
-                    thisSnippet.projectId = req.body.projectId;
+                if (req.body.id && (req.body.projectId || req.body.privacy)) {
+                    if (req.body.projectId) thisSnippet.projectId = req.body.projectId;
+                    if (req.body.privacy) thisSnippet.privacy = req.body.privacy;
 
                     await thisSnippet.save();
 
-                    return res.status(200).json({message: "Snippet successfully moved."});
+                    return res.status(200).json({message: "Snippet successfully updated."});
                 }
 
                 // ensure necessary post params are present
@@ -120,7 +121,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     if (req.body.isSlate) thisSnippet.slateBody = req.body.body;
                     thisSnippet.url = req.body.url || "";
                     thisSnippet.tags = req.body.tags || [];
-                    thisSnippet.privacy = req.body.privacy || "private";
 
                     await thisSnippet.save();
                 } else {
@@ -136,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         tags: req.body.tags,
                         userId: session.userId,
                         linkedPosts: [],
-                        privacy: req.body.privacy || "private",
+                        privacy: "private",
                     }
 
                     const createdSnippet = await SnippetModel.create(newSnippet);
