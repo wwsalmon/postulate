@@ -70,11 +70,11 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
             <Tabs tabInfo={[
                 {
                     name: "posts",
-                    text: "Posts",
+                    text: `Posts (${postsReady ? posts.count : "loading..."})`,
                 },
                 {
                     name: "snippets",
-                    text: "Snippets",
+                    text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`,
                 },
                 {
                     name: "stats",
