@@ -103,11 +103,17 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                     <Skeleton count={1} className="h-32 w-full mt-12"/>
                 ), snippets: (
                     <>
-                        {isOwner && (
-                            <p className="mb-4 up-gray-400">You are viewing this project's snippets as a public visitor. To see all your snippets, go to the <Link href={`/projects/${projectData._id}`}><a
-                                className="underline"
-                            >project dashboard</a></Link>.</p>
-                        )}
+                        <p className="mb-4 up-gray-400">
+                            {isOwner ? (
+                                <span>You are viewing this project's snippets as a public visitor. To see all your snippets, go to the <Link
+                                    href={`/projects/${projectData._id}`}
+                                ><a
+                                    className="underline"
+                                >project dashboard</a></Link>.</span>
+                            ) : (
+                                <span>Snippets are source notes that eventually turn into posts.</span>
+                            )}
+                        </p>
                         {snippetsReady ? !!snippets.snippets.length ? (
                             <div className="mb-12 -mt-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

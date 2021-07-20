@@ -247,19 +247,24 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                     </>
                 )}
                 {tab === "snippets" && (
-                    <div className="grid grid-cols-2 gap-4 mb-12">
-                        {linkedSnippets.length ? linkedSnippetsReady ? (
-                            <>
-                                {linkedSnippetsData.snippets.map(snippet => (
-                                    <SnippetItemCardReadOnly snippet={snippet} showFullDate={true}/>
-                                ))}
-                            </>
-                        ) : (
-                            <p>Loading...</p>
-                        ) : (
-                            <p>This post doesn't have any snippets linked to it.</p>
+                    <>
+                        {!isOwner && (
+                            <p className="up-gray-400 mb-8 -mt-4">Snippets are source notes that eventually turn into posts.</p>
                         )}
-                    </div>
+                        <div className="grid grid-cols-2 gap-4 mb-12">
+                            {linkedSnippets.length ? linkedSnippetsReady ? (
+                                <>
+                                    {linkedSnippetsData.snippets.map(snippet => (
+                                        <SnippetItemCardReadOnly snippet={snippet} showFullDate={true}/>
+                                    ))}
+                                </>
+                            ) : (
+                                <p>Loading...</p>
+                            ) : (
+                                <p>This post doesn't have any snippets linked to it.</p>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </ProfileShell>
