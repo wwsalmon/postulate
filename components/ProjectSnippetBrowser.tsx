@@ -38,7 +38,7 @@ export default function ProjectSnippetBrowser({snippets, isOwner, snippetPage, s
                                 {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i - 1].createdAt), "yyyy-MM-dd")) && (
                                     <p className="up-ui-title mt-12 pb-4 md:col-span-2 xl:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
                                 )}
-                                <SnippetItemCardReadOnly snippet={item}/>
+                                <SnippetItemCardReadOnly snippet={item} showProject={!projectId}/>
                             </>
                         ))}
                     </div>

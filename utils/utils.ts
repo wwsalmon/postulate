@@ -257,7 +257,13 @@ export const snippetGraphStages = [
             foreignField: "nodeId",
             localField: "_id",
             as: "linkArr",
-        }}
+        }},
+    {$lookup: {
+        from: "projects",
+            foreignField: "_id",
+            localField: "projectId",
+            as: "projectArr",
+        }},
 ];
 
 const userPipeline = [

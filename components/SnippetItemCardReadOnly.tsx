@@ -9,9 +9,10 @@ import {useSession} from "next-auth/client";
 import UpInlineButton from "./style/UpInlineButton";
 import Link from "next/link";
 
-export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
+export default function SnippetItemCardReadOnly({snippet, showFullDate, showProject}: {
     snippet: DatedObj<SnippetObjGraph>,
     showFullDate?: boolean,
+    showProject?: boolean,
 }) {
     const [session, loading] = useSession();
     const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -26,8 +27,18 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate}: {
         >
             {isPublic ? (
                 <>
+                    {showProject && (
+                        <div className="h-8 flex items-center">
+                            <span className="mr-1 up-gray-400">In:</span>
+                            <UpInlineButton
+                                href={`/@${snippet.authorArr[0].username}/${snippet.projectArr[0].urlName}`}
+                            >
+                                {snippet.projectArr[0].name}
+                            </UpInlineButton>
+                        </div>
+                    )}
                     <button
-                        className="h-36 overflow-hidden text-xs relative -mx-4 px-4 text-left block -mt-2"
+                        className={`${showProject ? "h-28" : "h-36"} overflow-hidden text-xs relative -mx-4 px-4 text-left block -mt-2`}
                         style={{width: "calc(100% + 2rem)"}}
                         onClick={() => setModalOpen(true)}
                     >
