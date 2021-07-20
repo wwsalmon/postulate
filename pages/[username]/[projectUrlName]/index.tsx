@@ -4,7 +4,14 @@ import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObjWithPageStats, UserObjWithProjects} from "../../../utils/types";
+import {
+    DatedObj,
+    PostObjGraph,
+    ProjectObjWithPageStats,
+    SnippetObj,
+    SnippetObjGraph,
+    UserObjWithProjects
+} from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
 import H1 from "../../../components/style/H1";
 import H2 from "../../../components/style/H2";
@@ -19,16 +26,26 @@ import Tabs from "../../../components/Tabs";
 import ActivityTabs from "../../../components/ActivityTabs";
 import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 import {useSession} from "next-auth/client";
+import {format} from "date-fns";
+import SnippetItem from "../../../components/snippet-item";
+import PublicPostItem from "../../../components/public-post-item";
+import SnippetItemCard from "../../../components/SnippetItemCard";
+import PostItemCard from "../../../components/PostItemCard";
+import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
+import Link from "next/link";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
     const [session, loading] = useSession();
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
+    const [snippetPage, setSnippetPage] = useState<number>(1);
 
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData ? projectData._id : "featured"}&page=${postPage}&search=${searchQuery}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData._id}&page=${postPage}&search=${searchQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{ snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectData._id}&page=${snippetPage}&public=true`, fetcher);
 
     const postsReady = posts && posts.posts;
+    const snippetsReady = snippets && snippets.snippets;
 
     const isOwner = session && session.userId === projectData.userId;
 
@@ -85,7 +102,37 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 ) : (
                     <Skeleton count={1} className="h-32 w-full mt-12"/>
                 ), snippets: (
-                    <p>Public snippets coming soon</p>
+                    <>
+                        {isOwner && (
+                            <p className="mb-4 up-gray-400">You are viewing this project's snippets as a public visitor. To see all your snippets, go to the <Link href={`/projects/${projectData._id}`}><a
+                                className="underline"
+                            >project dashboard</a></Link>.</p>
+                        )}
+                        {snippetsReady ? !!snippets.snippets.length ? (
+                            <div className="mb-12 -mt-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {snippets.snippets.map((item, i, a) => (
+                                        <>
+                                            {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i - 1].createdAt), "yyyy-MM-dd")) && (
+                                                <p className="up-ui-title mt-12 pb-4 md:col-span-2 xl:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
+                                            )}
+                                            <SnippetItemCardReadOnly snippet={item}/>
+                                        </>
+                                    ))}
+                                </div>
+                                <PaginationBar
+                                    page={snippetPage}
+                                    count={snippets.count}
+                                    label="snippet"
+                                    setPage={setSnippetPage}
+                                />
+                            </div>
+                        ) : (
+                            <p>No public snippets have been published in this project yet.</p>
+                        ) : (
+                            <Skeleton count={1} className="h-32 w-full mt-12"/>
+                        )}
+                    </>
                 ), stats: (
                     <ActivityTabs
                         snippetsArr={projectData.snippetsArr}

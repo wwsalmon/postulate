@@ -191,6 +191,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             await dbConnect();
 
+            let publicAccess = true;
+
+            if (req.query.projectId && session) {
+                const thisProject = await ProjectModel.findById(req.query.projectId);
+                if (thisProject && thisProject.userId.toString() === session.userId) publicAccess = false;
+            }
+
             let conditions: any = { projectId: mongoose.Types.ObjectId(req.query.projectId) };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
             if (req.query.tags && JSON.parse(req.query.tags).length) conditions["tags"] = {"$in": JSON.parse(req.query.tags)};
@@ -203,6 +210,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const ids: any = JSON.parse(req.query.ids).map(d => mongoose.Types.ObjectId(d));
                 conditions = { "_id": {"$in": ids}};
             }
+
+            if (req.query.projectId && (publicAccess || req.query.public)) conditions["privacy"] = "public";
 
             const cursorStages = getCursorStages(req.query.page);
 
