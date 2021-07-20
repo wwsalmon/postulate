@@ -183,8 +183,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
-        if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+        if (!req.query.projectId && !req.query.ids && !req.query.userId) return res.status(400).json({message: "Missing params"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page) || Array.isArray(req.query.userId)) return res.status(400).json({message: "Invalid filtering queries found in request"});
 
         const session = await getSession({ req });
 
@@ -210,7 +210,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const ids: any = JSON.parse(req.query.ids).map(d => mongoose.Types.ObjectId(d));
                 conditions = { "_id": {"$in": ids}};
             }
-
+            if (req.query.userId) conditions = {"userId": mongoose.Types.ObjectId(req.query.userId), "privacy": "public"};
             if (req.query.projectId && (publicAccess || req.query.public)) conditions["privacy"] = "public";
 
             const cursorStages = getCursorStages(req.query.page);

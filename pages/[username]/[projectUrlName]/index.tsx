@@ -33,6 +33,7 @@ import SnippetItemCard from "../../../components/SnippetItemCard";
 import PostItemCard from "../../../components/PostItemCard";
 import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
 import Link from "next/link";
+import ProjectSnippetBrowser from "../../../components/ProjectSnippetBrowser";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
     const [session, loading] = useSession();
@@ -102,43 +103,13 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 ) : (
                     <Skeleton count={1} className="h-32 w-full mt-12"/>
                 ), snippets: (
-                    <>
-                        <p className="mb-4 up-gray-400">
-                            {isOwner ? (
-                                <span>You are viewing this project's snippets as a public visitor. To see all your snippets, go to the <Link
-                                    href={`/projects/${projectData._id}`}
-                                ><a
-                                    className="underline"
-                                >project dashboard</a></Link>.</span>
-                            ) : (
-                                <span>Snippets are source notes that eventually turn into posts.</span>
-                            )}
-                        </p>
-                        {snippetsReady ? !!snippets.snippets.length ? (
-                            <div className="mb-12 -mt-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                    {snippets.snippets.map((item, i, a) => (
-                                        <>
-                                            {(i === 0 || format(new Date(item.createdAt), "yyyy-MM-dd") !== format(new Date(a[i - 1].createdAt), "yyyy-MM-dd")) && (
-                                                <p className="up-ui-title mt-12 pb-4 md:col-span-2 xl:col-span-3">{format(new Date(item.createdAt), "EEEE, MMMM d")}</p>
-                                            )}
-                                            <SnippetItemCardReadOnly snippet={item}/>
-                                        </>
-                                    ))}
-                                </div>
-                                <PaginationBar
-                                    page={snippetPage}
-                                    count={snippets.count}
-                                    label="snippet"
-                                    setPage={setSnippetPage}
-                                />
-                            </div>
-                        ) : (
-                            <p>No public snippets have been published in this project yet.</p>
-                        ) : (
-                            <Skeleton count={1} className="h-32 w-full mt-12"/>
-                        )}
-                    </>
+                    <ProjectSnippetBrowser
+                        snippets={snippets}
+                        snippetPage={snippetPage}
+                        setSnippetPage={setSnippetPage}
+                        isOwner={isOwner}
+                        projectId={projectData._id}
+                    />
                 ), stats: (
                     <ActivityTabs
                         snippetsArr={projectData.snippetsArr}

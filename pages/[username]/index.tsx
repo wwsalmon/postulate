@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher, UserObjWithGraphAggregationPipeline} from "../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObjWithStats, UserObjGraph} from "../../utils/types";
+import {DatedObj, PostObjGraph, ProjectObjWithStats, SnippetObjGraph, UserObjGraph} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
@@ -20,17 +20,24 @@ import UpModal from "../../components/up-modal";
 import axios from "axios";
 import ProjectBrowser from "../../components/project-browser";
 import UpInlineButton from "../../components/style/UpInlineButton";
-import {subDays} from "date-fns";
+import {format, subDays} from "date-fns";
 import ActivityTabs from "../../components/ActivityTabs";
+import Tabs from "../../components/Tabs";
+import SnippetItemCardReadOnly from "../../components/SnippetItemCardReadOnly";
+import Skeleton from "react-loading-skeleton";
+import Link from "next/link";
+import ProjectSnippetBrowser from "../../components/ProjectSnippetBrowser";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGraph> }) {
     const [session, loading] = useSession();
     const [tag, setTag] = useState<string>("");
     const [page, setPage] = useState<number>(1);
+    const [snippetPage, setSnippetPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [addFeaturedOpen, setAddFeaturedOpen] = useState<boolean>(false);
     const [featuredIter, setFeaturedIter] = useState<number>(0);
     const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObjWithStats>[]>(thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id)));
+    const [tab, setTab] = useState<"snippets" | "posts">("posts");
     const isOwner = session && (session.userId === thisUser._id);
 
     useEffect(() => {
@@ -40,6 +47,10 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
     }, [featuredIter]);
 
     const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{ snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?userId=${thisUser._id}&page=${page}`, fetcher);
+
+    const postsReady = posts && posts.posts;
+    const snippetsReady = snippets && snippets.snippets;
 
     function onSubmitFeaturedProject(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
         setIsLoading(true);
@@ -106,17 +117,32 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
                 linkedSnippetsArr={thisUser.linkedSnippetsArr}
             />
             <hr className="my-12"/>
-            <H4 className="mb-8">Latest posts</H4>
-            <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
-                {posts && posts.posts && posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
-            </Masonry>
-            <PaginationBar
-                page={page}
-                count={(posts && posts.posts) ? posts.count : 0}
-                label="posts"
-                setPage={setPage}
-                className="mb-12"
-            />
+            <Tabs tabInfo={[
+                {name: "posts", text: `Posts (${postsReady ? posts.count : "loading..."})`},
+                {name: "snippets", text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`},
+            ]} tab={tab} setTab={setTab}/>
+            {tab === "posts" && (
+                <>
+                    <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
+                        {posts && posts.posts && posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
+                    </Masonry>
+                    <PaginationBar
+                        page={page}
+                        count={(posts && posts.posts) ? posts.count : 0}
+                        label="posts"
+                        setPage={setPage}
+                        className="mb-12"
+                    />
+                </>
+            )}
+            {tab === "snippets" && (
+                <ProjectSnippetBrowser
+                    snippets={snippets}
+                    snippetPage={snippetPage}
+                    isOwner={isOwner}
+                    setSnippetPage={setSnippetPage}
+                />
+            )}
         </ProfileShell>
     )
 }
