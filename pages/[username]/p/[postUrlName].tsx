@@ -112,6 +112,16 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
         }
     }, [router.query]);
 
+    useEffect(() => {
+        const routerPath = router.asPath;
+        const routerPathHasHash = routerPath.includes("#");
+        if (routerPathHasHash) {
+            const routerPathSplit = routerPath.split("#");
+            const routerHashValue = routerPathSplit[1];
+            if (routerHashValue === "snippets") setTab("snippets");
+        }
+    }, []);
+
     return (
         <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
             <UpSEO
