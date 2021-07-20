@@ -8,12 +8,14 @@ import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
 import UpInlineButton from "./style/UpInlineButton";
 import Link from "next/link";
+import {useRouter} from "next/router";
 
 export default function SnippetItemCardReadOnly({snippet, showFullDate, showProject}: {
     snippet: DatedObj<SnippetObjGraph>,
     showFullDate?: boolean,
     showProject?: boolean,
 }) {
+    const router = useRouter();
     const [session, loading] = useSession();
     const [modalOpen, setModalOpen] = useState<boolean>(false);
 
@@ -40,7 +42,12 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate, showProj
                     <button
                         className={`${showProject ? "h-28" : "h-36"} overflow-hidden text-xs relative -mx-4 px-4 text-left block -mt-2`}
                         style={{width: "calc(100% + 2rem)"}}
-                        onClick={() => setModalOpen(true)}
+                        onClick={() => {
+                            setModalOpen(true);
+                            setTimeout(() => {
+                                router.push(router.route, decodeURIComponent(router.asPath) + `?snippetId=${snippet._id}`, {shallow: true, scroll: false});
+                            }, 100);
+                        }}
                     >
                         <SnippetItemLinkPreview snippet={snippet} small={true}/>
                         <div className="prose opacity-75 select-none w-full">
@@ -77,7 +84,12 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate, showProj
                             )}
                         </div>
                     </div>
-                    <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
+                    <UpModal isOpen={modalOpen} setIsOpen={(d: boolean) => {
+                        setModalOpen(d);
+                        setTimeout(() => {
+                            router.push(router.route, decodeURIComponent(router.asPath.split("?")[0]), {shallow: true, scroll: false});
+                        }, 100);
+                    }} wide={true}>
                         <div className="md:flex items-center py-4 bg-white">
                             <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
                             {hasTags && snippet.tags.map((tag, i) => (

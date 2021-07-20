@@ -10,13 +10,13 @@ import "../styles/nprogress.css";
 import {createContext, useState} from "react";
 import {ToastProvider} from "react-toast-notifications";
 
-Router.events.on("routeChangeStart", (url) => {
-    NProgress.start();
+Router.events.on("routeChangeStart", (url, {shallow}) => {
+    if (!shallow) NProgress.start();
 });
-Router.events.on("routeChangeComplete", (url) => {
+Router.events.on("routeChangeComplete", (url, {shallow}) => {
     // @ts-ignore window.analytics undefined below
     window.analytics.page(url);
-    NProgress.done();
+    if (!shallow) NProgress.done();
 });
 Router.events.on("routeChangeError", () => NProgress.done());
 
