@@ -7,13 +7,15 @@ import SlateReadOnly from "./SlateReadOnly";
 import SnippetEditor from "./snippet-editor";
 import MoreMenu from "./more-menu";
 import MoreMenuItem from "./more-menu-item";
-import {FiArrowRightCircle, FiEdit2, FiGlobe, FiLock, FiTrash} from "react-icons/fi";
+import {FiArrowRightCircle, FiEdit2, FiExternalLink, FiGlobe, FiLock, FiTrash} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SpinnerButton from "./spinner-button";
 import ProjectBrowser from "./project-browser";
 import Link from "next/link";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import Mousetrap from "mousetrap";
+import SnippetLinkedPosts from "./SnippetLinkedPosts";
+import SnippetModalReadArea from "./SnippetModalReadArea";
 
 export default function SnippetItemInner({snippet, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, isList, setTagsQuery, setOpen}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -142,6 +144,13 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
                     onClick={onTogglePrivacy}
                     disabled={isPrivacyLoading}
                 />
+                {snippet.privacy === "public" && (
+                    <MoreMenuItem
+                        text="Open as page"
+                        icon={<FiExternalLink/>}
+                        href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}
+                    />
+                )}
                 <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
             </MoreMenu>
             <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
@@ -180,55 +189,12 @@ export default function SnippetItemInner({snippet, iteration, setIteration, setS
                     />
                 </>
             ) : (
-                <>
-                    <div className="flex">
-                        <div className="w-full" style={{minWidth: 0}}>
-                            {snippet.url && (
-                                <SnippetItemLinkPreview snippet={snippet}/>
-                            )}
-                            <div className={`${isList ? "" : "content"} prose break-words`}>
-                                <SlateReadOnly nodes={snippet.slateBody}/>
-                            </div>
-                            {!!snippet.linkArr.length && (
-                                <>
-                                    <hr className="mb-8 mt-4"/>
-                                    <p className="up-ui-title">Linked resources ({snippet.linkArr.length}):</p>
-                                    {snippet.linkArr.map(d => (
-                                        <div className="my-2">
-                                            <SnippetItemLinkPreview url={d.targetUrl}/>
-                                        </div>
-                                    ))}
-                                </>
-                            )}
-                        </div>
-                        {session && session.userId === snippet.userId && (
-                            <ThisMoreMenu/>
-                        )}
-                    </div>
-                    {isList && (
-                        <div className="flex mt-4">
-                            {snippet.tags && snippet.tags.map(tag => (
-                                <button
-                                    className="font-bold opacity-50 mr-2"
-                                    onClick={() => setTagsQuery([tag])}
-                                >#{tag}</button>
-                            ))}
-                        </div>
-                    )}
-                    {!!snippet.linkedPosts.length && (
-                        <div className="opacity-50 hover:opacity-100 transition pb-8">
-                            <hr className="mb-8 mt-4"/>
-                            <p className="up-ui-title">Linked posts ({snippet.linkedPosts.length}):</p>
-                            {snippet.linkedPostsArr.map(d => (
-                                <Link href={`/@${snippet.authorArr[0].username}/p/${d.urlName}`}>
-                                    <a className="underline my-2 block">
-                                        {d.title}
-                                    </a>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-                </>
+                <SnippetModalReadArea
+                    snippet={snippet}
+                    thisMoreMenu={<ThisMoreMenu/>}
+                    isList={isList}
+                    setTagsQuery={setTagsQuery}
+                />
             )}
         </>
     )

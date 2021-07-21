@@ -23,6 +23,7 @@ import {snippetsExplainer} from "../../../utils/copy";
 import Link from "next/link";
 import PostFeedItem from "../../../components/PostFeedItem";
 import {FiArrowLeft} from "react-icons/fi";
+import SnippetLinkedPosts from "../../../components/SnippetLinkedPosts";
 
 export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -87,15 +88,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
                                 isOwner={false}
                             />
                         </div>
-                        {!!snippet.linkedPosts.length && (
-                            <div className="opacity-50 hover:opacity-100 transition pb-8">
-                                <hr className="mb-8 mt-4"/>
-                                <p className="up-ui-title mb-12">Linked posts ({snippet.linkedPosts.length}):</p>
-                                {snippet.linkedPostsArr.map((d, i) => (
-                                    <PostFeedItem post={{...d, projectArr: [projectData]}} notFeed={true} i={i}/>
-                                ))}
-                            </div>
-                        )}
+                        <SnippetLinkedPosts snippet={snippet}/>
                     </div>
                 </div>
                 <UpInlineButton className="my-8" href={`/@${thisOwner.username}/${projectUrlName}#snippets`}>

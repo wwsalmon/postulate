@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             from: "users",
                             localField: "userId",
                             foreignField: "_id",
-                            as: "author",
+                            as: "authorArr",
                         }}
                     ],
                     as: "post",
@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     from: "users",
                     localField: "userId",
                     foreignField: "_id",
-                    as: "author",
+                    as: "authorArr",
                 }},
             ];
 

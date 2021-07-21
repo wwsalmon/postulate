@@ -1,4 +1,4 @@
-import {DatedObj, PostObjGraph} from "../utils/types";
+import {DatedObj, PostObj, PostObjGraph, PostObjWithAuthor} from "../utils/types";
 import Link from "next/link";
 import H3 from "./style/H3";
 import React, {ReactNode} from "react";
@@ -6,11 +6,9 @@ import {findImages} from "../utils/utils";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PostFeedItem({post, className, i, notFeed}: { post: DatedObj<PostObjGraph>, className?: string, i?: number, notFeed?: boolean, }) {
+export default function PostFeedItem({post, className, i, notFeed}: { post: DatedObj<PostObjWithAuthor>, className?: string, i?: number, notFeed?: boolean, }) {
     const images = findImages(post.slateBody);
     const author = post.authorArr[0];
-    const project = post.projectArr[0];
-    const owner = project.ownerArr[0];
 
     const LinkWrapper = ({children, className}: {children: ReactNode, className?: string}) => (
         <Link href={`/@${author.username}/p/${post.urlName}`}>

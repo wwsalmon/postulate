@@ -112,7 +112,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     </UpInlineButton>
                 </>
             )}
-            <div className="content prose w-full relative" style={{minHeight: 200}}>
+            <div className="prose w-full relative" style={{minHeight: 200, fontSize: 18}}>
                 <SlateEditor
                     body={slateBody}
                     setBody={setSlateBody}

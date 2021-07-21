@@ -2,13 +2,15 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {useState} from "react";
-import {FiExternalLink, FiGlobe, FiLink, FiLock} from "react-icons/fi";
+import {FiGlobe, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
 import UpInlineButton from "./style/UpInlineButton";
 import Link from "next/link";
 import {useRouter} from "next/router";
+import SnippetModalReadArea from "./SnippetModalReadArea";
+import SnippetModalShell from "./SnippetModalShell";
 
 export default function SnippetItemCardReadOnly({snippet, showFullDate, showProject}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -88,79 +90,9 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate, showProj
                     <UpModal isOpen={modalOpen} setIsOpen={(d: boolean) => {
                         setModalOpen(d);
                     }} wide={true}>
-                        <div className="md:flex items-center py-4 bg-white">
-                            <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
-                            {hasTags && snippet.tags.map((tag, i) => (
-                                <button
-                                    className={`up-gray-400 font-bold ${i === 0 ? "md:ml-auto" : "ml-2"}`}
-                                    onClick={() => null} // fix tag search later
-                                >
-                                    #{tag}
-                                </button>
-                            ))}
-                            {session && (session.userId !== snippet.userId) && (
-                                <>
-                                    <span className="ml-auto mr-2 up-gray-300">by</span>
-                                    <UpInlineButton href={`/@${snippet.authorArr[0].username}`}>
-                                        <div className="flex items-center">
-                                            <img
-                                                src={snippet.authorArr[0].image}
-                                                alt={`Profile picture of ${snippet.authorArr[0].name}`}
-                                                className="w-6 h-6 rounded-full mr-2 opacity-75"
-                                            />
-                                            <span>{snippet.authorArr[0].name}</span>
-                                        </div>
-                                    </UpInlineButton>
-                                </>
-                            )}
-                            {snippet.privacy === "public" && (
-                                <UpInlineButton
-                                    href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}
-                                    className={"ml-auto"}
-                                >
-                                    <div className="flex items-center">
-                                        <span className="mr-2">Open as page</span>
-                                        <FiExternalLink/>
-                                    </div>
-                                </UpInlineButton>
-                            )}
-                        </div>
-                        <div style={{maxHeight: "calc(100vh - 240px)", minHeight: 300, overflowY: "auto"}} className="-mx-4 px-4 relative">
-                            <div className="flex">
-                                <div className="w-full" style={{minWidth: 0}}>
-                                    {snippet.url && (
-                                        <SnippetItemLinkPreview snippet={snippet}/>
-                                    )}
-                                    <div className={`content prose break-words`}>
-                                        <SlateReadOnly nodes={snippet.slateBody}/>
-                                    </div>
-                                    {!!snippet.linkArr.length && (
-                                        <>
-                                            <hr className="mb-8 mt-4"/>
-                                            <p className="up-ui-title">Linked resources ({snippet.linkArr.length}):</p>
-                                            {snippet.linkArr.map(d => (
-                                                <div className="my-2">
-                                                    <SnippetItemLinkPreview url={d.targetUrl}/>
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            {!!snippet.linkedPosts.length && (
-                                <div className="opacity-50 hover:opacity-100 transition pb-8">
-                                    <hr className="mb-8 mt-4"/>
-                                    <p className="up-ui-title">Linked posts ({snippet.linkedPosts.length}):</p>
-                                    {snippet.linkedPostsArr.map(d => (
-                                        <Link href={`/@${snippet.authorArr[0].username}/p/${d.urlName}`}>
-                                            <a className="underline my-2 block">
-                                                {d.title}
-                                            </a>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <SnippetModalShell snippet={snippet}>
+                            <SnippetModalReadArea snippet={snippet}/>
+                        </SnippetModalShell>
                     </UpModal>
                 </>
             ) : (

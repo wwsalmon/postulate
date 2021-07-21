@@ -2,13 +2,13 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {Dispatch, SetStateAction, useState} from "react";
-import {FiCheck, FiCheckCircle, FiGlobe, FiLink, FiLock} from "react-icons/fi";
+import {FiCheck, FiGlobe, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemInner from "./SnippetItemInner";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
-import UpInlineButton from "./style/UpInlineButton";
 import Link from "next/link";
+import SnippetModalShell from "./SnippetModalShell";
 
 export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, selectedSnippetIds, setSelectedSnippetIds, showFullDate}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -96,44 +96,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                 </div>
             </div>
             <UpModal isOpen={modalOpen} setIsOpen={setModalOpen} wide={true}>
-                <div className="md:flex items-center py-4 bg-white">
-                    <div className="mr-4" title={`Privacy: ${snippet.privacy}`}>
-                        {snippet.privacy === "private" ? (
-                            <FiLock className="up-gray-300"/>
-                        ) : (
-                            <Link href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}>
-                                <a>
-                                    <FiGlobe/>
-                                </a>
-                            </Link>
-                        )}
-                    </div>
-                    <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
-                    {hasTags && snippet.tags.map((tag, i) => (
-                        <button
-                            className={`up-gray-400 font-bold ${i === 0 ? "md:ml-auto" : "ml-2"}`}
-                            onClick={() => setTagsQuery([tag])}
-                        >
-                            #{tag}
-                        </button>
-                    ))}
-                    {session.userId !== snippet.userId && (
-                        <>
-                            <span className={`${hasTags ? "ml-6" : "ml-auto"} mr-2 up-gray-300`}>by</span>
-                            <UpInlineButton href={`/@${snippet.authorArr[0].username}`}>
-                                <div className="flex items-center">
-                                    <img
-                                        src={snippet.authorArr[0].image}
-                                        alt={`Profile picture of ${snippet.authorArr[0].name}`}
-                                        className="w-6 h-6 rounded-full mr-2 opacity-75"
-                                    />
-                                    <span>{snippet.authorArr[0].name}</span>
-                                </div>
-                            </UpInlineButton>
-                        </>
-                    )}
-                </div>
-                <div style={{maxHeight: "calc(100vh - 240px)", minHeight: 300, overflowY: "auto"}} className="-mx-4 px-4 relative">
+                <SnippetModalShell snippet={snippet} setTagsQuery={setTagsQuery}>
                     <SnippetItemInner
                         snippet={snippet}
                         iteration={iteration}
@@ -145,7 +108,7 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         setTagsQuery={setTagsQuery}
                         setOpen={setModalOpen}
                     />
-                </div>
+                </SnippetModalShell>
             </UpModal>
         </>
     );

@@ -135,8 +135,8 @@ export interface PostObjGraph extends PostObj {
     authorArr: IdObj<UserObjBasic>[],
 }
 
-export interface PostWithAuthor extends PostObj {
-    author: DatedObj<UserObj>[],
+export interface PostObjWithAuthor extends PostObj {
+    authorArr: DatedObj<UserObj>[],
 }
 
 export interface ImageObj {
@@ -180,8 +180,8 @@ export interface NotificationObj {
 }
 
 export interface NotificationWithAuthorAndTarget extends NotificationObj {
-    comment: (DatedObj<CommentObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
-    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
+    comment: (DatedObj<CommentObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
+    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
 }
 
 interface LinkObjBase {
