@@ -53,6 +53,10 @@ export interface ProjectObjWithOwner extends ProjectObj {
     ownerArr: DatedObj<UserObj>[],
 }
 
+export interface ProjectObjWithOwnerWithProjects extends ProjectObj {
+    ownerArr: DatedObj<UserObjWithProjects>[],
+}
+
 export interface ProjectObjBasic {
     urlName: string,
     userId: string, // ID
@@ -107,7 +111,7 @@ export interface SnippetObj {
 }
 
 export interface SnippetObjGraph extends SnippetObj {
-    projectArr: DatedObj<ProjectObj>[];
+    projectArr: DatedObj<ProjectObjWithOwnerWithProjects>[];
     linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
     authorArr: DatedObj<UserObj>[];
     linkArr: DatedObj<LinkObj>[];

@@ -260,8 +260,28 @@ export const snippetGraphStages = [
         }},
     {$lookup: {
         from: "projects",
-            foreignField: "_id",
-            localField: "projectId",
+            let: {"projectId": "$projectId"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                {
+                    $lookup: {
+                        from: "users",
+                        let: {"userId": "$userId"},
+                        pipeline: [
+                            {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
+                            {$lookup:
+                                    {
+                                        from: "projects",
+                                        foreignField: "userId",
+                                        localField: "_id",
+                                        as: "projectsArr",
+                                    }
+                            },
+                        ],
+                        as: "ownerArr",
+                    }
+                },
+            ],
             as: "projectArr",
         }},
 ];

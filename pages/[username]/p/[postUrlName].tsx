@@ -41,6 +41,7 @@ import SnippetItemCard from "../../../components/SnippetItemCard";
 import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
 import Link from "next/link";
 import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
+import {snippetsExplainer} from "../../../utils/copy";
 
 export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -259,7 +260,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                 {tab === "snippets" && (
                     <>
                         {!isOwner && (
-                            <p className="up-gray-400 mb-8 -mt-4">Snippets are source notes that eventually turn into posts.</p>
+                            <p className="up-gray-400 mb-8 -mt-4">{snippetsExplainer}</p>
                         )}
                         <div className="grid grid-cols-2 gap-4 mb-12">
                             {linkedSnippets.length ? linkedSnippetsReady ? (

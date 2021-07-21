@@ -8,6 +8,7 @@ import SnippetItemInner from "./SnippetItemInner";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
 import UpInlineButton from "./style/UpInlineButton";
+import Link from "next/link";
 
 export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIteration, setStatsIter, statsIter, availableTags, addNewTags, selectedSnippetIds, setSelectedSnippetIds, showFullDate}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -69,7 +70,11 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                             {snippet.privacy === "private" ? (
                                 <FiLock className="up-gray-300"/>
                             ) : (
-                                <FiGlobe/>
+                                <Link href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}>
+                                    <a>
+                                        <FiGlobe/>
+                                    </a>
+                                </Link>
                             )}
                         </div>
                         {hasLinkedPosts && (
@@ -96,7 +101,11 @@ export default function SnippetItemCard({snippet, setTagsQuery, iteration, setIt
                         {snippet.privacy === "private" ? (
                             <FiLock className="up-gray-300"/>
                         ) : (
-                            <FiGlobe/>
+                            <Link href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}>
+                                <a>
+                                    <FiGlobe/>
+                                </a>
+                            </Link>
                         )}
                     </div>
                     <p className="up-gray-400">Posted on {format(new Date(snippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>

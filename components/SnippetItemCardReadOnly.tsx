@@ -2,7 +2,7 @@ import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SlateReadOnly from "./SlateReadOnly";
 import {format} from "date-fns";
 import React, {useState} from "react";
-import {FiGlobe, FiLink, FiLock} from "react-icons/fi";
+import {FiExternalLink, FiGlobe, FiLink, FiLock} from "react-icons/fi";
 import UpModal from "./up-modal";
 import SnippetItemLinkPreview from "./SnippetItemLinkPreview";
 import {useSession} from "next-auth/client";
@@ -69,11 +69,15 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate, showProj
                             {format(new Date(snippet.createdAt), showFullDate ? "MMMM d, yyyy 'at' h:mm a" : "h:mm a")}
                         </p>
                         <div className="ml-auto flex items-center">
-                            <div className={"up-gray-300 " + (hasLinkedPosts ? "mr-6" : "")}>
+                            <div className={hasLinkedPosts ? "mr-6" : ""}>
                                 {snippet.privacy === "private" ? (
-                                    <FiLock/>
+                                    <FiLock className="up-gray-300"/>
                                 ) : (
-                                    <FiGlobe/>
+                                    <Link href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}>
+                                        <a>
+                                            <FiGlobe/>
+                                        </a>
+                                    </Link>
                                 )}
                             </div>
                             {hasLinkedPosts && (
@@ -114,6 +118,17 @@ export default function SnippetItemCardReadOnly({snippet, showFullDate, showProj
                                         </div>
                                     </UpInlineButton>
                                 </>
+                            )}
+                            {snippet.privacy === "public" && (
+                                <UpInlineButton
+                                    href={`/@${snippet.authorArr[0].username}/s/${snippet._id}`}
+                                    className={"ml-auto"}
+                                >
+                                    <div className="flex items-center">
+                                        <span className="mr-2">Open as page</span>
+                                        <FiExternalLink/>
+                                    </div>
+                                </UpInlineButton>
                             )}
                         </div>
                         <div style={{maxHeight: "calc(100vh - 240px)", minHeight: 300, overflowY: "auto"}} className="-mx-4 px-4 relative">

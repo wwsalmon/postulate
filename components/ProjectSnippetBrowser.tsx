@@ -5,6 +5,7 @@ import PaginationBar from "./PaginationBar";
 import Skeleton from "react-loading-skeleton";
 import React, {Dispatch, SetStateAction, useState} from "react";
 import Link from "next/link";
+import {snippetsExplainer} from "../utils/copy";
 
 export default function ProjectSnippetBrowser({snippets, isOwner, snippetPage, setSnippetPage, projectId}: {
     snippets: {snippets: DatedObj<SnippetObjGraph>[], count: number} | undefined,
@@ -27,7 +28,7 @@ export default function ProjectSnippetBrowser({snippets, isOwner, snippetPage, s
                         ) : "the dashboards of your projects"
                     }.</span>
                 ) : (
-                    <span>Snippets are source notes that eventually turn into posts.</span>
+                    <span>{snippetsExplainer}</span>
                 )}
             </p>
             {snippetsReady ? !!snippets.snippets.length ? (
