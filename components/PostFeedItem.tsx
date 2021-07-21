@@ -1,11 +1,18 @@
-import {DatedObj, PostObjWithAuthor} from "../utils/types";
+import {DatedObj, PostObjGraph, PostObjWithAuthor} from "../utils/types";
 import Link from "next/link";
 import React, {ReactNode} from "react";
 import {findImages} from "../utils/utils";
 import {format} from "date-fns";
 import readingTime from "reading-time";
+import UpInlineButton from "./style/UpInlineButton";
 
-export default function PostFeedItem({post, className, i, notFeed}: { post: DatedObj<PostObjWithAuthor>, className?: string, i?: number, notFeed?: boolean, }) {
+export default function PostFeedItem({post, projectId, className, i, notFeed}: {
+    post: DatedObj<PostObjGraph>,
+    projectId?: string,
+    className?: string,
+    i?: number,
+    notFeed?: boolean,
+}) {
     const images = findImages(post.slateBody);
     const author = post.authorArr[0];
 
@@ -18,7 +25,7 @@ export default function PostFeedItem({post, className, i, notFeed}: { post: Date
     )
 
     return (
-        <div className={notFeed ? "mb-12" : "md:w-1/2 md:px-8 inline-block mb-12 " + (className || "")}>
+        <div className={notFeed ? "mb-12" : "md:w-1/2 md:px-6 inline-block mb-12 " + (className || "")}>
             {i === 1 && !notFeed && (
                 <hr className="up-border-gray-400 mb-12 md:hidden"/>
             )}
@@ -46,6 +53,23 @@ export default function PostFeedItem({post, className, i, notFeed}: { post: Date
                     <p className="up-gray-300">
                         {format(new Date(post.createdAt), "MMMM d, yyyy")}
                     </p>
+                    {!!post.projectArr.filter(project => project._id !== projectId).length && (
+                        <div className="flex items-center">
+                            <span className="mr-2 up-gray-300">{projectId ? "Also in" : "In"}</span>
+                            {post.projectArr.filter(project => project._id !== projectId).map((project, i) => (
+                                <>
+                                    {i !== 0 && (
+                                        <span className="mx-2 up-gray-300">and</span>
+                                    )}
+                                    <UpInlineButton
+                                        light={true}
+                                        href={`/@${project.ownerArr[0].username}/${project.urlName}`}
+                                    >{project.name}</UpInlineButton>
+                                </>
+                            ))}
+                        </div>
+                    )}
+
                 </div>
                 <LinkWrapper className="ml-auto">
                     <p className="up-gray-300 font-medium">{readingTime(post.body).text} &gt;</p>

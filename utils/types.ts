@@ -106,7 +106,7 @@ export interface SnippetObj {
 
 export interface SnippetObjGraph extends SnippetObj {
     projectArr: DatedObj<ProjectObjWithOwnerWithProjects>[];
-    linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
+    linkedPostsArr: DatedObj<PostObjGraph>[];
     authorArr: DatedObj<UserObj>[];
     linkArr: DatedObj<LinkObj>[];
 }
