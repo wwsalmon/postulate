@@ -26,6 +26,7 @@
     "frappe-charts": "^1.5.7",
     "html-react-parser": "^1.2.3",
     "is-hotkey": "^0.2.0",
+    "jsdom": "^16.6.0",
     "link-preview-js": "^2.1.6",
     "migrate-mongo": "^8.1.4",
     "mongoose": "^5.11.14",

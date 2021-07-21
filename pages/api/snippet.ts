@@ -11,6 +11,7 @@ import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
 import {checkProjectPermission, findImages, findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
 import {LinkModel} from "../../models/link";
+import htmlDecode from "../../utils/htmlDecode";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -79,10 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (req.body.type === "snippet" && (!req.body.body || (req.body.isSlate && getIsEmpty(req.body.body)))) return res.status(406).json({message: "No snippet body found in request."});
                 if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
 
-                const body = req.body.isSlate ? serialize({
+                const body = req.body.isSlate ? htmlDecode(htmlDecode(htmlDecode(serialize({
                     type: "div",
                     children: req.body.body,
-                }) : req.body.body;
+                })))) : req.body.body;
 
                 let linksToAdd = findLinks(req.body.body);
 
