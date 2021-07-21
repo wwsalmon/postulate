@@ -127,10 +127,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         // redirect if not authenticated or authorized
         if (!session || !session.userId || thisUser._id.toString() !== session.userId) {
-            context.res.setHeader("location", `/@${username}/${projectUrlName}`);
-            context.res.statusCode = 302;
-            context.res.end();
-            return {props: {}};
+            return {redirect: {permanent: false, destination: `/@${username}/${projectUrlName}`}};
         }
 
         const thisProject = await ProjectModel.findOne({ userId: thisUser._id, urlName: projectUrlName });

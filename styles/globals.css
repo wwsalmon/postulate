@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    scroll-behavior: smooth;
+}
+
 body, div.chart-container {
     font-family: "IBM Plex Sans", sans-serif;
     color: #3F3F46;

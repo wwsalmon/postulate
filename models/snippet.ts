@@ -12,6 +12,7 @@ const SnippetSchema = new mongoose.Schema({
     url: {type: String, required: false},
     tags: [{type: String, required: true}],
     linkedPosts: [mongoose.Schema.Types.ObjectId],
+    privacy: {type: String, required: true},
 }, {
     timestamps: true,
 });

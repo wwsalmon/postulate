@@ -20,6 +20,7 @@ import {AES} from "crypto-js";
 import axios from "axios";
 import ellipsize from "ellipsize";
 import {EmailModel} from "../../../models/email";
+import htmlDecode from "../../../utils/htmlDecode";
 
 async function sendEmails(thisProject: DatedObj<ProjectObj>, session: any, thisPost: DatedObj<PostObj> | PostObj, postId?: string) {
     const recipients = await SubscriptionModel.find({targetId: thisPost.projectId});
@@ -84,10 +85,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
                 if (!["public", "private", "unlisted", "draft"].includes(req.body.privacy)) return res.status(406).json({message: "Missing or invalid privacy setting"});
 
-                const body = req.body.isSlate ? serialize({
+                const body = req.body.isSlate ? htmlDecode(htmlDecode(htmlDecode(serialize({
                     type: "div",
                     children: req.body.body,
-                }) : req.body.body;
+                })))) : req.body.body;
 
                 try {
                     await dbConnect();

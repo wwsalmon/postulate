@@ -1,10 +1,16 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
 import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObjWithPageStats, UserObjWithProjects} from "../../../utils/types";
+import {
+    DatedObj,
+    PostObjGraph,
+    ProjectObjWithPageStats,
+    SnippetObjGraph,
+    UserObjWithProjects
+} from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
 import H1 from "../../../components/style/H1";
 import H2 from "../../../components/style/H2";
@@ -17,25 +23,37 @@ import UpInlineButton from "../../../components/style/UpInlineButton";
 import UpSEO from "../../../components/up-seo";
 import Tabs from "../../../components/Tabs";
 import ActivityTabs from "../../../components/ActivityTabs";
+import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
+import {useSession} from "next-auth/client";
+import ProjectSnippetBrowser from "../../../components/ProjectSnippetBrowser";
+import {useRouter} from "next/router";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
+    const [session, loading] = useSession();
+    const router = useRouter();
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
+    const [snippetPage, setSnippetPage] = useState<number>(1);
 
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData ? projectData._id : "featured"}&page=${postPage}&search=${searchQuery}`, fetcher);
+    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData._id}&page=${postPage}&search=${searchQuery}`, fetcher);
+    const {data: snippets, error: snippetsError}: responseInterface<{ snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectData._id}&page=${snippetPage}&public=true`, fetcher);
 
     const postsReady = posts && posts.posts;
+    const snippetsReady = snippets && snippets.snippets;
+
+    const isOwner = session && session.userId === projectData.userId;
+
+    useEffect(() => {
+        const urlTab = router.asPath.split("#")[1];
+        if (urlTab === "snippets") setTab("snippets");
+        if (urlTab === "posts") setTab("posts");
+        if (urlTab === "stats") setTab("stats");
+    }, [router.asPath]);
 
     return (
         <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
             <UpSEO title={projectData.name}/>
-            {/*<UpInlineButton href={`/@${thisUser.username}`} className="inline-flex items-center mb-8">*/}
-            {/*    <FiArrowLeft/>*/}
-            {/*    <span className="ml-2">*/}
-            {/*        Back to profile*/}
-            {/*    </span>*/}
-            {/*</UpInlineButton>*/}
             <div className="items-center mb-8 hidden lg:flex">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}
@@ -43,25 +61,40 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <div className="mb-12">
-                <H1>{projectData.name}</H1>
+                <div className="flex items-center">
+                    <H1>{projectData.name}</H1>
+                    {isOwner && <ProjectDashboardDropdown projectId={projectData._id} className="ml-2"/>}
+                </div>
                 {projectData.description && (
                     <H2 className="mt-2">{projectData.description}</H2>
                 )}
             </div>
-            <Tabs tabInfo={[
-                {
-                    name: "posts",
-                    text: "Posts",
-                },
-                {
-                    name: "snippets",
-                    text: "Snippets",
-                },
-                {
-                    name: "stats",
-                    text: "Stats",
-                },
-            ]} tab={tab} setTab={setTab}/>
+            <Tabs
+                tabInfo={[
+                    {
+                        name: "posts",
+                        text: `Posts (${postsReady ? posts.count : "loading..."})`,
+                    },
+                    {
+                        name: "snippets",
+                        text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`,
+                    },
+                    {
+                        name: "stats",
+                        text: "Stats",
+                    },
+                ]}
+                tab={tab}
+                setTab={(d: "posts" | "snippets" | "stats") => {
+                    setTab(d);
+                    setTimeout(() => router.push(
+                        router.route,
+                        router.asPath.split("#")[0] + "#" + d,
+                        {scroll: false, shallow: true}
+                    ), 100);
+                }}
+                id="snippets"
+            />
             {{
                 posts: postsReady ? posts.posts.length ?(
                     <>
@@ -83,7 +116,13 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 ) : (
                     <Skeleton count={1} className="h-32 w-full mt-12"/>
                 ), snippets: (
-                    <p>Public snippets coming soon</p>
+                    <ProjectSnippetBrowser
+                        snippets={snippets}
+                        snippetPage={snippetPage}
+                        setSnippetPage={setSnippetPage}
+                        isOwner={isOwner}
+                        projectId={projectData._id}
+                    />
                 ), stats: (
                     <ActivityTabs
                         snippetsArr={projectData.snippetsArr}

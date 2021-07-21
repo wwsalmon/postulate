@@ -19,11 +19,7 @@ export default function Welcome() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await getSession(context);
 
-    if (session) {
-        context.res.setHeader("location", session.userId ? "/projects" : "/auth/newaccount");
-        context.res.statusCode = 302;
-        context.res.end();
-    }
+    if (session) return {redirect: {permanent: false, destination: session.userId ? "/projects" : "/auth/newaccount"}};
 
     return {props: {}};
 };

@@ -11,6 +11,7 @@ import {serialize} from "remark-slate";
 import * as mongoose from "mongoose";
 import {checkProjectPermission, findImages, findLinks, getCursorStages, snippetGraphStages} from "../../utils/utils";
 import {LinkModel} from "../../models/link";
+import htmlDecode from "../../utils/htmlDecode";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -51,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (req.body.id) {
                 thisSnippet = await SnippetModel.findOne({ _id: req.body.id });
 
-                if (!thisSnippet) return res.status(406).json({message: "No snippet found with given ID."});
+                if (!thisSnippet) return res.status(404).json({message: "No snippet found with given ID."});
 
                 thisProject = await ProjectModel.findOne({ _id: thisSnippet.projectId });
 
@@ -65,12 +66,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // if update or create, else delete
             if (req.method === "POST") {
                 // moving snippet to a different project, else updating or creating
-                if (req.body.id && req.body.projectId) {
-                    thisSnippet.projectId = req.body.projectId;
+                if (req.body.id && (req.body.projectId || req.body.privacy)) {
+                    if (req.body.projectId) thisSnippet.projectId = req.body.projectId;
+                    if (req.body.privacy) thisSnippet.privacy = req.body.privacy;
 
                     await thisSnippet.save();
 
-                    return res.status(200).json({message: "Snippet successfully moved."});
+                    return res.status(200).json({message: "Snippet successfully updated."});
                 }
 
                 // ensure necessary post params are present
@@ -78,10 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 if (req.body.type === "snippet" && (!req.body.body || (req.body.isSlate && getIsEmpty(req.body.body)))) return res.status(406).json({message: "No snippet body found in request."});
                 if (req.body.type === "resource" && !req.body.url) return res.status(406).json({message: "No resource URL found in request."});
 
-                const body = req.body.isSlate ? serialize({
+                const body = req.body.isSlate ? htmlDecode(htmlDecode(htmlDecode(serialize({
                     type: "div",
                     children: req.body.body,
-                }) : req.body.body;
+                })))) : req.body.body;
 
                 let linksToAdd = findLinks(req.body.body);
 
@@ -135,6 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         tags: req.body.tags,
                         userId: session.userId,
                         linkedPosts: [],
+                        privacy: "private",
                     }
 
                     const createdSnippet = await SnippetModel.create(newSnippet);
@@ -181,12 +184,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
+        if (!req.query.projectId && !req.query.ids && !req.query.userId) return res.status(400).json({message: "Missing params"});
+        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page) || Array.isArray(req.query.userId)) return res.status(400).json({message: "Invalid filtering queries found in request"});
 
-        if (!req.query.projectId && !req.query.ids) return res.status(406).json({message: "No project ID or snippet IDs found in request"});
-        if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page)) return res.status(406).json({message: "Invalid filtering queries found in request"});
+        const session = await getSession({ req });
 
         try {
             await dbConnect();
+
+            let publicAccess = true;
+
+            if (req.query.projectId && session) {
+                const thisProject = await ProjectModel.findById(req.query.projectId);
+                if (thisProject && thisProject.userId.toString() === session.userId) publicAccess = false;
+            }
 
             let conditions: any = { projectId: mongoose.Types.ObjectId(req.query.projectId) };
             if (req.query.search) conditions["$text"] = {"$search": req.query.search};
@@ -200,10 +211,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 const ids: any = JSON.parse(req.query.ids).map(d => mongoose.Types.ObjectId(d));
                 conditions = { "_id": {"$in": ids}};
             }
+            if (req.query.userId) conditions = {"userId": mongoose.Types.ObjectId(req.query.userId), "privacy": "public"};
+            if (req.query.projectId && (publicAccess || req.query.public)) conditions["privacy"] = "public";
 
             const cursorStages = getCursorStages(req.query.page);
 
-            const snippets = await SnippetModel.aggregate([
+            let snippets = await SnippetModel.aggregate([
                 {$match: conditions},
                 ...snippetGraphStages,
                 {$sort: {createdAt: req.query.sort ? +req.query.sort : - 1}},
@@ -213,6 +226,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const count = await SnippetModel
                 .find(conditions)
                 .count();
+
+            if (!session || (snippets.length && session.userId !== snippets[0].userId.toString())) {
+                snippets = snippets.map(d => (d.privacy === "public") ? d : (() => {
+                    let retval = {...d};
+                    retval.body = retval.slateBody = retval.tags = retval.linkedPosts = null;
+                    return retval;
+                })());
+            }
 
             res.status(200).json({snippets: snippets, items: snippets, count: count});
 

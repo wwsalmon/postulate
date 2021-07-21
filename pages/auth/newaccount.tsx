@@ -93,11 +93,7 @@ export default function NewAccount() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const session = await getSession(context);
 
-    if (!session || session.userId) {
-        context.res.setHeader("location", session ? "/projects" : "/auth/signin");
-        context.res.statusCode = 302;
-        context.res.end();
-    }
+    if (!session || session.userId) return {redirect: {permanent: false, destination: session ? "/projects" : "/auth/signin"}};
 
     return {props: {}};
 };

@@ -1,0 +1,1 @@
+export const snippetsExplainer = "Snippets are source notes that eventually turn into posts.";

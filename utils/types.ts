@@ -23,12 +23,6 @@ export interface UserObj {
     featuredPosts: string[], // array of IDs
 }
 
-export interface UserObjBasic {
-    name: string,
-    username: string,
-    image: string,
-}
-
 export interface ProjectObj {
     urlName: string,
     userId: string, // ID
@@ -53,6 +47,10 @@ export interface ProjectObjWithOwner extends ProjectObj {
     ownerArr: DatedObj<UserObj>[],
 }
 
+export interface ProjectObjWithOwnerWithProjects extends ProjectObj {
+    ownerArr: DatedObj<UserObjWithProjects>[],
+}
+
 export interface ProjectObjBasic {
     urlName: string,
     userId: string, // ID
@@ -61,7 +59,7 @@ export interface ProjectObjBasic {
 }
 
 export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
-    ownerArr: IdObj<UserObjBasic>[],
+    ownerArr: DatedObj<UserObj>[],
 }
 
 export interface ProjectObjWithPageStats extends ProjectObj {
@@ -103,9 +101,11 @@ export interface SnippetObj {
     url: string,
     tags: string[],
     linkedPosts: string[], // array of IDs
+    privacy: "public" | "private",
 }
 
 export interface SnippetObjGraph extends SnippetObj {
+    projectArr: DatedObj<ProjectObjWithOwnerWithProjects>[];
     linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
     authorArr: DatedObj<UserObj>[];
     linkArr: DatedObj<LinkObj>[];
@@ -125,12 +125,12 @@ export interface PostObj {
 }
 
 export interface PostObjGraph extends PostObj {
-    projectArr: IdObj<ProjectObjBasicWithOwner>[],
-    authorArr: IdObj<UserObjBasic>[],
+    projectArr: DatedObj<ProjectObjBasicWithOwner>[],
+    authorArr: DatedObj<UserObj>[],
 }
 
-export interface PostWithAuthor extends PostObj {
-    author: DatedObj<UserObj>[],
+export interface PostObjWithAuthor extends PostObj {
+    authorArr: DatedObj<UserObj>[],
 }
 
 export interface ImageObj {
@@ -174,8 +174,8 @@ export interface NotificationObj {
 }
 
 export interface NotificationWithAuthorAndTarget extends NotificationObj {
-    comment: (DatedObj<CommentObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
-    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostWithAuthor>[], author: DatedObj<UserObj>[]})[],
+    comment: (DatedObj<CommentObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
+    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
 }
 
 interface LinkObjBase {

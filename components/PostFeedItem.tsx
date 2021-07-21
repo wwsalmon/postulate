@@ -1,16 +1,13 @@
-import {DatedObj, PostObjGraph} from "../utils/types";
+import {DatedObj, PostObjWithAuthor} from "../utils/types";
 import Link from "next/link";
-import H3 from "./style/H3";
 import React, {ReactNode} from "react";
 import {findImages} from "../utils/utils";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 
-export default function PostFeedItem({post, className, i}: { post: DatedObj<PostObjGraph>, className?: string, i?: number }) {
+export default function PostFeedItem({post, className, i, notFeed}: { post: DatedObj<PostObjWithAuthor>, className?: string, i?: number, notFeed?: boolean, }) {
     const images = findImages(post.slateBody);
     const author = post.authorArr[0];
-    const project = post.projectArr[0];
-    const owner = project.ownerArr[0];
 
     const LinkWrapper = ({children, className}: {children: ReactNode, className?: string}) => (
         <Link href={`/@${author.username}/p/${post.urlName}`}>
@@ -21,11 +18,11 @@ export default function PostFeedItem({post, className, i}: { post: DatedObj<Post
     )
 
     return (
-        <div className={"md:w-1/2 md:px-8 inline-block mb-12 " + (className || "")}>
-            {i === 1 && (
+        <div className={notFeed ? "mb-12" : "md:w-1/2 md:px-8 inline-block mb-12 " + (className || "")}>
+            {i === 1 && !notFeed && (
                 <hr className="up-border-gray-400 mb-12 md:hidden"/>
             )}
-            {!(i === 0 || i === 1) && (
+            {!(i === 0 || (i === 1 && !notFeed)) && (
                 <hr className="up-border-gray-400 mb-12"/>
             )}
             <LinkWrapper>

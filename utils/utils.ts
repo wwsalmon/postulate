@@ -1,7 +1,7 @@
 import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
 import {format, subDays} from "date-fns";
 import {Node} from "slate";
-import {DatedObj, ProjectObj} from "./types";
+import {ProjectObj} from "./types";
 
 export function cleanForJSON(input: any): any {
     return JSON.parse(JSON.stringify(input));
@@ -257,12 +257,33 @@ export const snippetGraphStages = [
             foreignField: "nodeId",
             localField: "_id",
             as: "linkArr",
-        }}
-];
-
-const userPipeline = [
-    {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
-    {$project: {username: 1, image: 1, name: 1}},
+        }},
+    {$lookup: {
+        from: "projects",
+            let: {"projectId": "$projectId"},
+            pipeline: [
+                {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                {
+                    $lookup: {
+                        from: "users",
+                        let: {"userId": "$userId"},
+                        pipeline: [
+                            {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
+                            {$lookup:
+                                    {
+                                        from: "projects",
+                                        foreignField: "userId",
+                                        localField: "_id",
+                                        as: "projectsArr",
+                                    }
+                            },
+                        ],
+                        as: "ownerArr",
+                    }
+                },
+            ],
+            as: "projectArr",
+        }},
 ];
 
 export const postGraphStages = [
@@ -271,11 +292,10 @@ export const postGraphStages = [
             let: {"projectId": "$projectId"},
             pipeline: [
                 {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
-                {$project: {name: 1, urlName: 1, userId: 1, stars: 1,}},
                 {$lookup: {
                         from: "users",
-                        let: {"userId": "$userId"},
-                        pipeline: userPipeline,
+                        localField: "userId",
+                        foreignField: "_id",
                         as: "ownerArr",
                     }},
             ],
@@ -283,8 +303,8 @@ export const postGraphStages = [
         }},
     {$lookup: {
             from: "users",
-            let: {"userId": "$userId"},
-            pipeline: userPipeline,
+            localField: "userId",
+            foreignField: "_id",
             as: "authorArr",
         }},
 ];

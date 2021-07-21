@@ -123,9 +123,9 @@ export default function Navbar() {
                                                         if (!notification.comment.length && !notification.reaction.length) return "Notification outdated";
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
-                                                        const author = isComment ? notification.comment[0].author[0] : notification.reaction[0].author[0];
+                                                        const author = isComment ? notification.comment[0].authorArr[0] : notification.reaction[0].authorArr[0];
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target && target.author[0];
+                                                        const targetAuthor = target && target.authorArr[0];
 
                                                         if (!targetAuthor) {
                                                             return "Invalid notification";
@@ -144,7 +144,7 @@ export default function Navbar() {
                                                         const type = notification.type;
                                                         const isComment = ["postComment", "postCommentReply"].includes(type);
                                                         const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target && target.author[0];
+                                                        const targetAuthor = target && target.authorArr[0];
                                                         if (!targetAuthor) return "";
                                                         return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
                                                     })()}

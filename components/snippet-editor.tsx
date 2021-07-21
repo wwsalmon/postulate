@@ -1,6 +1,7 @@
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObjGraph} from "../utils/types";
 import SpinnerButton from "./spinner-button";
+import Select from "react-select";
 import Creatable from "react-select/creatable";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -35,6 +36,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
     const [tags, setTags] = useState<string[]>(snippet ? snippet.tags : []);
     const [urlName, setUrlName] = useState<string>(snippet ? snippet.urlName : format(new Date(), "yyyy-MM-dd-") + short.generate());
     const [isSnippetState, setIsSnippetState] = useState<boolean>(snippet ? snippet.type === "snippet" : isSnippet);
+    const [privacy, setPrivacy] = useState<"private" | "public">(snippet ? snippet.privacy : "private");
 
     const disableSaveFinal = disableSave || (isSnippetState && slateBody.every(d => getIsEmpty(d))) || (!isSnippetState && !url);
 
@@ -110,7 +112,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                     </UpInlineButton>
                 </>
             )}
-            <div className="content prose w-full relative" style={{minHeight: 200}}>
+            <div className="prose w-full relative" style={{minHeight: 200, fontSize: 18}}>
                 <SlateEditor
                     body={slateBody}
                     setBody={setSlateBody}
@@ -132,7 +134,7 @@ export default function SnippetEditor({isSnippet = false, snippet = null, projec
                 onChange={(newValue) => setTags(newValue.map(d => d.value))}
                 isMulti
             />
-            <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or type to create a new one</p>
+            <p className="opacity-50 mt-4 text-xs text-right">Select an existing tag in this project or create a new one</p>
             <hr className="my-6"/>
             <div className="flex">
                 <SpinnerButton
