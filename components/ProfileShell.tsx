@@ -7,12 +7,13 @@ import ProfileSidebarProjectItem from "./ProfileSidebarProjectItem";
 import {FiMenu, FiX} from "react-icons/fi";
 import UpInlineButton from "./style/UpInlineButton";
 
-export default function ProfileShell({thisUser, children, featured, selectedProjectId, isSnippet}: {
+export default function ProfileShell({thisUser, children, featured, selectedProjectId, isSnippet, isAllProjects}: {
     thisUser: DatedObj<UserObjWithProjects>,
     children: ReactNode,
     featured?: boolean,
     selectedProjectId?: string,
     isSnippet?: boolean,
+    isAllProjects?: boolean,
 }) {
     const featuredProjects = thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id));
     const thisProject = selectedProjectId && thisUser.projectsArr.find(d => d._id === selectedProjectId);
@@ -31,7 +32,7 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
             </Link>
             <p className="up-gray-400 mb-12 underline-links"><Linkify>{thisUser.bio}</Linkify></p>
             <ProfileSidebarProjectItem name="Home" href={`/@${thisUser.username}`} selected={featured} mobile={!!props.mobile}/>
-            {!featured && !featuredProjects.some(d => d._id === selectedProjectId) && ((() => {
+            {!(featured || isAllProjects) && !featuredProjects.some(d => d._id === selectedProjectId) && ((() => {
                 const thisProject = thisUser.projectsArr.find(d => d._id === selectedProjectId);
                 return (
                     <ProfileSidebarProjectItem
@@ -50,6 +51,7 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
                     selected={project._id === selectedProjectId}
                 />
             ))}
+            <ProfileSidebarProjectItem name="All projects" href={`/@${thisUser.username}/projects`} selected={isAllProjects} mobile={!!props.mobile}/>
             <hr className="my-4 invisible"/>
         </div>
     )
@@ -69,7 +71,7 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
                             <img src={thisUser.image} alt={`Profile picture of ${thisUser.name}`} className="w-6 h-6 rounded-full"/>
                             <p className="ml-2">{thisUser.name}</p>
                         </UpInlineButton>
-                        {!featured && selectedProjectId && (
+                        {!(featured || isAllProjects) && selectedProjectId && (
                             <>
                                 <span className="mx-2 up-gray-300">/</span>
                                 <UpInlineButton href={`/@${thisUser.username}/${thisProject.urlName}`} light={true}>

@@ -11,7 +11,7 @@ import ProfileProjectItem from "../../components/ProfileProjectItem";
 
 export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithProjects> }) {
     return (
-        <ProfileShell thisUser={thisUser} featured={true}>
+        <ProfileShell thisUser={thisUser} isAllProjects={true}>
             <div className="flex items-center mb-8">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}

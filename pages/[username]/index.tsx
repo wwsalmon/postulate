@@ -83,7 +83,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
                 {isOwner && (
                     <>
                         <button
-                            className="flex items-center justify-center up-gray-300 rounded-md hover:up-gray-700 hover:shadow transition"
+                            className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
                             style={{minHeight: 160}}
                             onClick={() => setAddFeaturedOpen(true)}
                         >
@@ -102,12 +102,15 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
                         </UpModal>
                     </>
                 )}
-            </div>
-            <div className="flex justify-end my-8">
-                <UpInlineButton href={`/@${thisUser.username}/projects`} className="flex items-center" light={true}>
-                    <span className="mr-2">All projects ({thisUser.projectsArr.length})</span>
-                    <FiArrowRight/>
-                </UpInlineButton>
+                <Link href={`/@${thisUser.username}/projects`}>
+                    <a
+                        className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
+                        style={{minHeight: 160, transition: "all 0.3s ease"}}
+                    >
+                        <span className="mr-2">All projects ({thisUser.projectsArr.length})</span>
+                        <FiArrowRight/>
+                    </a>
+                </Link>
             </div>
             <hr className="my-12"/>
             <H4 className="mb-8">Activity</H4>
