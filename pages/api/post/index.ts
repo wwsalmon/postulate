@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         switch (req.method) {
             case "POST":
                 // ensure necessary post params are present
-                if (!req.body.projectId) return res.status(406).json({message: "No project ID found in request."});
+                if (!(req.body.projectIds && req.body.projectIds.length)) return res.status(406).json({message: "No project IDs found in request."});
                 if (!req.body.tempId) return res.status(406).json({message: "No post urlName found in request."});
                 if (!req.body.title) return res.status(406).json({message: "No post title found in request."});
                 if (!req.body.body) return res.status(406).json({message: "No post body found in request."});
@@ -90,12 +90,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     children: req.body.body,
                 })))) : req.body.body;
 
+                const projectIds = req.body.projectIds;
+
                 try {
                     await dbConnect();
 
-                    const thisProject = await ProjectModel.findOne({ _id: req.body.projectId });
-                    if (!thisProject) return res.status(500).json({message: "No project exists for given ID"});
-                    if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.map(d => d.toString()).includes(session.userId)) return res.status(403).json({message: "You do not have permission to add posts in this project."});
+                    const thisProject = await ProjectModel.find({ _id: {$in: projectIds}});
+                    if (!(thisProject && thisProject.length)) return res.status(500).json({message: "No projects exists for given IDs"});
+                    if (thisProject.some(project => (project.userId.toString() !== session.userId) && !project.collaborators.map(d => d.toString()).includes(session.userId))) return res.status(403).json({message: "You do not have permission to add posts in this project."});
 
                     // create new tags
                     if (req.body.tags && req.body.tags.length) {
@@ -115,7 +117,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         thisPost.title = req.body.title;
                         thisPost.body = body;
                         if (req.body.isSlate) thisPost.slateBody = req.body.body;
-                        thisPost.projectId = req.body.projectId;
+                        thisPost.projectId = projectIds[0];
+                        thisPost.projectIds = projectIds;
                         thisPost.privacy = req.body.privacy;
                         thisPost.tags = req.body.tags;
 
@@ -184,7 +187,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         // assume isSlate always true
                         let newPost: PostObj = {
                             urlName: urlName,
-                            projectId: req.body.projectId,
+                            projectId: projectIds[0],
+                            projectIds: projectIds,
                             userId: session.userId,
                             title: req.body.title,
                             body: body,

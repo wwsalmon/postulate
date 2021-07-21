@@ -116,6 +116,7 @@ export type privacyTypes = "public" | "private" | "unlisted" | "draft";
 export interface PostObj {
     urlName: string,
     projectId: string, // ID
+    projectIds: string[], // ID[]
     userId: string, // ID
     title: string,
     body: string,
