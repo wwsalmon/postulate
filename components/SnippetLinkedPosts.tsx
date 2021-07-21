@@ -1,4 +1,4 @@
-import {DatedObj, IdObj, ProjectObjBasicWithOwner, SnippetObjGraph} from "../utils/types";
+import {DatedObj, SnippetObjGraph} from "../utils/types";
 import PostFeedItem from "./PostFeedItem";
 
 export default function SnippetLinkedPosts({snippet}: {snippet: DatedObj<SnippetObjGraph>}) {

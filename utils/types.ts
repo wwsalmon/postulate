@@ -23,12 +23,6 @@ export interface UserObj {
     featuredPosts: string[], // array of IDs
 }
 
-export interface UserObjBasic {
-    name: string,
-    username: string,
-    image: string,
-}
-
 export interface ProjectObj {
     urlName: string,
     userId: string, // ID
@@ -65,7 +59,7 @@ export interface ProjectObjBasic {
 }
 
 export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
-    ownerArr: IdObj<UserObjBasic>[],
+    ownerArr: DatedObj<UserObj>[],
 }
 
 export interface ProjectObjWithPageStats extends ProjectObj {
@@ -131,8 +125,8 @@ export interface PostObj {
 }
 
 export interface PostObjGraph extends PostObj {
-    projectArr: IdObj<ProjectObjBasicWithOwner>[],
-    authorArr: IdObj<UserObjBasic>[],
+    projectArr: DatedObj<ProjectObjBasicWithOwner>[],
+    authorArr: DatedObj<UserObj>[],
 }
 
 export interface PostObjWithAuthor extends PostObj {

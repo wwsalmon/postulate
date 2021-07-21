@@ -1,6 +1,5 @@
-import {DatedObj, PostObj, PostObjGraph, PostObjWithAuthor} from "../utils/types";
+import {DatedObj, PostObjWithAuthor} from "../utils/types";
 import Link from "next/link";
-import H3 from "./style/H3";
 import React, {ReactNode} from "react";
 import {findImages} from "../utils/utils";
 import {format} from "date-fns";

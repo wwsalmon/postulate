@@ -127,7 +127,9 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
             {tab === "posts" && (
                 <>
                     <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
-                        {posts && posts.posts && posts.posts.map((post, i) => <PostFeedItem post={post} key={post._id} i={i}/>)}
+                        {posts && posts.posts && posts.posts.map((post, i) => (
+                            <PostFeedItem post={post} key={post._id} i={i}/>
+                        ))}
                     </Masonry>
                     <PaginationBar
                         page={page}
