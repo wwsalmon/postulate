@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
@@ -8,7 +8,6 @@ import {
     DatedObj,
     PostObjGraph,
     ProjectObjWithPageStats,
-    SnippetObj,
     SnippetObjGraph,
     UserObjWithProjects
 } from "../../../utils/types";
@@ -26,17 +25,12 @@ import Tabs from "../../../components/Tabs";
 import ActivityTabs from "../../../components/ActivityTabs";
 import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 import {useSession} from "next-auth/client";
-import {format} from "date-fns";
-import SnippetItem from "../../../components/snippet-item";
-import PublicPostItem from "../../../components/public-post-item";
-import SnippetItemCard from "../../../components/SnippetItemCard";
-import PostItemCard from "../../../components/PostItemCard";
-import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
-import Link from "next/link";
 import ProjectSnippetBrowser from "../../../components/ProjectSnippetBrowser";
+import {useRouter} from "next/router";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
     const [session, loading] = useSession();
+    const router = useRouter();
     const [postPage, setPostPage] = useState<number>(1);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
@@ -49,6 +43,13 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
     const snippetsReady = snippets && snippets.snippets;
 
     const isOwner = session && session.userId === projectData.userId;
+
+    useEffect(() => {
+        const urlTab = router.asPath.split("#")[1];
+        if (urlTab === "snippets") setTab("snippets");
+        if (urlTab === "posts") setTab("posts");
+        if (urlTab === "stats") setTab("stats");
+    }, [router.asPath]);
 
     return (
         <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
@@ -68,20 +69,32 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                     <H2 className="mt-2">{projectData.description}</H2>
                 )}
             </div>
-            <Tabs tabInfo={[
-                {
-                    name: "posts",
-                    text: `Posts (${postsReady ? posts.count : "loading..."})`,
-                },
-                {
-                    name: "snippets",
-                    text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`,
-                },
-                {
-                    name: "stats",
-                    text: "Stats",
-                },
-            ]} tab={tab} setTab={setTab}/>
+            <Tabs
+                tabInfo={[
+                    {
+                        name: "posts",
+                        text: `Posts (${postsReady ? posts.count : "loading..."})`,
+                    },
+                    {
+                        name: "snippets",
+                        text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`,
+                    },
+                    {
+                        name: "stats",
+                        text: "Stats",
+                    },
+                ]}
+                tab={tab}
+                setTab={(d: "posts" | "snippets" | "stats") => {
+                    setTab(d);
+                    setTimeout(() => router.push(
+                        router.route,
+                        router.asPath.split("#")[0] + "#" + d,
+                        {scroll: false, shallow: true}
+                    ), 100);
+                }}
+                id="snippets"
+            />
             {{
                 posts: postsReady ? posts.posts.length ?(
                     <>

@@ -52,7 +52,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
                     </UpInlineButton>
                     <span className="mx-3 up-gray-300">/</span>
                     <div className="flex items-center">
-                        <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
+                        <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}#snippets`} light={true}>
                             {projectName}
                         </UpInlineButton>
                         {isOwner && <ProjectDashboardDropdown projectId={projectId}/>}
