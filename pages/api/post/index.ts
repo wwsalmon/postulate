@@ -306,7 +306,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                 let conditions: any = req.query.publicFeed ? {} : (
                     req.query.projectId ?
-                        { projectId: mongoose.Types.ObjectId(req.query.projectId) }
+                        { $expr: {$in: [mongoose.Types.ObjectId(req.query.projectId), "$projectIds"] } }
                         :
                         { userId: mongoose.Types.ObjectId(req.query.userId) }
                 );
