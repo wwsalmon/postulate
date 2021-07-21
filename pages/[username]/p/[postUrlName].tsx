@@ -7,11 +7,10 @@ import {
     DatedObj,
     LinkObj,
     PostObj,
-    ProjectObj,
+    ProjectObjWithOwnerWithProjects,
     ReactionObj,
     SnippetObjGraph,
-    UserObj,
-    UserObjWithProjects
+    UserObj
 } from "../../../utils/types";
 import ProfileShell from "../../../components/ProfileShell";
 import UpSEO from "../../../components/up-seo";
@@ -29,25 +28,19 @@ import axios from "axios";
 import MoreMenu from "../../../components/more-menu";
 import MoreMenuItem from "../../../components/more-menu-item";
 import SpinnerButton from "../../../components/spinner-button";
-import {FiChevronDown, FiChevronUp, FiEdit2, FiTrash, FiUser} from "react-icons/fi";
+import {FiEdit2, FiTrash} from "react-icons/fi";
 import UpModal from "../../../components/up-modal";
 import {useRouter} from "next/router";
-import UpBanner from "../../../components/UpBanner";
-import SnippetItemReduced from "../../../components/snippet-item-reduced";
-import Accordion from "react-robust-accordion";
 import {NotifsContext} from "../../_app";
 import Tabs from "../../../components/Tabs";
-import SnippetItemCard from "../../../components/SnippetItemCard";
 import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
-import Link from "next/link";
 import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 import {snippetsExplainer} from "../../../utils/copy";
 
-export default function PostPage({postData, linkedSnippets, projectData, thisOwner, thisAuthor, thisLinks}: {
+export default function PostPage({postData, linkedSnippets, thisProjects, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
     linkedSnippets: string[],
-    projectData: DatedObj<ProjectObj>,
-    thisOwner: DatedObj<UserObjWithProjects>,
+    thisProjects: DatedObj<ProjectObjWithOwnerWithProjects>[],
     thisAuthor: DatedObj<UserObj>,
     thisLinks: DatedObj<LinkObj>[],
 }) {
@@ -62,9 +55,9 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
     const [tab, setTab] = useState<"comments" | "snippets">("comments");
 
-    const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
     const isOwner = session && (session.userId === thisAuthor._id);
-    
+    const thisOwner = thisProjects[0].ownerArr[0];
+
     const {data: linkedSnippetsData, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(linkedSnippets)}`, fetcher);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${postData._id}&iter=${commentsIteration}`);
@@ -94,7 +87,7 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                 tempId: postData.urlName,
             }
         }).then(() => {
-            router.push(`/@${thisOwner.username}/${projectUrlName}`);
+            router.push(`/@${thisOwner.username}/${thisProjects[0].urlName}`);
         }).catch(e => {
             setIsDeleteLoading(false);
             console.log(e);
@@ -124,11 +117,11 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
     }, []);
 
     return (
-        <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
+        <ProfileShell thisUser={thisOwner} selectedProjectId={thisProjects[0]._id}>
             <UpSEO
                 title={postData.title}
                 description={postData.body.substr(0, 200)}
-                projectName={projectData.name}
+                projectName={`thisProjects[0].name`}
                 imgUrl={findImages(postData.slateBody).length ?  findImages(postData.slateBody)[0] : null}
                 authorUsername={thisAuthor.username}
                 publishedDate={postData.createdAt}
@@ -140,12 +133,17 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                         {thisOwner.name}
                     </UpInlineButton>
                     <span className="mx-3 up-gray-300">/</span>
-                    <div className="flex items-center">
-                        <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}`} light={true}>
-                            {projectName}
-                        </UpInlineButton>
-                        {isOwner && <ProjectDashboardDropdown projectId={projectId}/>}
-                    </div>
+                    {thisProjects.map((project, i) => (
+                        <div className="flex items-center">
+                            {i !== 0 && (
+                                <span className="mr-3 up-gray-300">and</span>
+                            )}
+                            <UpInlineButton href={`/@${thisOwner.username}/${project.urlName}`} light={true}>
+                                {project.name}
+                            </UpInlineButton>
+                            {isOwner && <ProjectDashboardDropdown projectId={project._id}/>}
+                        </div>
+                    ))}
                     <span className="mx-3 up-gray-300"> / </span>
                 </div>
                 <div className="flex">
@@ -205,8 +203,8 @@ export default function PostPage({postData, linkedSnippets, projectData, thisOwn
                 <div className="content prose my-8">
                     <SlateReadOnly
                         nodes={postData.slateBody}
-                        projectId={projectData._id}
-                        projectName={projectData.name}
+                        projectId={thisProjects[0]._id}
+                        projectName={thisProjects[0].name}
                         ownerName={thisOwner.name}
                         isOwner={false}
                     />
@@ -311,9 +309,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                         {
                             $lookup: {
                                 from: "projects",
-                                let: {"projectId": "$projectId"},
+                                let: {"projectIds": "$projectIds"},
                                 pipeline: [
-                                    {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                                    {$match: {$expr: {$in: ["$_id", "$$projectIds"]}}},
                                     {
                                         $lookup: {
                                             from: "users",
@@ -363,7 +361,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         ]);
 
         // return 404 if missing object at any stage
-        if (!graphObj.length || !graphObj[0].postArr.length || !graphObj[0].postArr[0].projectArr.length || !graphObj[0].postArr[0].projectArr[0].ownerArr.length) {
+        if (!graphObj.length || !graphObj[0].postArr.length || !graphObj[0].postArr[0].projectArr.length) {
             return { notFound: true };
         }
 
@@ -371,10 +369,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisPost = thisAuthor.postArr[0];
         const linkedSnippets = thisPost.linkedSnippetsArr || [];
         const thisLinks = thisPost.linkArr || [];
-        const thisProject = thisPost.projectArr[0];
-        const thisOwner = thisProject.ownerArr[0];
+        const thisProjects = thisPost.projectArr;
 
-        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), thisLinks: cleanForJSON(thisLinks), key: postUrlName }};
+        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), thisProjects: cleanForJSON(thisProjects), thisAuthor: cleanForJSON(thisAuthor), thisLinks: cleanForJSON(thisLinks), key: postUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };
