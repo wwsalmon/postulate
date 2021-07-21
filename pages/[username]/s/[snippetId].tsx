@@ -36,7 +36,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
 
     return (
-        <ProfileShell thisUser={thisOwner} selectedProjectId={projectId}>
+        <ProfileShell thisUser={thisOwner} selectedProjectId={projectId} isSnippet={true}>
             <UpSEO
                 title={`${format(new Date(snippet.createdAt), "MMMM d, yyyy")} snippet by ${thisAuthor.name}`}
                 description={snippet.body.substr(0, 200)}

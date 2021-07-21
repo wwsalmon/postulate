@@ -7,7 +7,13 @@ import ProfileSidebarProjectItem from "./ProfileSidebarProjectItem";
 import {FiMenu, FiX} from "react-icons/fi";
 import UpInlineButton from "./style/UpInlineButton";
 
-export default function ProfileShell({thisUser, children, featured, selectedProjectId}: {thisUser: DatedObj<UserObjWithProjects>, children: ReactNode, featured?: boolean, selectedProjectId?: string}) {
+export default function ProfileShell({thisUser, children, featured, selectedProjectId, isSnippet}: {
+    thisUser: DatedObj<UserObjWithProjects>,
+    children: ReactNode,
+    featured?: boolean,
+    selectedProjectId?: string,
+    isSnippet?: boolean,
+}) {
     const featuredProjects = thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id));
     const thisProject = selectedProjectId && thisUser.projectsArr.find(d => d._id === selectedProjectId);
 
@@ -69,6 +75,11 @@ export default function ProfileShell({thisUser, children, featured, selectedProj
                                 <UpInlineButton href={`/@${thisUser.username}/${thisProject.urlName}`} light={true}>
                                     {thisProject.name}
                                 </UpInlineButton>
+                            </>
+                        )}
+                        {isSnippet && (
+                            <>
+                                <span className="mx-2 up-gray-300">/ Snippet</span>
                             </>
                         )}
                     </div>
