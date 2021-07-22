@@ -1,9 +1,9 @@
 import React, {ReactNode} from 'react';
 import UpResponsiveH2 from "./UpResponsiveH2";
 
-export default function LandingPageSection({heading, text, image, comingSoon}: { heading: ReactNode, text: ReactNode, image: ReactNode, comingSoon?: boolean }) {
+export default function LandingPageSection({heading, text, image, comingSoon, className}: { heading: ReactNode, text: ReactNode, image: ReactNode, comingSoon?: boolean, className?: string }) {
     return (
-        <>
+        <div className={className || ""}>
             <hr className="my-16 max-w-5xl px-4 mx-auto"/>
             <div className="max-w-5xl mx-auto px-4">
                 <div className="sm:flex items-center">
@@ -21,6 +21,6 @@ export default function LandingPageSection({heading, text, image, comingSoon}: {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
