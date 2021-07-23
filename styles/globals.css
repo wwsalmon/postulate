@@ -234,7 +234,7 @@ body, div.chart-container {
 /* buttons */
 
 .up-button {
-    @apply px-4 h-12 rounded-md transition font-semibold;
+    @apply px-4 h-12 rounded-md transition font-medium;
 }
 
 .up-button.small {

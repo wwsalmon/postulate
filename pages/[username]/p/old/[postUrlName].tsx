@@ -6,7 +6,7 @@ import {
     DatedObj, LinkObj,
     PostObj,
     PostObjGraph,
-    ProjectObj,
+    ProjectObj, ProjectObjWithOwner, ProjectObjWithOwnerWithProjects,
     ReactionObj,
     SnippetObjGraph,
     UserObj
@@ -49,15 +49,14 @@ import SubscriptionInsert from "../../../../components/SubscriptionInsert";
 export default function PublicPost(props: {
     postData: DatedObj<PostObj>,
     linkedSnippets: string[],
-    projectData: DatedObj<ProjectObj>,
-    thisOwner: DatedObj<UserObj>,
+    thisProjects: DatedObj<ProjectObjWithOwnerWithProjects>[],
     thisAuthor: DatedObj<UserObj>,
     thisLinks: DatedObj<LinkObj>[],
 }) {
     const router = useRouter();
     const [session, loading] = useSession();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
-    const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = props.projectData;
+    const thisOwner = props.thisProjects[0].ownerArr[0];
     const isOwner = session && props.thisAuthor._id === session.userId;
 
     const [body, setBody] = useState<string>(props.postData.body);
@@ -70,7 +69,7 @@ export default function PublicPost(props: {
     const [commentsIteration, setCommentsIteration] = useState<number>(0);
     const [linkedResourcesOpen, setLinkedResourcesOpen] = useState<boolean>(false);
 
-    const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObjGraph>[]}, any> = useSWR(`/api/post?projectId=${props.projectData._id}`, fetcher);
+    const {data: latestPosts, error: latestPostsError}: responseInterface<{posts: DatedObj<PostObjGraph>[]}, any> = useSWR(`/api/post?projectId=${props.thisProjects[0]._id}`, fetcher);
     const {data: linkedSnippets, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(props.linkedSnippets)}&iter=${+isOwner}`, isOwner ? fetcher : () => []);
     const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${props.postData._id}&iter=${reactionsIteration}`);
     const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${props.postData._id}&iter=${commentsIteration}`);
@@ -95,7 +94,7 @@ export default function PublicPost(props: {
                 tempId: props.postData.urlName,
             }
         }).then(() => {
-            router.push(`/@${props.thisOwner.username}/${projectUrlName}`);
+            router.push(`/@${thisOwner.username}/${props.thisProjects[0].urlName}`);
         }).catch(e => {
             setIsDeleteLoading(false);
             console.log(e);
@@ -133,7 +132,7 @@ export default function PublicPost(props: {
             <UpSEO
                 title={title}
                 description={body.substr(0, 200)}
-                projectName={props.projectData.name}
+                projectName={props.thisProjects[0].name}
                 imgUrl={findImages(props.postData.slateBody).length ?  findImages(props.postData.slateBody)[0] : null}
                 authorUsername={props.thisAuthor.username}
                 publishedDate={props.postData.createdAt}
@@ -148,16 +147,6 @@ export default function PublicPost(props: {
                 <UpBanner className="mb-8">
                     <p>This is a <b>private</b> post. It can only be accessed by the project owner and collaborators.</p>
                 </UpBanner>
-            )}
-            {isOwner && (
-                <UpInlineButton href={`/projects/${projectId}`} className="my-8">
-                    <div className="flex items-center">
-                        <FiArrowLeft/>
-                        <span className="ml-4">
-                            Back to project
-                        </span>
-                    </div>
-                </UpInlineButton>
             )}
             <div className="flex">
                 <h1 className="up-h1">{title}</h1>
@@ -195,8 +184,8 @@ export default function PublicPost(props: {
                     </Link>
                     <p className="opacity-50">
                         <span>{format(new Date(props.postData.createdAt), "MMMM d, yyyy")} in project: </span>
-                        <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
-                            <a className="underline">{projectName}</a>
+                        <Link href={`/@${thisOwner.username}/${props.thisProjects[0].urlName}`}>
+                            <a className="underline">{props.thisProjects[0].name}</a>
                         </Link>
                     </p>
                 </div>
@@ -276,9 +265,9 @@ export default function PublicPost(props: {
                 {props.postData.slateBody ?
                     <SlateReadOnly
                         nodes={props.postData.slateBody}
-                        projectId={props.projectData._id}
-                        projectName={props.projectData.name}
-                        ownerName={props.thisOwner.name}
+                        projectId={props.thisProjects[0]._id}
+                        projectName={props.thisProjects[0].name}
+                        ownerName={thisOwner.name}
                         isOwner={isOwner}
                     />
                     : Parser(markdownConverter.makeHtml(body))
@@ -292,9 +281,9 @@ export default function PublicPost(props: {
             )}
             <hr className="my-12"/>
             <SubscriptionInsert
-                projectId={props.projectData._id}
-                projectName={props.projectData.name}
-                ownerName={props.thisOwner.name}
+                projectId={props.thisProjects[0]._id}
+                projectName={props.thisProjects[0].name}
+                ownerName={thisOwner.name}
                 isOwner={isOwner}
             />
             <hr className="my-12"/>
@@ -363,11 +352,11 @@ export default function PublicPost(props: {
             )}
             <hr className="my-12"/>
             <h3 className="up-ui-title">
-                Latest posts in <Link href={`/@${props.thisOwner.username}/${projectUrlName}`}>
-                <a className="underline">{projectName}</a></Link>
+                Latest posts in <Link href={`/@${thisOwner.username}/${props.thisProjects[0].urlName}`}>
+                <a className="underline">{props.thisProjects[0].name}</a></Link>
             </h3>
             <p className="mb-10 opacity-50">
-                {props.projectData.description}
+                {props.thisProjects[0].description}
             </p>
             {latestPostsReady ? latestPosts.posts.length ? latestPosts.posts.map(post => (
                 <PublicPostItem
@@ -411,9 +400,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                         {
                             $lookup: {
                                 from: "projects",
-                                let: {"projectId": "$projectId"},
+                                let: {"projectIds": "$projectIds"},
                                 pipeline: [
-                                    {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
+                                    {$match: {$expr: {$in: ["$_id", "$$projectIds"]}}},
                                     {
                                         $lookup: {
                                             from: "users",
@@ -423,7 +412,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                                         }
                                     },
                                 ],
-                                as: "projectArr",
+                                as: "projectsArr",
                             },
                         },
                         {
@@ -453,7 +442,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         ]);
 
         // return 404 if missing object at any stage
-        if (!graphObj.length || !graphObj[0].postArr.length || !graphObj[0].postArr[0].projectArr.length || !graphObj[0].postArr[0].projectArr[0].ownerArr.length) {
+        if (!graphObj.length || !graphObj[0].postArr.length || !graphObj[0].postArr[0].projectsArr.length) {
             return { notFound: true };
         }
 
@@ -461,10 +450,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const thisPost = thisAuthor.postArr[0];
         const linkedSnippets = thisPost.linkedSnippetsArr || [];
         const thisLinks = thisPost.linkArr || [];
-        const thisProject = thisPost.projectArr[0];
-        const thisOwner = thisProject.ownerArr[0];
+        const thisProjects = thisPost.projectsArr;
 
-        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), projectData: cleanForJSON(thisProject), thisOwner: cleanForJSON(thisOwner), thisAuthor: cleanForJSON(thisAuthor), thisLinks: cleanForJSON(thisLinks), key: postUrlName }};
+        return { props: { postData: cleanForJSON(thisPost), linkedSnippets: linkedSnippets.map(d => d._id.toString()), thisProjects: cleanForJSON(thisProjects), thisAuthor: cleanForJSON(thisAuthor), thisLinks: cleanForJSON(thisLinks), key: postUrlName }};
     } catch (e) {
         console.log(e);
         return { notFound: true };

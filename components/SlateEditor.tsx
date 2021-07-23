@@ -7,6 +7,7 @@ import {SlatePlugins} from "@udecode/slate-plugins";
 import draggableComponents from "../utils/slate/slateDraggables";
 import SlateBalloon from "./SlateBalloon";
 import SlatePlaceholder from "./SlatePlaceholder";
+import slateWordCount from "../utils/slate/slateWordCount";
 
 export default function SlateEditor({body, setBody, projectId, urlName, isPost, id, children}: {
     body: Node[],
@@ -20,20 +21,23 @@ export default function SlateEditor({body, setBody, projectId, urlName, isPost, 
     const pluginsMemo = useMemo(() => pluginsFactory(projectId, urlName, isPost), []);
 
     return (
-        <DndProvider backend={HTML5Backend}>
-            <SlatePlugins
-                id={id}
-                value={body}
-                onChange={newValue => setBody(newValue)}
-                plugins={pluginsMemo}
-                components={draggableComponents}
-                options={options}
-                editableProps={{autoFocus: true}}
-            >
-                <SlateBalloon/>
-                <SlatePlaceholder/>
-                {children}
-            </SlatePlugins>
-        </DndProvider>
+        <>
+            <DndProvider backend={HTML5Backend}>
+                <SlatePlugins
+                    id={id}
+                    value={body}
+                    onChange={newValue => setBody(newValue)}
+                    plugins={pluginsMemo}
+                    components={draggableComponents}
+                    options={options}
+                    editableProps={{autoFocus: true}}
+                >
+                    <SlateBalloon/>
+                    <SlatePlaceholder/>
+                    {children}
+                </SlatePlugins>
+            </DndProvider>
+            <p className="text-sm up-gray-500">{slateWordCount(body)} words</p>
+        </>
     );
 }

@@ -1,14 +1,6 @@
-import React, {useState} from 'react';
+import React, {useState} from "react";
 import useSWR, {responseInterface} from "swr";
-import {
-    DatedObj,
-    EmailObj,
-    PostObj, privacyTypes,
-    ProjectObj,
-    SnippetObjGraph,
-    SubscriptionObjGraph,
-    UserObj
-} from "../../utils/types";
+import {DatedObj, PostObj, privacyTypes, ProjectObj, SnippetObjGraph, UserObj} from "../../utils/types";
 import {cleanForJSON, fetcher} from "../../utils/utils";
 import {useRouter} from "next/router";
 import {format} from "date-fns";
@@ -31,9 +23,9 @@ import EasyMDE from "easymde";
 import {FiChevronLeft, FiX} from "react-icons/fi";
 import {Node} from "slate";
 
-export default function NewPost(props: {post: DatedObj<PostObj>, projectId: string, urlName: string, selectedSnippetIds: string[]}) {
+export default function NewPost(props: {post: DatedObj<PostObj>, projectIds: string[], urlName: string, selectedSnippetIds: string[]}) {
     const router = useRouter();
-    const startProjectId = props.projectId || ((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId);
+    const startProjectIds = (props.projectIds && props.projectIds.length) ? props.projectIds : [((Array.isArray(router.query.projectId) || !router.query.projectId) ? "" : router.query.projectId)];
 
     const [isEditLoading, setIsEditLoading] = useState<boolean>(false);
     const [tempId, setTempId] = useState<string>(props.urlName || short.generate());
@@ -54,11 +46,11 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
         return label;
     }
 
-    function onSaveEdit(projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate?: boolean, sendEmail?: boolean, date?: Date) {
+    function onSaveEdit(projectIds: string[], title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate?: boolean, sendEmail?: boolean, date?: Date) {
         setIsEditLoading(true);
 
         let postData = {
-            projectId: projectId || "",
+            projectIds: projectIds,
             postId: props.post ? props.post._id : "",
             title: title,
             body: body,
@@ -76,9 +68,9 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
             // @ts-ignore
             window.analytics.track("Item created", {
                 type: "post",
-                projectId: projectId,
+                projectId: projectIds[0],
             });
-            router.push(privacy === "draft" ? `/projects/${projectId}` : res.data.url);
+            router.push(privacy === "draft" ? `/projects/${projectIds[0]}` : res.data.url);
         }).catch(e => {
             console.log(e);
             setIsEditLoading(false);
@@ -99,7 +91,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                     <h1 className="up-ui-title mb-8">{props.post ? "Edit" : "New"} post</h1>
                     <NewPostEditor
                         tempId={tempId}
-                        startProjectId={startProjectId}
+                        startProjectIds={startProjectIds}
                         projects={projects}
                         sharedProjects={sharedProjects}
                         onSaveEdit={onSaveEdit}
@@ -153,7 +145,7 @@ export default function NewPost(props: {post: DatedObj<PostObj>, projectId: stri
                     <button onClick={() => setIsBrowseOpen(true)} className="up-button small mt-4">Browse snippets</button>
                     <UpModal isOpen={isBrowseOpen} setIsOpen={setIsBrowseOpen} wide={true}>
                         <SnippetBrowser
-                            startProjectId={startProjectId}
+                            startProjectId={startProjectIds[0]}
                             selectedSnippetIds={selectedSnippetIds}
                             setSelectedSnippetIds={setSelectedSnippetIds}
                             onClose={() => setIsBrowseOpen(false)}
@@ -190,7 +182,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const selectedSnippets = await SnippetModel.find({ linkedPosts: postId });
 
-        return {props: {post: cleanForJSON(thisPost), projectId: thisPost.projectId.toString(), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
+        return {props: {post: cleanForJSON(thisPost), projectIds: thisPost.projectIds.map(d => d.toString()), urlName: thisPost.urlName, selectedSnippetIds: selectedSnippets.map(d => d._id.toString())}};
     } catch (e) {
         return {notFound: true};
     }

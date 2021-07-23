@@ -106,7 +106,7 @@ export interface SnippetObj {
 
 export interface SnippetObjGraph extends SnippetObj {
     projectArr: DatedObj<ProjectObjWithOwnerWithProjects>[];
-    linkedPostsArr: ({authorArr: DatedObj<UserObj>[]} & DatedObj<PostObj>)[];
+    linkedPostsArr: DatedObj<PostObjGraph>[];
     authorArr: DatedObj<UserObj>[];
     linkArr: DatedObj<LinkObj>[];
 }
@@ -116,6 +116,7 @@ export type privacyTypes = "public" | "private" | "unlisted" | "draft";
 export interface PostObj {
     urlName: string,
     projectId: string, // ID
+    projectIds: string[], // ID[]
     userId: string, // ID
     title: string,
     body: string,

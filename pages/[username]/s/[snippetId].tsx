@@ -18,12 +18,10 @@ import UpInlineButton from "../../../components/style/UpInlineButton";
 import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 import {useSession} from "next-auth/client";
 import SlateReadOnly from "../../../components/SlateReadOnly";
-import H1 from "../../../components/style/H1";
 import {snippetsExplainer} from "../../../utils/copy";
-import Link from "next/link";
-import PostFeedItem from "../../../components/PostFeedItem";
 import {FiArrowLeft} from "react-icons/fi";
 import SnippetLinkedPosts from "../../../components/SnippetLinkedPosts";
+import ellipsize from "ellipsize";
 
 export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -38,7 +36,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
     return (
         <ProfileShell thisUser={thisOwner} selectedProjectId={projectId} isSnippet={true}>
             <UpSEO
-                title={`${format(new Date(snippet.createdAt), "MMMM d, yyyy")} snippet by ${thisAuthor.name}`}
+                title={ellipsize(snippet.body, 30)}
                 description={snippet.body.substr(0, 200)}
                 projectName={projectData.name}
                 imgUrl={findImages(snippet.slateBody).length ?  findImages(snippet.slateBody)[0] : null}

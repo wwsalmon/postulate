@@ -126,7 +126,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
             ]} tab={tab} setTab={setTab}/>
             {tab === "posts" && (
                 <>
-                    <Masonry className="mt-12 md:-mx-8 w-full" options={{transitionDuration: 0}}>
+                    <Masonry className="mt-12 md:-mx-6 w-full" options={{transitionDuration: 0}}>
                         {posts && posts.posts && posts.posts.map((post, i) => (
                             <PostFeedItem post={post} key={post._id} i={i}/>
                         ))}

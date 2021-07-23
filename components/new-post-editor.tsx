@@ -22,10 +22,10 @@ export default function NewPostEditor(props: {
     privacy?: privacyTypes,
     tags?: string[],
     tempId: string,
-    startProjectId: string,
+    startProjectIds: string[],
     projects: {projects: DatedObj<ProjectObj>[]},
     sharedProjects: {projects: DatedObj<ProjectObj>[], owners: DatedObj<UserObj>[] },
-    onSaveEdit: (projectId: string, title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean, date?: Date) => void,
+    onSaveEdit: (projectIds: string[], title: string, body: string | Node[], privacy: privacyTypes, tags: string[], isSlate: boolean, sendEmail: boolean, date?: Date) => void,
     onCancelEdit: () => void,
     getProjectLabel: (projectId: string) => string,
     isEditLoading: boolean,
@@ -36,7 +36,7 @@ export default function NewPostEditor(props: {
     const [slateBody, setSlateBody] = useState<Node[]>(props.slateBody || slateInitValue);
     const [title, setTitle] = useState<string>(props.title);
     const titleElem = useRef<HTMLHeadingElement>(null)
-    const [projectId, setProjectId] = useState<string>(props.startProjectId);
+    const [projectIds, setProjectIds] = useState<string[]>(props.startProjectIds);
     const [privacy, setPrivacy] = useState<privacyTypes>(props.privacy || "public");
     const [tags, setTags] = useState<string[]>(props.tags || []);
     const [sendEmail, setSendEmail] = useState<boolean>(false);
@@ -44,13 +44,13 @@ export default function NewPostEditor(props: {
     const [date, setDate] = useState<string>("");
 
     const {data: email, error: emailError}: responseInterface<{ email: DatedObj<EmailObj> }, any> = useSWR(`/api/email?targetId=${props.postId || ""}`, props.postId ? fetcher : () => null);
-    const {data: subscriptions, error: subscriptionsError}: responseInterface<{ subscriptions: DatedObj<SubscriptionObjGraph>[] }, any> = useSWR(`/api/subscription?projectId=${projectId}&stats=true`);
+    // const {data: subscriptions, error: subscriptionsError}: responseInterface<{ subscriptions: DatedObj<SubscriptionObjGraph>[] }, any> = useSWR(`/api/subscription?projectId=${projectId}&stats=true`);
 
     const emailReady = email && email.email;
     const emailExists = emailReady && !!email.email._id;
     const thisEmail = emailReady && emailExists && email.email;
-    const subscriptionsReady = subscriptions && subscriptions.subscriptions;
-    const subscriptionsLength = subscriptionsReady ? subscriptions.subscriptions.length : 0;
+    // const subscriptionsReady = subscriptions && subscriptions.subscriptions;
+    // const subscriptionsLength = subscriptionsReady ? subscriptions.subscriptions.length : 0;
 
     const privacyOptions = [
         {
@@ -151,7 +151,7 @@ export default function NewPostEditor(props: {
                 <SlateEditor
                     body={slateBody}
                     setBody={setSlateBody}
-                    projectId={projectId}
+                    projectId={projectIds[0]}
                     urlName={props.tempId}
                     isPost={true}
                     id="postEditor"
@@ -161,8 +161,9 @@ export default function NewPostEditor(props: {
             <hr className="my-8"/>
             <div className="flex -mx-4 w-full">
                 <div className="mx-4 w-1/2">
-                    <h3 className="up-ui-title mb-4">Project</h3>
+                    <h3 className="up-ui-title mb-4">Projects</h3>
                     <Select
+                        isMulti
                         options={[
                             ...((props.projects && props.projects.projects && props.projects.projects.length > 0) ? props.projects.projects.map(project => ({
                                 value: project._id,
@@ -173,11 +174,11 @@ export default function NewPostEditor(props: {
                                 label: props.getProjectLabel(project._id),
                             })) : []),
                         ]}
-                        value={{
+                        value={projectIds.map(projectId => ({
                             value: projectId,
                             label:props.getProjectLabel(projectId)
-                        }}
-                        onChange={option => setProjectId(option.value)}
+                        }))}
+                        onChange={newValue => setProjectIds(newValue.map(d => d.value))}
                         styles={{
                             menu: provided => ({...provided, zIndex: 6}),
                         }}
@@ -232,33 +233,33 @@ export default function NewPostEditor(props: {
 
             <hr className="my-8"/>
 
-            <div className="my-8 flex items-center">
-                {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (privacy === "public" || privacy === "unlisted") && (
-                    <input
-                        type="checkbox"
-                        checked={sendEmail}
-                        onChange={e => setSendEmail(e.target.checked)}
-                        className="mr-4 w-4 h-4"
-                    />
-                )}
-                <div>
-                    <h3 className="up-ui-title">Send email to subscribers</h3>
-                    {subscriptionsReady && !!subscriptionsLength ? (emailReady && emailExists) ? (
-                        <p className="up-gray-400">An email about this post was sent to {thisEmail.recipients.length} subscriber{thisEmail.recipients.length > 1 ? "s" : ""} on {format(new Date(thisEmail.createdAt), "MMMM d, yyyy")}</p>
-                    ) : (privacy === "public" || privacy === "unlisted") ? (
-                        <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>
-                    ) : (
-                        <p className="up-gray-400">Make this post public or unlisted to send it to subscribers.</p>
-                    ) : (
-                        <p className="up-gray-400">You have no subscribers to this project yet.</p>
-                    )}
-                </div>
-            </div>
+            {/*<div className="my-8 flex items-center">*/}
+            {/*    {subscriptionsReady && !!subscriptionsLength && !(emailReady && emailExists) && (privacy === "public" || privacy === "unlisted") && (*/}
+            {/*        <input*/}
+            {/*            type="checkbox"*/}
+            {/*            checked={sendEmail}*/}
+            {/*            onChange={e => setSendEmail(e.target.checked)}*/}
+            {/*            className="mr-4 w-4 h-4"*/}
+            {/*        />*/}
+            {/*    )}*/}
+            {/*    <div>*/}
+            {/*        <h3 className="up-ui-title">Send email to subscribers</h3>*/}
+            {/*        {subscriptionsReady && !!subscriptionsLength ? (emailReady && emailExists) ? (*/}
+            {/*            <p className="up-gray-400">An email about this post was sent to {thisEmail.recipients.length} subscriber{thisEmail.recipients.length > 1 ? "s" : ""} on {format(new Date(thisEmail.createdAt), "MMMM d, yyyy")}</p>*/}
+            {/*        ) : (privacy === "public" || privacy === "unlisted") ? (*/}
+            {/*            <p className="up-gray-400">Send to {subscriptions.subscriptions.length} subscriber{subscriptions.subscriptions.length > 1 ? "s" : ""} to the project "{props.getProjectLabel(projectId)}"</p>*/}
+            {/*        ) : (*/}
+            {/*            <p className="up-gray-400">Make this post public or unlisted to send it to subscribers.</p>*/}
+            {/*        ) : (*/}
+            {/*            <p className="up-gray-400">You have no subscribers to this project yet.</p>*/}
+            {/*        )}*/}
+            {/*    </div>*/}
+            {/*</div>*/}
 
             <div className="flex mt-4">
                 <SpinnerButton
                     isLoading={props.isEditLoading}
-                    onClick={() => props.onSaveEdit(projectId, title, slateBody, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail, backDate && date && new Date(date))}
+                    onClick={() => props.onSaveEdit(projectIds, title, slateBody, privacy, tags, !!slateBody, !!["public", "unlisted"].includes(privacy) && sendEmail, backDate && date && new Date(date))}
                     isDisabled={!slateBody || !slateBody.length || slateBody.every(d => getIsEmpty(d)) || !title}
                 >
                     {privacy === "draft" ? "Save draft" : props.title ? sendEmail ? "Save and send emails" : "Save" : sendEmail ? "Post and send emails" : "Post"}

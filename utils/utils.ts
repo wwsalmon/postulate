@@ -231,18 +231,36 @@ export const slateInitValue: Node[] = [{
     id: 0,
 }];
 
+export const postGraphStages = [
+    {$lookup: {
+            from: "projects",
+            let: {"projectIds": "$projectIds"},
+            pipeline: [
+                {$match: {$expr: {$in: ["$_id", "$$projectIds"]}}},
+                {$lookup: {
+                        from: "users",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "ownerArr",
+                    }},
+            ],
+            as: "projectArr"
+        }},
+    {$lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "authorArr",
+        }},
+];
+
 export const snippetGraphStages = [
     {$lookup: {
             from: "posts",
             let: {"ids": "$linkedPosts"},
             pipeline: [
                 {$match: {$expr: {$in: ["$_id", "$$ids"]}}},
-                {$lookup: {
-                        from: "users",
-                        foreignField: "_id",
-                        localField: "userId",
-                        as: "authorArr",
-                    }},
+                ...postGraphStages,
             ],
             as: "linkedPostsArr",
         }},
@@ -283,29 +301,6 @@ export const snippetGraphStages = [
                 },
             ],
             as: "projectArr",
-        }},
-];
-
-export const postGraphStages = [
-    {$lookup: {
-            from: "projects",
-            let: {"projectId": "$projectId"},
-            pipeline: [
-                {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
-                {$lookup: {
-                        from: "users",
-                        localField: "userId",
-                        foreignField: "_id",
-                        as: "ownerArr",
-                    }},
-            ],
-            as: "projectArr"
-        }},
-    {$lookup: {
-            from: "users",
-            localField: "userId",
-            foreignField: "_id",
-            as: "authorArr",
         }},
 ];
 
