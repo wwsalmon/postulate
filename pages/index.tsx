@@ -3,6 +3,7 @@ import {useState} from "react";
 import {WaitlistAPIRes} from "../utils/types";
 import UpSEO from "../components/up-seo";
 import Link from "next/link";
+import UpInlineButton from "../components/style/UpInlineButton";
 // import Head from "next/head"
 
 export default function Home() {
@@ -37,6 +38,21 @@ export default function Home() {
             {/*        gtag('config', 'G-PN2PEJYJES');*/}
             {/*    `}}/>*/}
             {/*</Head>*/}
+            {/*<div className="w-full fixed top-0 z-50">*/}
+            {/*    <div className="px-4 mx-auto flex h-16 items-center w-full">*/}
+            {/*        <img src="/logo.svg" alt="Postulate logo" className="h-10 hidden sm:block"/>*/}
+            {/*        <img src="/postulate-tile.svg" alt="Postulate logo" className="h-10 sm:hidden"/>*/}
+            {/*        <UpInlineButton href="/auth/signin" className="ml-auto hidden sm:inline-block">Sign in</UpInlineButton>*/}
+            {/*        <a href="#waitlist" className="up-button primary small ml-auto sm:ml-4">Sign up for waitlist</a>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
+            <div className="w-full fixed top-0 z-50 flex items-center">
+                <Link href="/auth/signin">
+                    <a className="text-white ml-auto mt-4 mr-8 opacity-75 hover:opacity-100 transition">
+                        Sign in
+                    </a>
+                </Link>
+            </div>
             <div className="w-full border-b up-border-gray-200" style={{
                 background: "linear-gradient(60deg, rgba(2,1,31,1) 5%, rgba(5,25,138,1) 26%, rgba(0,212,255,1) 95%)",
             }}>
@@ -109,8 +125,13 @@ export default function Home() {
                     </Link>
                 </div>
             </div>
-            <div className="w-full mt-52" id="waitlist">
-                <div className="max-w-5xl mx-auto px-4 py-8 mt-16">
+            <div className="w-full mt-32" id="waitlist">
+                <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8">
+                    <div className="mb-20">
+                        <Link href="/explore">
+                            <a className="underline">Explore the platform</a>
+                        </Link>
+                    </div>
                     <div className="sm:flex items-center">
                         <h2 className="flex-shrink-0 mr-8 mb-4 sm:mb-0"><b>10x your learning and writing output</b><br/>Sign up for the waitlist</h2>
                         {submitted ? (
@@ -139,7 +160,7 @@ export default function Home() {
                 className="w-full text-white bg-black"
                 // style={{background: "linear-gradient(30deg, rgba(2,1,31,1) 0%, rgba(5,25,138,1) 26%, rgba(0,212,255,1) 95%)"}}
             >
-                <div className="max-w-5xl mx-auto px-4 py-4">
+                <div className="max-w-5xl mx-auto px-4 sm:px-8 py-4">
                     <p>
                         Follow <a href="https://twitter.com/postulateapp" className="underline">Postulate on Twitter</a>.
                         Built with ♥ by <a href="https://twitter.com/wwsalmon" className="underline">Samson Zhang</a>
