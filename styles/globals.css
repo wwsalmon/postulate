@@ -127,6 +127,10 @@ body, div.chart-container {
     background-color: #3F3F46;
 }
 
+.hover\:up-bg-blue:hover {
+    background-color: #0026FF;
+}
+
 .up-border-gray-50 {
     border-color: #FAFAFA;
 }

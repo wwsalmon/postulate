@@ -184,6 +184,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(500).json({message: e});
         }
     } else if (req.method === "GET") {
+        // random snippet for SnipTok
+        if (req.query.random) {
+            try {
+                await dbConnect();
+
+                const snippet = await SnippetModel.aggregate([
+                    {$match: {privacy: "public"}},
+                    {$sample: {size: 1}},
+                    ...snippetGraphStages,
+                ]);
+
+                return res.status(200).json({snippet: snippet[0]});
+            } catch (e) {
+                return res.status(500).json({message: e});
+            }
+        }
+
         if (!req.query.projectId && !req.query.ids && !req.query.userId) return res.status(400).json({message: "Missing params"});
         if (Array.isArray(req.query.search) || Array.isArray(req.query.tags) || Array.isArray(req.query.userIds) || Array.isArray(req.query.ids) || Array.isArray(req.query.projectId) || Array.isArray(req.query.page) || Array.isArray(req.query.userId)) return res.status(400).json({message: "Invalid filtering queries found in request"});
 

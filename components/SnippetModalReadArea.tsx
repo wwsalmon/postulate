@@ -5,11 +5,13 @@ import SlateReadOnly from "./SlateReadOnly";
 import SnippetLinkedPosts from "./SnippetLinkedPosts";
 import {useSession} from "next-auth/client";
 
-export default function SnippetModalReadArea({snippet, thisMoreMenu, isList, setTagsQuery}: {
+export default function SnippetModalReadArea({snippet, thisMoreMenu, isList, setTagsQuery, dark, large}: {
     snippet: DatedObj<SnippetObjGraph>,
     thisMoreMenu?: ReactNode,
     isList?: boolean,
-    setTagsQuery?: Dispatch<SetStateAction<string[]>>
+    setTagsQuery?: Dispatch<SetStateAction<string[]>>,
+    dark?: boolean,
+    large?: boolean,
 }) {
     const [session, loading] = useSession();
 
@@ -20,7 +22,7 @@ export default function SnippetModalReadArea({snippet, thisMoreMenu, isList, set
                     {snippet.url && (
                         <SnippetItemLinkPreview snippet={snippet}/>
                     )}
-                    <div className={`prose break-words`}>
+                    <div className={`prose ${dark ? "prose-dark" : ""} ${large ? "content" : ""} break-words`}>
                         <SlateReadOnly nodes={snippet.slateBody}/>
                     </div>
                     {!!snippet.linkArr.length && (

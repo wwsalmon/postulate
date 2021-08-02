@@ -9,6 +9,8 @@ import PaginationBar from "../components/PaginationBar";
 import H1 from "../components/style/H1";
 import UserSearch from "../components/UserSearch";
 import Skeleton from "react-loading-skeleton";
+import UpBanner from "../components/UpBanner";
+import UpButton from "../components/UpButton";
 
 export default function OldExplore({}: {  }) {
     const [page, setPage] = useState<number>(1);
@@ -24,6 +26,12 @@ export default function OldExplore({}: {  }) {
             <UpSEO title="Explore"/>
             <H1 className="mb-4">Explore</H1>
             <p className="up-gray-500">The latest public posts from users across the platform</p>
+            <UpBanner className="my-8 sm:flex items-center">
+                <p>New experiment: TikTok for knowledge. Scroll through a randomized feed of snippets</p>
+                <div className="flex ml-auto">
+                    <UpButton href="/sniptok" className="small text ml-auto">Check out SnipTok</UpButton>
+                </div>
+            </UpBanner>
             <hr className="my-8"/>
             <UserSearch/>
             {dataReady ? (
