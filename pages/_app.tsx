@@ -29,7 +29,7 @@ export default function App({Component, pageProps}: AppProps) {
     return (
         <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
             <Provider session={pageProps.session}>
-                {router.route !== "/" && router.route !== "/old" && (
+                {!["/", "/old", "/writers"].includes(router.route) && (
                     <ToastProvider>
                         <Navbar/>
                     </ToastProvider>
