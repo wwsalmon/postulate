@@ -10,6 +10,7 @@ import {FiArrowDown, FiArrowUp, FiChevronsUp, FiExternalLink} from "react-icons/
 import {GetServerSideProps} from "next";
 import Mousetrap from "mousetrap";
 import H1 from "../components/style/H1";
+import {format} from "date-fns";
 
 export default function Sniptok() {
     const router = useRouter();
@@ -141,6 +142,7 @@ export default function Sniptok() {
                                 </div>
                             </div>
                             <SnippetModalReadArea snippet={currentSnippet} dark={true} large={true}/>
+                            <p className="text-white text-opacity-50 mt-8">{format(new Date(currentSnippet.createdAt), "MMMM d, yyyy 'at' h:mm a")}</p>
                         </>
                     ) : (
                         <p>Loading...</p>
