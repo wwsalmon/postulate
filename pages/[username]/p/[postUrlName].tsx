@@ -121,7 +121,7 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
             <UpSEO
                 title={postData.title}
                 description={postData.body.substr(0, 200)}
-                projectName={`thisProjects[0].name`}
+                projectName={thisProjects[0].name}
                 imgUrl={findImages(postData.slateBody).length ?  findImages(postData.slateBody)[0] : null}
                 authorUsername={thisAuthor.username}
                 publishedDate={postData.createdAt}
