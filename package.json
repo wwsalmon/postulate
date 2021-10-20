@@ -32,7 +32,7 @@
     "mongoose": "^5.11.14",
     "mousetrap": "^1.6.5",
     "multiparty": "^4.2.2",
-    "next": "10.0.5",
+    "next": "^11.1.2",
     "next-auth": "^3.11.2",
     "next-seo": "^4.19.0",
     "next-transpile-modules": "^6.3.0",
