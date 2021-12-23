@@ -1,43 +1,26 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {cleanForJSON, fetcher, UserObjWithGraphAggregationPipeline} from "../../utils/utils";
-import {DatedObj, PostObjGraph, ProjectObjWithStats, SnippetObjGraph, UserObjGraph} from "../../utils/types";
+import {cleanForJSON, UserObjWithGraphAggregationPipeline} from "../../utils/utils";
+import {DatedObj, ProjectObjWithStats, UserObjGraph} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
-import ProfileShell from "../../components/ProfileShell";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
 import H4 from "../../components/style/H4";
-import useSWR, {responseInterface} from "swr";
-import Masonry from "react-masonry-component";
-import PostFeedItem from "../../components/PostFeedItem";
-import PaginationBar from "../../components/PaginationBar";
-import UpSEO from "../../components/up-seo";
-import ProfileProjectItem from "../../components/ProfileProjectItem";
+import UpSEO from "../../components/standard/UpSEO";
+import ProfileProjectItem from "../../components/profile/ProfileProjectItem";
 import {FiArrowRight, FiPlus} from "react-icons/fi";
 import {useSession} from "next-auth/client";
-import UpModal from "../../components/up-modal";
+import UpModal from "../../components/style/UpModal";
 import axios from "axios";
-import ProjectBrowser from "../../components/project-browser";
-import UpInlineButton from "../../components/style/UpInlineButton";
-import {format, subDays} from "date-fns";
-import ActivityTabs from "../../components/ActivityTabs";
-import Tabs from "../../components/Tabs";
-import SnippetItemCardReadOnly from "../../components/SnippetItemCardReadOnly";
-import Skeleton from "react-loading-skeleton";
+import ProjectBrowser from "../../components/profile/ProjectBrowser";
 import Link from "next/link";
-import ProjectSnippetBrowser from "../../components/ProjectSnippetBrowser";
 
 export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGraph> }) {
     const [session, loading] = useSession();
-    const [tag, setTag] = useState<string>("");
-    const [page, setPage] = useState<number>(1);
-    const [snippetPage, setSnippetPage] = useState<number>(1);
-    const [searchQuery, setSearchQuery] = useState<string>("");
     const [addFeaturedOpen, setAddFeaturedOpen] = useState<boolean>(false);
     const [featuredIter, setFeaturedIter] = useState<number>(0);
     const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObjWithStats>[]>(thisUser.projectsArr.filter(d => thisUser.featuredProjects.includes(d._id)));
-    const [tab, setTab] = useState<"snippets" | "posts">("posts");
     const isOwner = session && (session.userId === thisUser._id);
 
     useEffect(() => {
@@ -45,12 +28,6 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
             setFeaturedProjects(res.data.projects);
         }).catch(e => console.log(e));
     }, [featuredIter]);
-
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?userId=${thisUser._id}&tag=${tag}&page=${page}&search=${searchQuery}`, fetcher);
-    const {data: snippets, error: snippetsError}: responseInterface<{ snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?userId=${thisUser._id}&page=${page}`, fetcher);
-
-    const postsReady = posts && posts.posts;
-    const snippetsReady = snippets && snippets.snippets;
 
     function onSubmitFeaturedProject(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
         setIsLoading(true);
@@ -66,7 +43,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
     }
 
     return (
-        <ProfileShell thisUser={thisUser} featured={true}>
+        <div className="max-w-4xl mx-auto">
             <UpSEO title={`${thisUser.name}`}/>
             <H1>Welcome to {thisUser.name.split(" ")[0]}'s Postulate</H1>
             <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
@@ -112,43 +89,7 @@ export default function UserProfile({thisUser}: { thisUser: DatedObj<UserObjGrap
                     </a>
                 </Link>
             </div>
-            <hr className="my-12"/>
-            <H4 className="mb-8">Activity</H4>
-            <ActivityTabs
-                snippetsArr={thisUser.snippetsArr}
-                postsArr={thisUser.postsArr}
-                linkedSnippetsArr={thisUser.linkedSnippetsArr}
-            />
-            <hr className="my-12"/>
-            <Tabs tabInfo={[
-                {name: "posts", text: `Posts (${postsReady ? posts.count : "loading..."})`},
-                {name: "snippets", text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`},
-            ]} tab={tab} setTab={setTab}/>
-            {tab === "posts" && (
-                <>
-                    <Masonry className="mt-12 md:-mx-6 w-full" options={{transitionDuration: 0}}>
-                        {posts && posts.posts && posts.posts.map((post, i) => (
-                            <PostFeedItem post={post} key={post._id} i={i}/>
-                        ))}
-                    </Masonry>
-                    <PaginationBar
-                        page={page}
-                        count={(posts && posts.posts) ? posts.count : 0}
-                        label="posts"
-                        setPage={setPage}
-                        className="mb-12"
-                    />
-                </>
-            )}
-            {tab === "snippets" && (
-                <ProjectSnippetBrowser
-                    snippets={snippets}
-                    snippetPage={snippetPage}
-                    isOwner={isOwner}
-                    setSnippetPage={setSnippetPage}
-                />
-            )}
-        </ProfileShell>
+        </div>
     )
 }
 
@@ -167,8 +108,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     try {
         await dbConnect();
-
-        const fiveWeeksAgo = subDays(new Date(), 5 * 7);
 
         const userObj = await UserModel.aggregate([
             {$match: {username: username}},

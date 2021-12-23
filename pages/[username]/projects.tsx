@@ -3,15 +3,15 @@ import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, projectWithStatsGraphStages} from "../../utils/utils";
 import {DatedObj, UserObjWithProjects} from "../../utils/types";
-import ProfileShell from "../../components/ProfileShell";
 import UpInlineButton from "../../components/style/UpInlineButton";
 import React from "react";
 import H1 from "../../components/style/H1";
-import ProfileProjectItem from "../../components/ProfileProjectItem";
+import ProfileProjectItem from "../../components/profile/ProfileProjectItem";
+import Container from "../../components/style/Container";
 
 export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithProjects> }) {
     return (
-        <ProfileShell thisUser={thisUser} isAllProjects={true}>
+        <Container>
             <div className="flex items-center mb-8">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}
@@ -28,7 +28,7 @@ export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithPro
                     />
                 ))}
             </div>
-        </ProfileShell>
+        </Container>
     );
 }
 

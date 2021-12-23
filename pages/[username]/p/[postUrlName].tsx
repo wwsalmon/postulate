@@ -1,41 +1,24 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
-import {cleanForJSON, fetcher, findImages} from "../../../utils/utils";
-import {
-    CommentWithAuthor,
-    DatedObj,
-    LinkObj,
-    PostObj,
-    ProjectObjWithOwnerWithProjects,
-    ReactionObj,
-    SnippetObjGraph,
-    UserObj
-} from "../../../utils/types";
-import ProfileShell from "../../../components/ProfileShell";
-import UpSEO from "../../../components/up-seo";
+import {cleanForJSON, findImages} from "../../../utils/utils";
+import {DatedObj, LinkObj, PostObj, ProjectObjWithOwnerWithProjects, UserObj} from "../../../utils/types";
+import UpSEO from "../../../components/standard/UpSEO";
 import React, {useContext, useEffect, useState} from "react";
-import SlateReadOnly from "../../../components/SlateReadOnly";
+import SlateReadOnly from "../../../components/slate/SlateReadOnly";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {format} from "date-fns";
 import readingTime from "reading-time";
-import useSWR, {responseInterface} from "swr";
-import CommentItem from "../../../components/comment-item";
-import CommentContainerItem from "../../../components/comment-container-item";
 import {useSession} from "next-auth/client";
-import {RiHeartFill, RiHeartLine} from "react-icons/ri";
 import axios from "axios";
-import MoreMenu from "../../../components/more-menu";
-import MoreMenuItem from "../../../components/more-menu-item";
-import SpinnerButton from "../../../components/spinner-button";
+import MoreMenu from "../../../components/style/MoreMenu";
+import MoreMenuItem from "../../../components/style/MoreMenuItem";
+import SpinnerButton from "../../../components/style/SpinnerButton";
 import {FiEdit2, FiTrash} from "react-icons/fi";
-import UpModal from "../../../components/up-modal";
+import UpModal from "../../../components/style/UpModal";
 import {useRouter} from "next/router";
 import {NotifsContext} from "../../_app";
-import Tabs from "../../../components/Tabs";
-import SnippetItemCardReadOnly from "../../../components/SnippetItemCardReadOnly";
-import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
-import {snippetsExplainer} from "../../../utils/copy";
+import Container from "../../../components/style/Container";
 
 export default function PostPage({postData, linkedSnippets, thisProjects, thisAuthor, thisLinks}: {
     postData: DatedObj<PostObj>,
@@ -48,35 +31,11 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
     const router = useRouter();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
 
-    const [reactionsIteration, setReactionsIteration] = useState<number>(0);
-    const [commentsIteration, setCommentsIteration] = useState<number>(0);
-    const [reactionsUnauthModalOpen, setReactionsUnauthModalOpen] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
-    const [tab, setTab] = useState<"comments" | "snippets">("comments");
 
     const isOwner = session && (session.userId === thisAuthor._id);
     const thisOwner = thisProjects[0].ownerArr[0];
-
-    const {data: linkedSnippetsData, error: linkedSnippetsError}: responseInterface<{snippets: DatedObj<SnippetObjGraph>[]}, any> = useSWR(`/api/snippet?ids=${JSON.stringify(linkedSnippets)}`, fetcher);
-    const {data: reactions, error: reactionsError}: responseInterface<{data: DatedObj<ReactionObj>[]}, any> = useSWR(`/api/reaction?targetId=${postData._id}&iter=${reactionsIteration}`);
-    const {data: comments, error: commentsError}: responseInterface<{data: DatedObj<CommentWithAuthor>[]}, any> = useSWR(`/api/comment?targetId=${postData._id}&iter=${commentsIteration}`);
-
-    const linkedSnippetsReady = linkedSnippetsData && linkedSnippetsData.snippets && !!linkedSnippetsData.snippets.length;
-
-    function onLike() {
-        if (session) {
-            axios.post("/api/reaction", {
-                targetId: postData._id,
-            }).then(() => {
-                setReactionsIteration(reactionsIteration + 1);
-            }).catch(e => {
-                console.log(e);
-            });
-        } else {
-            setReactionsUnauthModalOpen(true);
-        }
-    }
 
     function onDelete() {
         setIsDeleteLoading(true);
@@ -106,18 +65,8 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
         }
     }, [router.query]);
 
-    useEffect(() => {
-        const routerPath = router.asPath;
-        const routerPathHasHash = routerPath.includes("#");
-        if (routerPathHasHash) {
-            const routerPathSplit = routerPath.split("#");
-            const routerHashValue = routerPathSplit[1];
-            if (routerHashValue === "snippets") setTab("snippets");
-        }
-    }, []);
-
     return (
-        <ProfileShell thisUser={thisOwner} selectedProjectId={thisProjects[0]._id}>
+        <Container>
             <UpSEO
                 title={postData.title}
                 description={postData.body.substr(0, 200)}
@@ -141,7 +90,6 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
                             <UpInlineButton href={`/@${thisOwner.username}/${project.urlName}`} light={true}>
                                 {project.name}
                             </UpInlineButton>
-                            {isOwner && <ProjectDashboardDropdown projectId={project._id}/>}
                         </div>
                     ))}
                     <span className="mx-3 up-gray-300"> / </span>
@@ -176,29 +124,10 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
                             readingTime(postData.body).text
                         }{
                             !!linkedSnippets.length && (
-                                <>
-                                    <span> | </span>
-                                    <a href="#snippets" className="underline" onClick={() => setTab("snippets")}>
-                                        {linkedSnippets.length} linked snippet{linkedSnippets.length === 1 ? "" : "s"}
-                                    </a>
-                                </>
+                                <span> | {linkedSnippets.length} linked snippet{linkedSnippets.length === 1 ? "" : "s"}</span>
                             )
                         }
                     </p>
-                    {reactions && reactions.data && (
-                        <div className="ml-auto flex items-center">
-                            {reactions.data.length > 0 && (
-                                <span className="opacity-25">{reactions.data.length}</span>
-                            )}
-                            <button className="up-button text small -my-6 ml-2" onClick={onLike} disabled={isOwner}>
-                                {(session && reactions.data.some(d => d.userId === session.userId)) ? (
-                                    <RiHeartFill/>
-                                ) : (
-                                    <RiHeartLine/>
-                                )}
-                            </button>
-                        </div>
-                    )}
                 </div>
                 <div className="content prose my-8">
                     <SlateReadOnly
@@ -209,74 +138,8 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
                         isOwner={false}
                     />
                 </div>
-                <hr className="my-12"/>
-                <Tabs
-                    tabInfo={[
-                        {
-                            name: "comments",
-                            text: <>
-                                Comments ({(comments && comments.data) ? comments.data.length : "loading..."
-                            })</>,
-                        },
-                        {
-                            name: "snippets",
-                            text: <>
-                                Snippets ({linkedSnippets.length})
-                            </>,
-                        }
-                    ]}
-                    tab={tab}
-                    setTab={setTab}
-                    className="pb-4"
-                    id="snippets"
-                />
-                {tab === "comments" && (
-                    <>
-                        {session ? (
-                            <CommentItem
-                                authorId={session.userId}
-                                targetId={postData._id}
-                                parentCommentId={undefined}
-                                iteration={commentsIteration}
-                                setIteration={setCommentsIteration}
-                            />
-                        ) : (
-                            <p className="mb-8 -mt-4 opacity-50">You must have an account to post a comment.</p>
-                        )}
-                        {comments && comments.data && comments.data.filter(d => !d.parentCommentId).map(comment => (
-                            <div key={comment._id}>
-                                <CommentContainerItem
-                                    iteration={commentsIteration}
-                                    setIteration={setCommentsIteration}
-                                    comment={comment}
-                                    subComments={comments.data.filter(d => d.parentCommentId === comment._id)}
-                                />
-                            </div>
-                        ))}
-                    </>
-                )}
-                {tab === "snippets" && (
-                    <>
-                        {!isOwner && (
-                            <p className="up-gray-400 mb-8 -mt-4">{snippetsExplainer}</p>
-                        )}
-                        <div className="grid grid-cols-2 gap-4 mb-12">
-                            {linkedSnippets.length ? linkedSnippetsReady ? (
-                                <>
-                                    {linkedSnippetsData.snippets.map(snippet => (
-                                        <SnippetItemCardReadOnly snippet={snippet} showFullDate={true}/>
-                                    ))}
-                                </>
-                            ) : (
-                                <p>Loading...</p>
-                            ) : (
-                                <p>This post doesn't have any snippets linked to it.</p>
-                            )}
-                        </div>
-                    </>
-                )}
             </div>
-        </ProfileShell>
+        </Container>
     );
 }
 

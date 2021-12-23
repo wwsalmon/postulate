@@ -1,14 +1,14 @@
-import {DatedObj, ProjectObjWithStats, UserObjWithProjects} from "../utils/types";
+import {DatedObj, ProjectObjWithStats, UserObjWithProjects} from "../../utils/types";
 import Link from "next/link";
-import H3 from "./style/H3";
+import H3 from "../style/H3";
 import React, {Dispatch, SetStateAction, useState} from "react";
 import {useSession} from "next-auth/client";
 import {FiActivity, FiX} from "react-icons/fi";
-import UpModal from "./up-modal";
-import SpinnerButton from "./spinner-button";
+import UpModal from "../style/UpModal";
+import SpinnerButton from "../style/SpinnerButton";
 import axios from "axios";
 import ellipsize from "ellipsize";
-import UpSEO from "./up-seo";
+import UpSEO from "../standard/UpSEO";
 import {getWeek} from "date-fns";
 
 interface ProfileProjectItemPropsBase {

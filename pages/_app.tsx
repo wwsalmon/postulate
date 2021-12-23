@@ -1,10 +1,10 @@
 import {AppProps} from "next/app";
 import "../styles/globals.css";
-import Navbar from "../components/navbar";
+import Navbar from "../components/navbar/Navbar";
 import {Provider} from "next-auth/client";
 import Router, {useRouter} from "next/router";
 import Modal from "react-modal";
-import Footer from "../components/footer";
+import Footer from "../components/navbar/Footer";
 import NProgress from "nprogress";
 import "../styles/nprogress.css";
 import {createContext, useState} from "react";

@@ -1,27 +1,21 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/client";
-import {FiBell, FiEdit2, FiGrid, FiSearch, FiUser} from "react-icons/fi";
-import MoreMenu from "./more-menu";
-import MoreMenuItem from "./more-menu-item";
-import {responseInterface} from "swr";
-import {DatedObj, NotificationWithAuthorAndTarget} from "../utils/types";
-import {fetcher} from "../utils/utils";
-import useSWR from "swr";
+import {FiBell, FiGrid, FiSearch, FiUser} from "react-icons/fi";
+import MoreMenuItem from "../style/MoreMenuItem";
+import useSWR, {responseInterface} from "swr";
+import {DatedObj, NotificationWithAuthorAndTarget} from "../../utils/types";
+import {fetcher} from "../../utils/utils";
 import {format} from "date-fns";
 import {useContext, useEffect, useState} from "react";
-import {NotifsContext} from "../pages/_app";
-import UpModal from "./up-modal";
-import NavbarQuickSnippetModal from "./navbar-quick-snippet-modal";
+import {NotifsContext} from "../../pages/_app";
+import UpModal from "../style/UpModal";
 import Mousetrap from "mousetrap";
-import { useToasts } from "react-toast-notifications";
 import NavbarSwitcher from "./NavbarSwitcher";
-import UpInlineButton from "./style/UpInlineButton";
+import UpInlineButton from "../style/UpInlineButton";
 
 export default function Navbar() {
     const [session, loading] = useSession();
-    const {addToast} = useToasts();
     const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
-    const [quickSnippetOpen, setQuickSnippetOpen] = useState<boolean>(false);
     const [switcherOpen, setSwitcherOpen] = useState<boolean>(false);
     const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
 
@@ -29,22 +23,14 @@ export default function Navbar() {
     const unreadCount = (notifications && notifications.data) ? notifications.data.filter(d => !d.read).length : 0;
 
     useEffect(() => {
-        function onNewSnippetShortcut(e) {
-            e.preventDefault();
-            setQuickSnippetOpen(true);
-        };
-
         function onSwitcherShortcut(e) {
             e.preventDefault();
             setSwitcherOpen(true);
         }
 
-        Mousetrap.bind("q", onNewSnippetShortcut);
-
         Mousetrap.bind("g", onSwitcherShortcut);
 
         return () => {
-            Mousetrap.unbind("q", onNewSnippetShortcut);
             Mousetrap.unbind("g", onSwitcherShortcut);
         };
     }, []);
@@ -81,25 +67,9 @@ export default function Navbar() {
                     </Link>
                 <div className="ml-auto flex items-center h-full">
                     {session && (
-                        <>
-                            <button className="up-button text small mr-2" onClick={() => setQuickSnippetOpen(true)}>
-                                <FiEdit2/>
-                            </button>
-                            <UpModal isOpen={quickSnippetOpen} setIsOpen={setQuickSnippetOpen} wide={true}>
-                                <NavbarQuickSnippetModal
-                                    setOpen={setQuickSnippetOpen}
-                                    callback={() => addToast("Snippet successfully saved", {
-                                        appearance: "success",
-                                        autoDismiss: true,
-                                        autoDismissTimeout: 3000,
-                                    })}
-                                    isQuick={true}
-                                />
-                            </UpModal>
-                            <UpModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
-                                <NavbarSwitcher setOpen={setSwitcherOpen}/>
-                            </UpModal>
-                        </>
+                        <UpModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
+                            <NavbarSwitcher setOpen={setSwitcherOpen}/>
+                        </UpModal>
                     )}
                     {session ? (
                         <>

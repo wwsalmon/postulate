@@ -3,7 +3,7 @@ import ActivityGrid, {ActivityDay} from "./ActivityGrid";
 import {format} from "date-fns";
 import ActivityGraph from "./ActivityGraph";
 import {FiEdit, FiMessageSquare} from "react-icons/fi";
-import Tabs from "./Tabs";
+import Tabs from "./standard/Tabs";
 import {TabInfo} from "../utils/types";
 
 export function makeGridArr(arr: {createdAt: string}[]) {

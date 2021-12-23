@@ -1,5 +1,5 @@
 import {useTSlate} from "@udecode/slate-plugins-core";
-import getIsEmpty from "../utils/slate/getIsEmpty";
+import getIsEmpty from "../../utils/slate/getIsEmpty";
 
 export default function SlatePlaceholder() {
     const {children} = useTSlate();

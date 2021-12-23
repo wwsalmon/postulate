@@ -1,11 +1,9 @@
 import React, {Dispatch, SetStateAction, useState} from "react";
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, PostObjGraph, ProjectObjWithCounts, UserObj} from "../utils/types";
-import {fetcher} from "../utils/utils";
-import PublicPostItem from "./public-post-item";
+import {DatedObj, ProjectObjWithCounts} from "../../utils/types";
+import {fetcher} from "../../utils/utils";
 import Skeleton from "react-loading-skeleton";
-import axios from "axios";
-import SpinnerButton from "./spinner-button";
+import SpinnerButton from "../style/SpinnerButton";
 
 export default function ProjectBrowser({setOpen, featuredProjectIds, buttonText, onSubmit}: {
     setOpen: Dispatch<SetStateAction<boolean>>,

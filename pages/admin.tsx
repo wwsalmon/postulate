@@ -1,7 +1,7 @@
 import React from 'react';
 import {GetServerSideProps} from "next";
 import {getSession} from "next-auth/client";
-import UpSEO from "../components/up-seo";
+import UpSEO from "../components/standard/UpSEO";
 import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import {formatDistanceToNow} from "date-fns";

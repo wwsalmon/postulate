@@ -1,7 +1,7 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
 import useSWR, {responseInterface} from "swr";
-import {DatedObj, ProjectObjWithCounts} from "../utils/types";
-import {fetcher} from "../utils/utils";
+import {DatedObj, ProjectObjWithCounts} from "../../utils/types";
+import {fetcher} from "../../utils/utils";
 import Link from "next/link";
 import Router, {useRouter} from "next/router";
 

@@ -1,9 +1,8 @@
 import axios from "axios";
 import {useState} from "react";
 import {WaitlistAPIRes} from "../utils/types";
-import UpSEO from "../components/up-seo";
+import UpSEO from "../components/standard/UpSEO";
 import Link from "next/link";
-import UpInlineButton from "../components/style/UpInlineButton";
 // import Head from "next/head"
 
 export default function Home() {

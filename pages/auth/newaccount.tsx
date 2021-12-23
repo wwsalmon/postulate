@@ -4,8 +4,8 @@ import {getSession, signIn, useSession} from "next-auth/client";
 import axios from "axios";
 import {useRouter} from "next/router";
 import Skeleton from "react-loading-skeleton";
-import SpinnerButton from "../../components/spinner-button";
-import UpSEO from "../../components/up-seo";
+import SpinnerButton from "../../components/style/SpinnerButton";
+import UpSEO from "../../components/standard/UpSEO";
 
 export default function NewAccount() {
     const router = useRouter();

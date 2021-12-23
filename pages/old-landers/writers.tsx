@@ -1,13 +1,11 @@
 import {useState} from "react";
-import {FiBookOpen, FiEdit, FiGlobe, FiMail, FiMessageSquare, FiSearch} from "react-icons/fi";
-import HomeStep from "../components/home-step";
+import {FiMail, FiMessageSquare, FiSearch} from "react-icons/fi";
 import axios from "axios";
-import {WaitlistAPIRes} from "../utils/types";
-import UpSEO from "../components/up-seo";
+import {WaitlistAPIRes} from "../../utils/types";
+import UpSEO from "../../components/standard/UpSEO";
 import Head from "next/head";
-import UpInlineButton from "../components/style/UpInlineButton";
-import UpResponsiveH2 from "../components/UpResponsiveH2";
-import LandingPageSection from "../components/LandingPageSection";
+import UpInlineButton from "../../components/style/UpInlineButton";
+import LandingPageSection from "../../components/lander/LandingPageSection";
 import {BiPaint} from "react-icons/bi";
 
 export default function Home() {

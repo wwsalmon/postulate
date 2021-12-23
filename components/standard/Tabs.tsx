@@ -1,5 +1,5 @@
 import React, {Dispatch, ReactNode, SetStateAction} from "react";
-import {TabInfo} from "../utils/types";
+import {TabInfo} from "../../utils/types";
 
 export default function Tabs({tabInfo, tab, setTab, className, id}: {tabInfo: TabInfo[], tab: string, setTab: Dispatch<SetStateAction<string>>, className?: string, id?: string}) {
     return (

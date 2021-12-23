@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction} from 'react';
-import UpBanner from "./UpBanner";
+import UpBanner from "../style/UpBanner";
 
 export default function PaginationBanner({page, label, setPage, className}: { page: number, label: string, setPage: Dispatch<SetStateAction<number>>, className?: string }) {
     return page > 1 ? (

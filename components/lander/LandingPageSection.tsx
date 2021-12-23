@@ -1,5 +1,4 @@
 import React, {ReactNode} from 'react';
-import UpResponsiveH2 from "./UpResponsiveH2";
 
 export default function LandingPageSection({heading, text, image, comingSoon, className}: { heading: ReactNode, text: ReactNode, image: ReactNode, comingSoon?: boolean, className?: string }) {
     return (
@@ -13,7 +12,7 @@ export default function LandingPageSection({heading, text, image, comingSoon, cl
                                 <span className="uppercase text-xs font-bold up-gray-400">Coming soon</span>
                             </div>
                         )}
-                        <UpResponsiveH2>{heading}</UpResponsiveH2>
+                        <h2 className={"up-font-display text-2xl sm:text-3xl lg:text-4xl"}>{heading}</h2>
                         {text}
                     </div>
                     <div className="sm:w-2/3 sm:pl-16 md:pl-24">

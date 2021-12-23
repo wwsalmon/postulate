@@ -1,9 +1,9 @@
 import React, {useEffect} from 'react';
 import {GetServerSideProps} from "next";
 import {getSession, signOut, useSession} from "next-auth/client";
-import SignInButton from "../../components/sign-in-button";
-import UpSEO from "../../components/up-seo";
-import UpBanner from "../../components/UpBanner";
+import SignInButton from "../../components/standard/SignInButton";
+import UpSEO from "../../components/standard/UpSEO";
+import UpBanner from "../../components/style/UpBanner";
 import {FiAlertCircle} from "react-icons/fi";
 import Link from "next/link";
 

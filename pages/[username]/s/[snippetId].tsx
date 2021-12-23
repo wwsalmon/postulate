@@ -10,18 +10,16 @@ import {
     UserObj,
     UserObjWithProjects
 } from "../../../utils/types";
-import ProfileShell from "../../../components/ProfileShell";
-import UpSEO from "../../../components/up-seo";
+import UpSEO from "../../../components/standard/UpSEO";
 import React from "react";
 import {format} from "date-fns";
 import UpInlineButton from "../../../components/style/UpInlineButton";
-import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
 import {useSession} from "next-auth/client";
-import SlateReadOnly from "../../../components/SlateReadOnly";
+import SlateReadOnly from "../../../components/slate/SlateReadOnly";
 import {snippetsExplainer} from "../../../utils/copy";
 import {FiArrowLeft} from "react-icons/fi";
-import SnippetLinkedPosts from "../../../components/SnippetLinkedPosts";
 import ellipsize from "ellipsize";
+import Container from "../../../components/style/Container";
 
 export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: {
     snippet: DatedObj<SnippetObjGraph>,
@@ -34,7 +32,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
     const {_id: projectId, userId, name: projectName, description, urlName: projectUrlName} = projectData;
 
     return (
-        <ProfileShell thisUser={thisOwner} selectedProjectId={projectId} isSnippet={true}>
+        <Container>
             <UpSEO
                 title={ellipsize(snippet.body, 30)}
                 description={snippet.body.substr(0, 200)}
@@ -54,7 +52,6 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
                         <UpInlineButton href={`/@${thisOwner.username}/${projectUrlName}#snippets`} light={true}>
                             {projectName}
                         </UpInlineButton>
-                        {isOwner && <ProjectDashboardDropdown projectId={projectId}/>}
                     </div>
                     <span className="mx-3 up-gray-300"> / </span>
                     <span className="up-gray-300">Snippet</span>
@@ -86,7 +83,6 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
                                 isOwner={false}
                             />
                         </div>
-                        <SnippetLinkedPosts snippet={snippet}/>
                     </div>
                 </div>
                 <UpInlineButton className="my-8" href={`/@${thisOwner.username}/${projectUrlName}#snippets`}>
@@ -96,7 +92,7 @@ export default function PostPage({snippet, thisAuthor, thisOwner, projectData}: 
                     </div>
                 </UpInlineButton>
             </div>
-        </ProfileShell>
+        </Container>
     )
 }
 

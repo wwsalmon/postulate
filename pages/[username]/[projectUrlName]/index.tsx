@@ -1,58 +1,24 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
-import {cleanForJSON, fetcher} from "../../../utils/utils";
-import {
-    DatedObj,
-    PostObjGraph,
-    ProjectObjWithPageStats,
-    SnippetObjGraph,
-    UserObjWithProjects
-} from "../../../utils/types";
-import ProfileShell from "../../../components/ProfileShell";
+import {cleanForJSON} from "../../../utils/utils";
+import {DatedObj, ProjectObjWithPageStats, UserObjWithProjects} from "../../../utils/types";
 import H1 from "../../../components/style/H1";
 import H2 from "../../../components/style/H2";
-import Masonry from "react-masonry-component";
-import PostFeedItem from "../../../components/PostFeedItem";
-import PaginationBar from "../../../components/PaginationBar";
-import Skeleton from "react-loading-skeleton";
-import useSWR, {responseInterface} from "swr";
 import UpInlineButton from "../../../components/style/UpInlineButton";
-import UpSEO from "../../../components/up-seo";
-import Tabs from "../../../components/Tabs";
-import ActivityTabs from "../../../components/ActivityTabs";
-import ProjectDashboardDropdown from "../../../components/ProjectDashboardDropdown";
+import UpSEO from "../../../components/standard/UpSEO";
 import {useSession} from "next-auth/client";
-import ProjectSnippetBrowser from "../../../components/ProjectSnippetBrowser";
-import {useRouter} from "next/router";
+import Container from "../../../components/style/Container";
 
 export default function ProjectPage({projectData, thisUser}: { projectData: DatedObj<ProjectObjWithPageStats>, thisUser: DatedObj<UserObjWithProjects>}) {
     const [session, loading] = useSession();
-    const router = useRouter();
-    const [postPage, setPostPage] = useState<number>(1);
-    const [searchQuery, setSearchQuery] = useState<string>("");
-    const [tab, setTab] = useState<"posts" | "snippets" | "stats">("posts");
-    const [snippetPage, setSnippetPage] = useState<number>(1);
-
-    const {data: posts, error: postsError}: responseInterface<{ posts: DatedObj<PostObjGraph>[], count: number }, any> = useSWR(`/api/post?projectId=${projectData._id}&page=${postPage}&search=${searchQuery}`, fetcher);
-    const {data: snippets, error: snippetsError}: responseInterface<{ snippets: DatedObj<SnippetObjGraph>[], count: number }, any> = useSWR(`/api/snippet?projectId=${projectData._id}&page=${snippetPage}&public=true`, fetcher);
-
-    const postsReady = posts && posts.posts;
-    const snippetsReady = snippets && snippets.snippets;
 
     const isOwner = session && session.userId === projectData.userId;
 
-    useEffect(() => {
-        const urlTab = router.asPath.split("#")[1];
-        if (urlTab === "snippets") setTab("snippets");
-        if (urlTab === "posts") setTab("posts");
-        if (urlTab === "stats") setTab("stats");
-    }, [router.asPath]);
-
     return (
-        <ProfileShell thisUser={thisUser} selectedProjectId={projectData._id}>
+        <Container>
             <UpSEO title={projectData.name}/>
             <div className="items-center mb-8 hidden lg:flex">
                 <UpInlineButton href={`/@${thisUser.username}`} light={true}>
@@ -61,82 +27,12 @@ export default function ProjectPage({projectData, thisUser}: { projectData: Date
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <div className="mb-12">
-                <div className="flex items-center">
-                    <H1>{projectData.name}</H1>
-                    {isOwner && <ProjectDashboardDropdown projectId={projectData._id} className="ml-2"/>}
-                </div>
+                <H1>{projectData.name}</H1>
                 {projectData.description && (
                     <H2 className="mt-2">{projectData.description}</H2>
                 )}
             </div>
-            <Tabs
-                tabInfo={[
-                    {
-                        name: "posts",
-                        text: `Posts (${postsReady ? posts.count : "loading..."})`,
-                    },
-                    {
-                        name: "snippets",
-                        text: `Snippets (${snippetsReady ? snippets.count : "loading..."})`,
-                    },
-                    {
-                        name: "stats",
-                        text: "Stats",
-                    },
-                ]}
-                tab={tab}
-                setTab={(d: "posts" | "snippets" | "stats") => {
-                    setTab(d);
-                    setTimeout(() => router.push(
-                        router.route,
-                        router.asPath.split("#")[0] + "#" + d,
-                        {scroll: false, shallow: true}
-                    ), 100);
-                }}
-                id="snippets"
-            />
-            {{
-                posts: postsReady ? posts.posts.length ?(
-                    <>
-                        <Masonry className="md:-mx-6 w-full" options={{transitionDuration: 0}}>
-                            {posts.posts.map((post, i) => <PostFeedItem
-                                post={post}
-                                key={post._id}
-                                i={i}
-                                projectId={projectData._id}
-                            />)}
-                        </Masonry>
-                        <PaginationBar
-                            page={postPage}
-                            count={postsReady ? posts.count : 0}
-                            label="posts"
-                            setPage={setPostPage}
-                            className="mb-12"
-                        />
-                    </>
-                ) : searchQuery ? (
-                    <p>No posts matching search query.</p>
-                ) : (
-                    <p>No public posts have been published in this project yet.</p>
-                ) : (
-                    <Skeleton count={1} className="h-32 w-full mt-12"/>
-                ), snippets: (
-                    <ProjectSnippetBrowser
-                        snippets={snippets}
-                        snippetPage={snippetPage}
-                        setSnippetPage={setSnippetPage}
-                        isOwner={isOwner}
-                        projectId={projectData._id}
-                    />
-                ), stats: (
-                    <ActivityTabs
-                        snippetsArr={projectData.snippetsArr}
-                        postsArr={projectData.postsArr}
-                        linkedSnippetsArr={projectData.linkedSnippetsArr}
-                    />
-                )
-            }[tab]}
-        </ProfileShell>
+        </Container>
     );
 }
 

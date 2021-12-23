@@ -1,8 +1,8 @@
 import React from 'react';
 import {GetServerSideProps} from "next";
 import {getSession} from "next-auth/client";
-import SignInButton from "../../components/sign-in-button";
-import UpSEO from "../../components/up-seo";
+import SignInButton from "../../components/standard/SignInButton";
+import UpSEO from "../../components/standard/UpSEO";
 
 export default function Welcome() {
     return (
