@@ -1,4 +1,3 @@
-import {ToolbarDropdownIcon, ToolbarIcon} from "easymde";
 import {format, subDays} from "date-fns";
 import {Node} from "slate";
 import {ProjectObj} from "./types";
@@ -8,35 +7,6 @@ export function cleanForJSON(input: any): any {
 }
 
 export const fetcher = url => fetch(url).then(res => res.json());
-
-// taken directly from type file bc I couldn't find an import
-type ToolbarButton =
-    'bold'
-    | 'italic'
-    | 'quote'
-    | 'unordered-list'
-    | 'ordered-list'
-    | 'link'
-    | 'image'
-    | 'strikethrough'
-    | 'code'
-    | 'table'
-    | 'redo'
-    | 'heading'
-    | 'undo'
-    | 'heading-bigger'
-    | 'heading-smaller'
-    | 'heading-1'
-    | 'heading-2'
-    | 'heading-3'
-    | 'clean-block'
-    | 'horizontal-rule'
-    | 'preview'
-    | 'side-by-side'
-    | 'fullscreen'
-    | 'guide';
-
-export const simpleMDEToolbar: ReadonlyArray<"|" | ToolbarButton | ToolbarIcon | ToolbarDropdownIcon> = ["bold", "italic", "|", "heading-1", "heading-2", "heading-3", "|", "link", "quote", "unordered-list", "ordered-list", "|", "preview", "guide"]
 
 export const projectWithStatsGraphStages = [
     {
@@ -230,79 +200,6 @@ export const slateInitValue: Node[] = [{
     children: [{text: ""}],
     id: 0,
 }];
-
-export const postGraphStages = [
-    {$lookup: {
-            from: "projects",
-            let: {"projectIds": "$projectIds"},
-            pipeline: [
-                {$match: {$expr: {$in: ["$_id", "$$projectIds"]}}},
-                {$lookup: {
-                        from: "users",
-                        localField: "userId",
-                        foreignField: "_id",
-                        as: "ownerArr",
-                    }},
-            ],
-            as: "projectArr"
-        }},
-    {$lookup: {
-            from: "users",
-            localField: "userId",
-            foreignField: "_id",
-            as: "authorArr",
-        }},
-];
-
-export const snippetGraphStages = [
-    {$lookup: {
-            from: "posts",
-            let: {"ids": "$linkedPosts"},
-            pipeline: [
-                {$match: {$expr: {$in: ["$_id", "$$ids"]}}},
-                ...postGraphStages,
-            ],
-            as: "linkedPostsArr",
-        }},
-    {$lookup: {
-            from: "users",
-            foreignField: "_id",
-            localField: "userId",
-            as: "authorArr",
-        }},
-    {$lookup: {
-            from: "links",
-            foreignField: "nodeId",
-            localField: "_id",
-            as: "linkArr",
-        }},
-    {$lookup: {
-        from: "projects",
-            let: {"projectId": "$projectId"},
-            pipeline: [
-                {$match: {$expr: {$eq: ["$_id", "$$projectId"]}}},
-                {
-                    $lookup: {
-                        from: "users",
-                        let: {"userId": "$userId"},
-                        pipeline: [
-                            {$match: {$expr: {$eq: ["$_id", "$$userId"]}}},
-                            {$lookup:
-                                    {
-                                        from: "projects",
-                                        foreignField: "userId",
-                                        localField: "_id",
-                                        as: "projectsArr",
-                                    }
-                            },
-                        ],
-                        as: "ownerArr",
-                    }
-                },
-            ],
-            as: "projectArr",
-        }},
-];
 
 export const getCursorStages = (page?: string, search?: boolean) => {
     let retval = [];

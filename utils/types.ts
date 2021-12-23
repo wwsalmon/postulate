@@ -43,10 +43,6 @@ export interface UserObjGraph extends UserObjWithProjects {
     linkedSnippetsArr: {count: number}[],
 }
 
-export interface ProjectObjWithOwner extends ProjectObj {
-    ownerArr: DatedObj<UserObj>[],
-}
-
 export interface ProjectObjWithOwnerWithProjects extends ProjectObj {
     ownerArr: DatedObj<UserObjWithProjects>[],
 }
@@ -83,11 +79,6 @@ export interface ProjectObjWithCounts extends ProjectObjWithStats {
     posts: {count: number}[],
     snippets: {count: number}[],
     linkedSnippets: {count: number}[],
-}
-
-export interface ProjectObjWithGraph extends ProjectObjWithCounts {
-    postDates: {createdAt: string}[],
-    snippetDates: {createdAt: string}[],
 }
 
 export interface SnippetObj {
@@ -157,14 +148,6 @@ export interface CommentObj {
     targetId: string,
     parentCommentId: string,
     body: string,
-}
-
-export interface CommentWithAuthor extends CommentObj {
-    author: {
-        name: string,
-        image: string,
-        username: string,
-    }[],
 }
 
 export interface NotificationObj {
