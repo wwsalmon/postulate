@@ -47,17 +47,6 @@ export interface ProjectObjWithOwnerWithProjects extends ProjectObj {
     ownerArr: DatedObj<UserObjWithProjects>[],
 }
 
-export interface ProjectObjBasic {
-    urlName: string,
-    userId: string, // ID
-    name: string,
-    stars: string[], // array of IDs
-}
-
-export interface ProjectObjBasicWithOwner extends ProjectObjBasic {
-    ownerArr: DatedObj<UserObj>[],
-}
-
 export interface ProjectObjWithPageStats extends ProjectObj {
     postsArr: {createdAt: string}[],
     snippetsArr: {createdAt: string}[],
