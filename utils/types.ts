@@ -95,13 +95,6 @@ export interface SnippetObj {
     privacy: "public" | "private",
 }
 
-export interface SnippetObjGraph extends SnippetObj {
-    projectArr: DatedObj<ProjectObjWithOwnerWithProjects>[];
-    linkedPostsArr: DatedObj<PostObjGraph>[];
-    authorArr: DatedObj<UserObj>[];
-    linkArr: DatedObj<LinkObj>[];
-}
-
 export type privacyTypes = "public" | "private" | "unlisted" | "draft";
 
 export interface PostObj {
@@ -116,11 +109,6 @@ export interface PostObj {
     privacy: privacyTypes,
 }
 
-export interface PostObjGraph extends PostObj {
-    projectArr: DatedObj<ProjectObjBasicWithOwner>[],
-    authorArr: DatedObj<UserObj>[],
-}
-
 export interface PostObjWithAuthor extends PostObj {
     authorArr: DatedObj<UserObj>[],
 }
@@ -133,11 +121,6 @@ export interface ImageObj {
     attachedType: "post" | "snippet",
     size: number, // size of image in bytes
 }
-
-export interface TagObj {
-    key: string,
-}
-
 export interface ReactionObj {
     userId: string,
     targetId: string,
@@ -192,10 +175,6 @@ export type DatedObj<T extends {}> = T & {
     _id: string,
     createdAt: string, // ISO date
     updatedAt: string, // ISO date
-}
-
-export type IdObj<T extends {}> = T & {
-    _id: string,
 }
 
 export interface SessionObj extends SessionBase {
