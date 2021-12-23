@@ -15,58 +15,10 @@ import mongoose from "mongoose";
 import {serialize} from "remark-slate";
 import {findImages, findLinks, getCursorStages, postGraphStages} from "../../../utils/utils";
 import {LinkModel} from "../../../models/link";
-import {SubscriptionModel} from "../../../models/subscription";
 import {AES} from "crypto-js";
 import axios from "axios";
 import ellipsize from "ellipsize";
-import {EmailModel} from "../../../models/email";
 import htmlDecode from "../../../utils/htmlDecode";
-
-async function sendEmails(thisProject: DatedObj<ProjectObj>, session: any, thisPost: DatedObj<PostObj> | PostObj, postId?: string) {
-    const recipients = await SubscriptionModel.find({targetId: thisPost.projectId});
-    if (recipients.length) {
-        const recipientEmails = recipients.map(d => d.email);
-        const sendVersions = recipientEmails.map(d => {
-            const emailHash = AES.encrypt(d, process.env.SUBSCRIBE_SECRET_KEY).toString();
-
-            return {
-                to: [{email: d}],
-                params: {
-                    MANAGELINK: `${process.env.HOSTNAME}/subscribe/${encodeURIComponent(emailHash)}`,
-                },
-            };
-        });
-
-        const thisAuthor = await UserModel.findOne({_id: session.userId});
-
-        const postData = {
-            messageVersions: sendVersions,
-            templateId: 13,
-            params: {
-                TITLE: thisPost.title,
-                POSTLINK: `${process.env.HOSTNAME}/@${session.username}/p/${thisPost.urlName}`,
-                PROJECTNAME: thisProject.name,
-                PROJECTLINK: `${process.env.HOSTNAME}/@${session.username}/${thisProject.urlName}`,
-                AUTHOR: thisAuthor.name,
-                AUTHORLINK: `${process.env.HOSTNAME}/@${session.username}`,
-                SHORTPREVIEW: ellipsize(thisPost.body, 50),
-                LONGPREVIEW: ellipsize(thisPost.body, 500),
-                DATE: format("createdAt" in thisPost ? new Date(thisPost.createdAt) : new Date(), "MMMM d, yyyy 'at' h:mm a"),
-            },
-        };
-
-        await axios.post("https://api.sendinblue.com/v3/smtp/email", postData, {
-            headers: { "api-key": process.env.SENDINBLUE_API_KEY },
-        });
-
-        await EmailModel.create({
-            recipients: recipientEmails,
-            targetId: "_id" in thisPost ? thisPost._id : postId,
-        });
-    }
-
-    return true;
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (["POST", "DELETE"].includes(req.method)) {
@@ -169,9 +121,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             });
                         }
 
-                        // send email notification
-                        if (req.body.sendEmail) await sendEmails(thisProject, session, thisPost);
-
                         res.status(200).json({
                             message: "Post successfully updated.",
                             url: `/@${session.username}/p/${thisPost.urlName}`,
@@ -232,9 +181,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                 $push: { linkedPosts: newPostObj._id }
                             });
                         }
-
-                        // send email notification
-                        if (req.body.sendEmail) await sendEmails(thisProject, session, newPost, newPostObj._id.toString());
 
                         res.status(200).json({
                             message: "Post successfully created.",
