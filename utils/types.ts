@@ -198,21 +198,6 @@ interface LinkObjTargetItem extends LinkObjBase {
 
 export type LinkObj = LinkObjTargetUrl | LinkObjTargetItem;
 
-export interface SubscriptionObj {
-    targetType: "project" | "user",
-    targetId: string,
-    email: string,
-}
-
-export interface SubscriptionObjGraph extends SubscriptionObj {
-    projectArr: DatedObj<ProjectObjWithOwner>[],
-}
-
-export interface EmailObj {
-    recipients: string[],
-    targetId: string,
-}
-
 export interface TabInfo {
     name: string,
     icon?: ReactNode,
