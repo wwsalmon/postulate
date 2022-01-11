@@ -15,12 +15,7 @@ import UpInlineButton from "../style/UpInlineButton";
 
 export default function Navbar() {
     const [session, loading] = useSession();
-    const {notifsIteration, setNotifsIteration} = useContext(NotifsContext);
     const [switcherOpen, setSwitcherOpen] = useState<boolean>(false);
-    const {data: notifications, error: notificationsError}: responseInterface<{ data: DatedObj<NotificationWithAuthorAndTarget>[] }, any> = useSWR(`/api/notification?authed=${!!session&&!!(session&&session.userId)}&iter=${notifsIteration}`, (session && session.userId) ? fetcher : () => null);
-
-    const notifsCount = (notifications && notifications.data) ? notifications.data.length : 0;
-    const unreadCount = (notifications && notifications.data) ? notifications.data.filter(d => !d.read).length : 0;
 
     useEffect(() => {
         function onSwitcherShortcut(e) {
@@ -72,71 +67,7 @@ export default function Navbar() {
                         </UpModal>
                     )}
                     {session ? (
-                        <>
-                            {notifications && (
-                                <button className="up-hover-button relative h-10 px-4">
-                                    <FiBell/>
-                                    {!!unreadCount && (
-                                        <div className="rounded-full w-3 h-3 top-0 right-0 absolute text-white font-bold" style={{backgroundColor: "#0026ff"}}>
-                                                <span style={{ fontSize: 8, top: -9 }} className="relative">
-                                                  {unreadCount}
-                                                </span>
-                                        </div>
-                                    )}
-                                    {!!notifsCount && (
-                                        <div className="up-hover-dropdown mt-10 w-64">
-                                            {notifications.data.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(notification => (
-                                                <MoreMenuItem
-                                                    text={(() => {
-                                                        if (!notification.comment.length && !notification.reaction.length) return "Notification outdated";
-                                                        const type = notification.type;
-                                                        const isComment = ["postComment", "postCommentReply"].includes(type);
-                                                        const author = isComment ? notification.comment[0].authorArr[0] : notification.reaction[0].authorArr[0];
-                                                        const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target && target.authorArr[0];
-
-                                                        if (!targetAuthor) {
-                                                            return "Invalid notification";
-                                                        }
-
-                                                        if (type === "postReaction" || type === "postComment") {
-                                                            return <span><b>{author.name}</b> {type === "postReaction" ? "liked" : "commented on"} your {format(new Date(target.createdAt), "M/d/y")} post</span>
-                                                        } else if (type === "postCommentReply") {
-                                                            return <span><b>{author.name}</b> replied to your comment on {targetAuthor._id === session.userId ? "your" : `${targetAuthor.name}'s` } {format(new Date(target.createdAt), "M/d/y")} post</span>
-                                                        }
-                                                        return "notification";
-                                                    })()}
-                                                    wrapText={true}
-                                                    href={(() => {
-                                                        if (!notification.comment.length && !notification.reaction.length) return "";
-                                                        const type = notification.type;
-                                                        const isComment = ["postComment", "postCommentReply"].includes(type);
-                                                        const target = isComment ? notification.comment[0].post[0] : notification.reaction[0].post[0];
-                                                        const targetAuthor = target && target.authorArr[0];
-                                                        if (!targetAuthor) return "";
-                                                        return `/@${targetAuthor.username}/p/${target.urlName}?notif=${notification._id}`;
-                                                    })()}
-                                                    className={notification.read ? "opacity-25" : ""}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </button>
-                            )}
-                            <button className="up-hover-button ml-6 relative">
-                                <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
-                                <div className="up-hover-dropdown mt-8">
-                                    {session.username && (
-                                        <>
-                                            <MoreMenuItem text="Profile" icon={<FiUser/>} href={`/@${session.username}`}/>
-                                            <MoreMenuItem text="Projects" icon={<FiGrid/>} href="/projects" className="md:hidden"/>
-                                            <MoreMenuItem text="Explore" icon={<FiSearch/>} href="/explore" className="md:hidden"/>
-                                        </>
-                                    )}
-                                    <MoreMenuItem text="Sign out" onClick={() => signOut()}/>
-                                </div>
-                            </button>
-                        </>
+                        <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
                     ) : loading ? (
                         <p>Loading...</p>
                     ) : (
