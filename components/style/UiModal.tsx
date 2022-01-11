@@ -1,7 +1,7 @@
 import {Dispatch, ReactNode, SetStateAction} from 'react';
 import Modal from "react-modal";
 
-export default function UpModal({isOpen, setIsOpen, children, wide = false}: {
+export default function UiModal({isOpen, setIsOpen, children, wide = false}: {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
     children: ReactNode,

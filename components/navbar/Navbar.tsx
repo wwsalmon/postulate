@@ -1,17 +1,11 @@
 import Link from "next/link";
-import {signOut, useSession} from "next-auth/client";
-import {FiBell, FiGrid, FiSearch, FiUser} from "react-icons/fi";
-import MoreMenuItem from "../style/MoreMenuItem";
-import useSWR, {responseInterface} from "swr";
-import {DatedObj, NotificationWithAuthorAndTarget} from "../../utils/types";
-import {fetcher} from "../../utils/utils";
-import {format} from "date-fns";
-import {useContext, useEffect, useState} from "react";
-import {NotifsContext} from "../../pages/_app";
-import UpModal from "../style/UpModal";
+import {useSession} from "next-auth/client";
+import {FiGrid, FiSearch} from "react-icons/fi";
+import {useEffect, useState} from "react";
+import UiModal from "../style/UiModal";
 import Mousetrap from "mousetrap";
 import NavbarSwitcher from "./NavbarSwitcher";
-import UpInlineButton from "../style/UpInlineButton";
+import InlineButton from "../style/InlineButton";
 
 export default function Navbar() {
     const [session, loading] = useSession();
@@ -39,10 +33,10 @@ export default function Navbar() {
     }, [loading]);
 
     return (
-        <div className="w-full bg-white sticky mb-8 top-0 z-30 shadow-sm border-b up-border-gray-200">
+        <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
                 <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-8 sm:h-10 mr-10"/></a></Link>
-                    {session && session.username && (
+                    {session && (
                         <Link href={"/projects"}>
                             <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
                                 <div className="mr-3">
@@ -62,9 +56,9 @@ export default function Navbar() {
                     </Link>
                 <div className="ml-auto flex items-center h-full">
                     {session && (
-                        <UpModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
+                        <UiModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
                             <NavbarSwitcher setOpen={setSwitcherOpen}/>
-                        </UpModal>
+                        </UiModal>
                     )}
                     {session ? (
                         <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
@@ -72,12 +66,9 @@ export default function Navbar() {
                         <p>Loading...</p>
                     ) : (
                         <>
-                            <UpInlineButton href="/auth/signin" className="hidden sm:inline-block mr-3">
+                            <InlineButton href="/auth/signin">
                                 Sign in
-                            </UpInlineButton>
-                            <Link href="/#waitlist">
-                                <a className="up-button primary small">Sign up for waitlist</a>
-                            </Link>
+                            </InlineButton>
                             {/*<SignInButton/>*/}
                         </>
                     )}

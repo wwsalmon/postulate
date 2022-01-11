@@ -3,7 +3,7 @@ import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, projectWithStatsGraphStages} from "../../utils/utils";
 import {DatedObj, UserObjWithProjects} from "../../utils/types";
-import UpInlineButton from "../../components/style/UpInlineButton";
+import InlineButton from "../../components/style/InlineButton";
 import React from "react";
 import H1 from "../../components/style/H1";
 import ProfileProjectItem from "../../components/profile/ProfileProjectItem";
@@ -13,10 +13,10 @@ export default function Projects({thisUser}: { thisUser: DatedObj<UserObjWithPro
     return (
         <Container>
             <div className="flex items-center mb-8">
-                <UpInlineButton href={`/@${thisUser.username}`} light={true}>
+                <InlineButton href={`/@${thisUser.username}`} light={true}>
                     {thisUser.name}
-                </UpInlineButton>
-                <span className="mx-2 up-gray-300">/</span>
+                </InlineButton>
+                <span className="mx-2 text-gray-300">/</span>
             </div>
             <H1>All projects</H1>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">

@@ -34,6 +34,11 @@ module.exports = {
     ],
     theme: {
         extend: {
+            colors: {
+                upBlue: {
+                    500: "#0026ff",
+                }
+            },
             typography(theme) {
                 return {
                     DEFAULT: {

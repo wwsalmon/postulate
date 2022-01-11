@@ -3,18 +3,13 @@ import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {cleanForJSON, findImages} from "../../../utils/utils";
 import {DatedObj, LinkObj, PostObj, ProjectObjWithOwnerWithProjects, UserObj} from "../../../utils/types";
-import UpSEO from "../../../components/standard/UpSEO";
+import SEO from "../../../components/standard/SEO";
 import React, {useContext, useEffect, useState} from "react";
-import UpInlineButton from "../../../components/style/UpInlineButton";
+import InlineButton from "../../../components/style/InlineButton";
 import {format} from "date-fns";
 import readingTime from "reading-time";
 import {useSession} from "next-auth/client";
 import axios from "axios";
-import MoreMenu from "../../../components/style/MoreMenu";
-import MoreMenuItem from "../../../components/style/MoreMenuItem";
-import SpinnerButton from "../../../components/style/SpinnerButton";
-import {FiEdit2, FiTrash} from "react-icons/fi";
-import UpModal from "../../../components/style/UpModal";
 import {useRouter} from "next/router";
 import {NotifsContext} from "../../_app";
 import Container from "../../../components/style/Container";
@@ -66,7 +61,7 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
 
     return (
         <Container>
-            <UpSEO
+            <SEO
                 title={postData.title}
                 description={postData.body.substr(0, 200)}
                 projectName={thisProjects[0].name}
@@ -77,43 +72,24 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
             />
             <div className="max-w-3xl">
                 <div className="items-center mb-8 hidden lg:flex">
-                    <UpInlineButton href={`/@${thisOwner.username}`} light={true}>
+                    <InlineButton href={`/@${thisOwner.username}`} light={true}>
                         {thisOwner.name}
-                    </UpInlineButton>
+                    </InlineButton>
                     <span className="mx-3 up-gray-300">/</span>
                     {thisProjects.map((project, i) => (
                         <div className="flex items-center">
                             {i !== 0 && (
                                 <span className="mr-3 up-gray-300">and</span>
                             )}
-                            <UpInlineButton href={`/@${thisOwner.username}/${project.urlName}`} light={true}>
+                            <InlineButton href={`/@${thisOwner.username}/${project.urlName}`} light={true}>
                                 {project.name}
-                            </UpInlineButton>
+                            </InlineButton>
                         </div>
                     ))}
                     <span className="mx-3 up-gray-300"> / </span>
                 </div>
                 <div className="flex">
                     <h1 className="text-4xl font-medium up-font-display">{postData.title}</h1>
-                    <div className="ml-auto">
-                        {isOwner && (
-                            <div className="ml-auto">
-                                <MoreMenu>
-                                    <MoreMenuItem text="Edit" icon={<FiEdit2/>} href={`/post/${postData._id}?back=${encodeURIComponent(document.location.href)}`}/>
-                                    <MoreMenuItem text="Delete" icon={<FiTrash/>} onClick={() => setIsDeleteOpen(true)}/>
-                                </MoreMenu>
-                                <UpModal isOpen={isDeleteOpen} setIsOpen={setIsDeleteOpen}>
-                                    <p>Are you sure you want to delete this post? This action cannot be undone.</p>
-                                    <div className="flex mt-4">
-                                        <SpinnerButton isLoading={isDeleteLoading} onClick={onDelete}>
-                                            Delete
-                                        </SpinnerButton>
-                                        <button className="up-button text" onClick={() => setIsDeleteOpen(false)}>Cancel</button>
-                                    </div>
-                                </UpModal>
-                            </div>
-                        )}
-                    </div>
                 </div>
                 <div className="flex items-center mt-4 border-b pb-8">
                     <p className="up-gray-400">

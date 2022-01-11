@@ -1,7 +1,7 @@
 import axios from "axios";
 import {useState} from "react";
 import {WaitlistAPIRes} from "../utils/types";
-import UpSEO from "../components/standard/UpSEO";
+import SEO from "../components/standard/SEO";
 import Link from "next/link";
 // import Head from "next/head"
 
@@ -26,7 +26,7 @@ export default function Home() {
 
     return (
         <>
-            <UpSEO/>
+            <SEO/>
             {/*<Head>*/}
             {/*    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PN2PEJYJES"/>*/}
             {/*    <script dangerouslySetInnerHTML={{__html: `*/}

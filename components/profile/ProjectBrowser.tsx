@@ -3,7 +3,7 @@ import useSWR, {responseInterface} from "swr";
 import {DatedObj, ProjectObjWithCounts} from "../../utils/types";
 import {fetcher} from "../../utils/utils";
 import Skeleton from "react-loading-skeleton";
-import SpinnerButton from "../style/SpinnerButton";
+import Button from "../headless/Button";
 
 export default function ProjectBrowser({setOpen, featuredProjectIds, buttonText, onSubmit}: {
     setOpen: Dispatch<SetStateAction<boolean>>,
@@ -80,7 +80,7 @@ export default function ProjectBrowser({setOpen, featuredProjectIds, buttonText,
                 <Skeleton count={1} className="h-64 md:w-1/3 sm:w-1/2 w-full"/>
             )}
             <div className="mt-4 flex items-center">
-                <SpinnerButton onClick={() => onSubmit(selectedProjectId, setIsLoading)} isLoading={isLoading} isDisabled={!selectedProjectId}>{buttonText}</SpinnerButton>
+                <Button onClick={() => onSubmit(selectedProjectId, setIsLoading)} isLoading={isLoading} disabled={!selectedProjectId}>{buttonText}</Button>
                 <button className="up-button text" onClick={() => setOpen(false)}>Cancel</button>
             </div>
         </>

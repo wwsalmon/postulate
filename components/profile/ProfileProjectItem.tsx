@@ -1,15 +1,15 @@
 import {DatedObj, ProjectObjWithStats, UserObjWithProjects} from "../../utils/types";
 import Link from "next/link";
-import H3 from "../style/H3";
+import H4 from "../style/H4";
 import React, {Dispatch, SetStateAction, useState} from "react";
 import {useSession} from "next-auth/client";
 import {FiActivity, FiX} from "react-icons/fi";
-import UpModal from "../style/UpModal";
-import SpinnerButton from "../style/SpinnerButton";
+import UiModal from "../style/UiModal";
 import axios from "axios";
 import ellipsize from "ellipsize";
-import UpSEO from "../standard/UpSEO";
+import SEO from "../standard/SEO";
 import {getWeek} from "date-fns";
+import Button from "../headless/Button";
 
 interface ProfileProjectItemPropsBase {
     project: DatedObj<ProjectObjWithStats>,
@@ -46,7 +46,6 @@ export default function ProfileProjectItem({project, thisUser, iter, setIter, al
     const isOwner = session && (session.userId === project.userId);
 
     const thisWeek = getWeek(new Date());
-    const weeks = [4, 3, 2, 1, 0].map(d => thisWeek - d);
     const weekStats: WeekStat[] = [4, 3, 2, 1, 0].map(d => ({
         week: thisWeek - d,
         count: getCount(project.postsArr, thisWeek - d) + getCount(project.snippetsArr, thisWeek - d),
@@ -75,13 +74,13 @@ export default function ProfileProjectItem({project, thisUser, iter, setIter, al
             className="p-4 rounded-md border up-border-gray-200 hover:shadow transition cursor-pointer relative up-hover-parent"
             style={{minHeight: 120}}
         >
-            <UpSEO title={`${thisUser.name}'s projects`}/>
+            <SEO title={`${thisUser.name}'s projects`}/>
             <Link href={"/@" + thisUser.username + "/" + project.urlName}>
                 <a className="flex flex-col h-full">
-                    <H3 className="mb-2">{project.name}</H3>
-                    <p className="break-words up-gray-400 mb-4">{ellipsize(project.description, 50)}</p>
+                    <H4 className="mb-2">{project.name}</H4>
+                    <p className="break-words text-gray-400 mb-4">{ellipsize(project.description, 50)}</p>
                     <div className="grid mt-auto items-center" style={{gridTemplateColumns: "24px repeat(5, 16px)"}}>
-                        <FiActivity className="up-gray-300 text-sm"/>
+                        <FiActivity className="text-gray-400 text-sm"/>
                         {weekStats.map(weekStat => (
                             <div style={{
                                 width: 12,
@@ -104,18 +103,18 @@ export default function ProfileProjectItem({project, thisUser, iter, setIter, al
                             <FiX/>
                         </button>
                     </div>
-                    <UpModal isOpen={deleteOpen} setIsOpen={setDeleteOpen}>
+                    <UiModal isOpen={deleteOpen} setIsOpen={setDeleteOpen}>
                         <p>Are you sure you want to remove this project from your featured projects?</p>
                         <div className="flex mt-4">
-                            <SpinnerButton
+                            <Button
                                 isLoading={deleteLoading}
                                 onClick={onDelete}
                             >
                                 Remove
-                            </SpinnerButton>
+                            </Button>
                             <button className="up-button text" onClick={() => setDeleteOpen(false)}>Cancel</button>
                         </div>
-                    </UpModal>
+                    </UiModal>
                 </>
             )}
         </div>

@@ -2,9 +2,9 @@ import {useState} from "react";
 import {FiMail, FiMessageSquare, FiSearch} from "react-icons/fi";
 import axios from "axios";
 import {WaitlistAPIRes} from "../../utils/types";
-import UpSEO from "../../components/standard/UpSEO";
+import SEO from "../../components/standard/SEO";
 import Head from "next/head";
-import UpInlineButton from "../../components/style/UpInlineButton";
+import InlineButton from "../../components/style/InlineButton";
 import LandingPageSection from "../../components/lander/LandingPageSection";
 import {BiPaint} from "react-icons/bi";
 
@@ -30,7 +30,7 @@ export default function Home() {
 
     return (
         <>
-            <UpSEO/>
+            <SEO/>
             <Head>
                 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PN2PEJYJES"/>
                 <script dangerouslySetInnerHTML={{__html: `
@@ -45,7 +45,7 @@ export default function Home() {
                 <div className="px-4 mx-auto max-w-5xl flex h-16 items-center w-full">
                     <img src="/logo.svg" alt="Postulate logo" className="h-10 hidden sm:block"/>
                     <img src="/postulate-tile.svg" alt="Postulate logo" className="h-10 sm:hidden"/>
-                    <UpInlineButton href="/auth/signin" className="ml-auto hidden sm:inline-block">Sign in</UpInlineButton>
+                    <InlineButton href="/auth/signin" className="ml-auto hidden sm:inline-block">Sign in</InlineButton>
                     <a href="#waitlist" className="up-button primary small ml-auto sm:ml-4">Sign up for waitlist</a>
                 </div>
             </div>

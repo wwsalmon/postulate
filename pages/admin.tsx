@@ -1,7 +1,7 @@
 import React from 'react';
 import {GetServerSideProps} from "next";
 import {getSession} from "next-auth/client";
-import UpSEO from "../components/standard/UpSEO";
+import SEO from "../components/standard/SEO";
 import useSWR, {responseInterface} from "swr";
 import {fetcher} from "../utils/utils";
 import {formatDistanceToNow} from "date-fns";
@@ -25,7 +25,7 @@ export default function AdminPortal() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
-            <UpSEO title="Admin dashboard" noindex={true}/>
+            <SEO title="Admin dashboard" noindex={true}/>
             <h1 className="up-h1">Admin dashboard</h1>
             <hr className="my-8"/>
             <p><b>Active in last 24 hours:</b> {data && data.data && data.data.filter(d => getIsActive(d, 1)).length}</p>

@@ -1,7 +1,7 @@
 import {NextSeo} from "next-seo";
 import {useRouter} from "next/router";
 
-export default function UpSEO({
+export default function SEO({
     title = "Postulate: Supercharge Your Creativity by Learning in public",
     description = "Postulate is an all-in-one tool for you to collect and publish your knowledge.",
     projectName = "",

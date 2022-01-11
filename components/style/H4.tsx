@@ -1,9 +1,9 @@
-import {ReactNode} from 'react';
+import {ReactNode} from "react";
 
-export default function H4({children, className} : {children: ReactNode, className?: string}) {
-  return (
-    <h4 className={"font-bold " + (className || "")}>
-        {children}
-    </h4>
-  );
+export default function H4({children, className}: { children: ReactNode, className?: string }) {
+    return (
+        <h4 className={"font-medium content leading-tight " + (className || "")}>
+            {children}
+        </h4>
+    );
 }
