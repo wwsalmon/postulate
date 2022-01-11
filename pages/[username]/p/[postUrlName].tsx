@@ -5,7 +5,6 @@ import {cleanForJSON, findImages} from "../../../utils/utils";
 import {DatedObj, LinkObj, PostObj, ProjectObjWithOwnerWithProjects, UserObj} from "../../../utils/types";
 import UpSEO from "../../../components/standard/UpSEO";
 import React, {useContext, useEffect, useState} from "react";
-import SlateReadOnly from "../../../components/slate/SlateReadOnly";
 import UpInlineButton from "../../../components/style/UpInlineButton";
 import {format} from "date-fns";
 import readingTime from "reading-time";
@@ -128,15 +127,6 @@ export default function PostPage({postData, linkedSnippets, thisProjects, thisAu
                             )
                         }
                     </p>
-                </div>
-                <div className="content prose my-8">
-                    <SlateReadOnly
-                        nodes={postData.slateBody}
-                        projectId={thisProjects[0]._id}
-                        projectName={thisProjects[0].name}
-                        ownerName={thisOwner.name}
-                        isOwner={false}
-                    />
                 </div>
             </div>
         </Container>
