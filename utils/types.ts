@@ -153,10 +153,13 @@ interface LinkObjTargetItem extends LinkObjBase {
 
 export type LinkObj = LinkObjTargetUrl | LinkObjTargetItem;
 
-export interface TabInfo {
-    name: string,
-    icon?: ReactNode,
-    text: ReactNode,
+export type NodeTypes = "snippet" | "post" | "evergreen" | "source";
+
+export interface NodeObj {
+    projectId: string,
+    userId: string,
+    body: any,
+    type: NodeTypes,
 }
 
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript

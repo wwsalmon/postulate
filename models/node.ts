@@ -1,14 +1,11 @@
 import mongoose, {Document, Model} from "mongoose";
+import {NodeObj} from "../utils/types";
 
 const NodeSchema = new mongoose.Schema({
     projectId: mongoose.Schema.Types.ObjectId,
-    projectIds: [mongoose.Schema.Types.ObjectId],
     userId: mongoose.Schema.Types.ObjectId,
-    legacyUrlName: {type: String, required: false},
-    title: {type: String, required: false},
     body: {type: Object, required: false},
-    tags: [{type: String, required: true}],
-    privacy: {type: String, required: true}, // "public", "private", "unlisted", "draft"
+    type: {type: String, required: true},
 }, {
     timestamps: true,
 });
