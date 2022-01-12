@@ -14,8 +14,8 @@ export default function Button(props: ButtonProps) {
             {href ? (
                 <Link href={href}>
                     {/* @ts-ignore */}
-                    <a {...domProps}>
-                        <div className={isLoading ? "invisible" : ""}>
+                    <a {...domProps} style={{display: block ? "block" : "inline-block"}}>
+                        <div className={(isLoading ? "invisible" : "") + (props.childClassName || "")}>
                             {children}
                         </div>
                     </a>
