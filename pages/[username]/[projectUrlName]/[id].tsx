@@ -1,13 +1,12 @@
 import {GetServerSideProps} from "next";
-import dbConnect from "../../../../utils/dbConnect";
-import {UserModel} from "../../../../models/user";
-import {ProjectModel} from "../../../../models/project";
-import getThisUser from "../../../../utils/getThisUser";
-import {cleanForJSON} from "../../../../utils/utils";
+import dbConnect from "../../../utils/dbConnect";
+import {UserModel} from "../../../models/user";
+import getThisUser from "../../../utils/getThisUser";
+import {cleanForJSON} from "../../../utils/utils";
 import {ssr404} from "next-response-helpers";
 import mongoose from "mongoose";
-import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../../utils/types";
-import Container from "../../../../components/style/Container";
+import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../utils/types";
+import Container from "../../../components/style/Container";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const isOwner = thisUser && thisUser._id === pageUser._id;

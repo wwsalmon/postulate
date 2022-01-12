@@ -50,7 +50,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             body: thisBody,
         })
 
-        return ssrRedirect(`/${username}/${projectUrlName}/n/${thisNode._id}`);
+        return ssrRedirect(`/${username}/${projectUrlName}/${thisNode._id}`);
     } catch (e) {
         console.log(e);
         return ssr404;
