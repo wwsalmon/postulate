@@ -7,7 +7,7 @@ import getProjectSSRProps from "../../../utils/getProjectSSRProps";
 export default function ProjectPage({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     return (
         <MainShell thisUser={thisUser} pageProject={pageProject} pageUser={pageUser}>
-            <p>home</p>
+            <p>posts</p>
         </MainShell>
     );
 }
