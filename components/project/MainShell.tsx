@@ -2,14 +2,12 @@ import SEO from "../standard/SEO";
 import InlineButton from "../style/InlineButton";
 import H1 from "../style/H1";
 import H2 from "../style/H2";
-import {Popover, Tab} from "@headlessui/react";
 import {FiChevronDown, FiSearch} from "react-icons/fi";
-import React, {Fragment, ReactNode, useState} from "react";
+import React, {ReactNode} from "react";
 import UiButton from "../style/UiButton";
 import Button from "../headless/Button";
 import Container from "../style/Container";
 import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
-import {usePopper} from "react-popper";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 

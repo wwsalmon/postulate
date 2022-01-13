@@ -36,6 +36,10 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     const [isPublishOpen, setIsPublishOpen] = useState<boolean>(false);
     const [isPublishLoading, setIsPublishLoading] = useState<boolean>(false);
 
+    const [saveStatus, setSaveStatus] = useState<string>("");
+    const isNodePublished = !!thisNode.body.publishedTitle;
+    const isNodeUpdated = isNodePublished && JSON.stringify(thisNode.body.body) === JSON.stringify(thisNode.body.publishedBody);
+
     async function onSubmitTitle(title: string) {
         let newBody = {...thisNode.body};
         newBody.title = title;
@@ -111,19 +115,24 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     inputClassName="w-full focus:outline-none leading-none"
                 />
                 <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
-                <AutosavingEditor prevValue={thisNode.body.body} onSubmitEdit={onSubmitBody}/>
+                <AutosavingEditor
+                    prevValue={thisNode.body.body}
+                    onSubmitEdit={onSubmitBody}
+                    setStatus={setSaveStatus}
+                />
             </div>
             <div className="fixed w-full h-16 left-0 bottom-0 bg-white border-t border-gray-300 px-4 flex items-center">
                 <InlineButton href={`/@${pageUser.username}/${pageProject.urlName}/${nodeType}s`} flex={true}>
                     <FiArrowLeft/>
                     <span className="ml-2">{pageProject.name}</span>
                 </InlineButton>
-                <MoreMenu button={<button className="hover:bg-gray-100 p-2 rounded-md"><FiMoreVertical/></button>} className="ml-auto mr-4">
+                <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
+                <MoreMenu button={<button className="hover:bg-gray-100 p-2 rounded-md"><FiMoreVertical/></button>} className="mr-4">
                     <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
                     <MoreMenuItem>Unpublish</MoreMenuItem>
                 </MoreMenu>
-                <UiButton onClick={() => setIsPublishOpen(true)}>
-                    Publish
+                <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
+                    {isNodePublished ? "Update" : "Publish"}
                 </UiButton>
                 <ConfirmModal
                     isOpen={isDeleteOpen}
@@ -141,9 +150,9 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     isLoading={isPublishLoading}
                     setIsLoading={setIsPublishLoading}
                     onConfirm={onPublish}
-                    confirmText="Publish"
+                    confirmText={isNodePublished ? "Update" : "Publish"}
                 >
-                    Are you sure you want to publish this post? This will make the latest contents publicly viewable.
+                    Are you sure you want to {isNodePublished ? "update the public version of" : "publish"} this post? This will make the latest contents publicly viewable.
                 </ConfirmModal>
             </div>
         </Container>
