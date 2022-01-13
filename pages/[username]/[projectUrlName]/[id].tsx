@@ -24,7 +24,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         Array.isArray(context.params.username) ||
         Array.isArray(context.params.projectUrlName) ||
         Array.isArray(context.params.id) ||
-        context.params.username.substr(0, 1) !== "@"
+        context.params.username.substr(0, 1) !== "@" ||
+        !mongoose.Types.ObjectId.isValid(context.params.id)
     ) {
         return {notFound: true};
     }
