@@ -42,6 +42,8 @@
     "nprogress": "^0.2.0",
     "postcss": "^8.2.4",
     "react": "17.0.2",
+    "react-autosave": "^0.3.1",
+    "react-controlled-component-helpers": "^0.1.2",
     "react-dom": "17.0.2",
     "react-frappe-charts": "^4.0.0",
     "react-github-contribution-calendar": "^2.0.0",

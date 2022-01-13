@@ -32,14 +32,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisBody = (type === "source") ?
             {
-                title: "",
+                title: "New source",
                 link: "",
                 notes: slateInit,
                 summary: slateInit,
                 takeaways: slateInit,
             } :
             {
-                title: "",
+                title: `New ${type}`,
                 body: slateInit,
             };
 

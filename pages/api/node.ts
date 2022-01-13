@@ -56,12 +56,13 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!isBodyValid(body, thisNode.type)) return res400(res);
 
-            await NodeModel.updateOne(
+            const newNode = await NodeModel.findOneAndUpdate(
                 {_id: id},
                 {body},
+                {returnOriginal: false},
             );
 
-            return res200(res);
+            return res200(res, {node: newNode});
         }
 
         // else create new

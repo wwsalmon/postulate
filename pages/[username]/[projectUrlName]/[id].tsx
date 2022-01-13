@@ -7,13 +7,40 @@ import {ssr404} from "next-response-helpers";
 import mongoose from "mongoose";
 import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../utils/types";
 import Container from "../../../components/style/Container";
+import {useState} from "react";
+import SEO from "../../../components/standard/SEO";
+import {Node} from "slate";
+import ClickableField from "../../../components/headless/ClickableField";
+import axios from "axios";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const isOwner = thisUser && thisUser._id === pageUser._id;
 
+    const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
+
+    async function onSubmitTitle(title: string) {
+        let newBody = {...thisNode.body};
+        newBody.title = title;
+
+        try {
+            const {data: {node: newNode}} = await axios.post("/api/node", {
+                id: thisNode._id,
+                body: newBody,
+            });
+
+            setThisNode(newNode);
+
+            return;
+        } catch (e) {
+            console.log(e);
+        }
+
+    }
+
     return (
         <Container>
-            <p>testing</p>
+            <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
+            <ClickableField onSubmitEdit={onSubmitTitle} prevValue={thisNode.body.title} placeholder={`Untitled ${thisNode.type}`}/>
         </Container>
     )
 }
