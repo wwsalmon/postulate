@@ -229,7 +229,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 pageProject: cleanForJSON(pageProject),
                 pageUser: cleanForJSON(pageUser),
                 thisUser: cleanForJSON(thisUser),
-                key: projectUrlName,
+                key: id,
             }
         };
     } catch (e) {
