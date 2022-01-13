@@ -76,6 +76,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                 <div className="overflow-x-auto">
                     {["Home", "Posts", "Evergreens", "Sources"].map(tab => (
                         <Button
+                            key={`project-tab-${tab}`}
                             className={`uppercase font-semibold text-sm tracking-wider mr-6 ${((tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")) ? "" : "text-gray-400"}`}
                             href={`/@${pageUser.username}/${pageProject.urlName}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
                         >
