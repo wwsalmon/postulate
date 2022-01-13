@@ -5,6 +5,8 @@ import {res400, res403, res404, res200} from "next-response-helpers";
 import mongoose from "mongoose";
 import {NodeTypes} from "../../utils/types";
 import {ProjectModel} from "../../models/project";
+import {format} from "date-fns";
+import short from "short-uuid";
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
@@ -14,7 +16,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             const thisNode = await NodeModel.findById(id);
 
             // fix up these permissions later
-            if (!(thisNode.body.publicBody || (isOwner && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+            if (!(thisNode.body.publishedBody || (isOwner && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
             return res200(res, {node: thisNode});
         }
@@ -56,9 +58,29 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!isBodyValid(body, thisNode.type)) return res400(res);
 
+            let newBody = {...body};
+
+            const isPublish = !!body.publishedTitle;
+
+            // if trying to publish and missing urlName or publishedDate, generate them
+            if (isPublish) {
+                if (!thisNode.body.publishedDate) {
+                    newBody["publishedDate"] = body.lastPublishedDate;
+                }
+
+                if (!thisNode.body.urlName) {
+                    const urlName: string =
+                        format(new Date(), "yyyy-MM-dd") +
+                        "-" + encodeURIComponent(body.publishedTitle.split(" ").slice(0, 5).join("-")) +
+                        "-" + short.generate();
+
+                    newBody["urlName"] = urlName;
+                }
+            }
+
             const newNode = await NodeModel.findOneAndUpdate(
                 {_id: id},
-                {body},
+                {body: newBody},
                 {returnOriginal: false},
             );
 
@@ -97,5 +119,22 @@ const handler: NextApiHandler = nextApiEndpoint({
 export default handler;
 
 function isBodyValid(body: any, type: NodeTypes): boolean {
+    if (type === "post") {
+        const hasBody = !!body.body; // todo: validate this as Node[]
+        const hasTitle = isString(body.title);
+        const hasPublishedBody = !!body.publishedBody; // todo: validate this as Node[]
+        const hasPublishedTitle = isString(body.publishedTitle);
+        const hasLastPublishedDate = body.lastPublishedDate !== undefined;
+
+        const validDraft = hasBody && hasTitle;
+        const tryingToPublish = hasPublishedBody || hasPublishedTitle || hasLastPublishedDate;
+        const validPublished = hasPublishedBody && hasPublishedTitle && hasLastPublishedDate;
+        const isValid = validDraft && (!tryingToPublish || validPublished);
+
+        return isValid;
+    }
+
     return true;
 }
+
+const isString = (value: any) => typeof value === "string" || value instanceof String;

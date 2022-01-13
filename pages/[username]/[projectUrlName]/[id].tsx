@@ -21,6 +21,7 @@ import UiButton from "../../../components/style/UiButton";
 import {MoreMenu, MoreMenuItem} from "../../../components/headless/MoreMenu";
 import UiModal from "../../../components/style/UiModal";
 import {useRouter} from "next/router";
+import ConfirmModal from "../../../components/standard/ConfirmModal";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -31,6 +32,9 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+
+    const [isPublishOpen, setIsPublishOpen] = useState<boolean>(false);
+    const [isPublishLoading, setIsPublishLoading] = useState<boolean>(false);
 
     async function onSubmitTitle(title: string) {
         let newBody = {...thisNode.body};
@@ -73,6 +77,25 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         });
     }
 
+    function onPublish() {
+        setIsPublishLoading(true);
+
+        let newBody = {...thisNode.body};
+        newBody.publishedBody = thisNode.body.body;
+        newBody.publishedTitle = thisNode.body.title;
+        newBody.lastPublishedDate = new Date();
+
+        axios.post("/api/node", {
+            id: pageNode._id,
+            body: newBody,
+        }).then(res => {
+            router.push(`/@${pageUser.username}/${pageProject.urlName}/p/${res.data.node.body.urlName}`);
+        }).catch(e => {
+            setIsPublishLoading(false);
+            console.log(e);
+        });
+    }
+
     const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
 
     return (
@@ -99,27 +122,29 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
                     <MoreMenuItem>Unpublish</MoreMenuItem>
                 </MoreMenu>
-                <UiButton>
+                <UiButton onClick={() => setIsPublishOpen(true)}>
                     Publish
                 </UiButton>
-                <UiModal
+                <ConfirmModal
                     isOpen={isDeleteOpen}
-                    setIsOpen={(value: boolean) => isDeleteLoading ? null : setIsDeleteOpen(value)}
+                    setIsOpen={setIsDeleteOpen}
+                    isLoading={isDeleteLoading}
+                    setIsLoading={setIsDeleteLoading}
+                    onConfirm={onDelete}
+                    confirmText="Delete"
                 >
                     Are you sure you want to delete this post? This action is irreversible.
-                    <div className="mt-4">
-                        <UiButton
-                            colorClass="bg-red-500 hover:bg-red-700 mr-2"
-                            isLoading={isDeleteLoading}
-                            onClick={onDelete}
-                        >
-                            Delete
-                        </UiButton>
-                        <UiButton noBg={true} onClick={() => setIsDeleteOpen(false)} disabled={isDeleteLoading}>
-                            Cancel
-                        </UiButton>
-                    </div>
-                </UiModal>
+                </ConfirmModal>
+                <ConfirmModal
+                    isOpen={isPublishOpen}
+                    setIsOpen={setIsPublishOpen}
+                    isLoading={isPublishLoading}
+                    setIsLoading={setIsPublishLoading}
+                    onConfirm={onPublish}
+                    confirmText="Publish"
+                >
+                    Are you sure you want to publish this post? This will make the latest contents publicly viewable.
+                </ConfirmModal>
             </div>
         </Container>
     )
