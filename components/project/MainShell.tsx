@@ -39,7 +39,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                 )}
             </div>
             <div className="my-12 md:flex items-center">
-                <div className="ml-auto flex items-center order-2 w-full md:w-auto">
+                <div className="ml-auto flex items-center order-2 w-full md:w-auto mb-6 md:mb-0">
                     <div className="flex items-center">
                         <FiSearch className="mr-4 text-gray-400"/>
                         <input type="text" placeholder="Search" className="w-24 focus:outline-none"/>
