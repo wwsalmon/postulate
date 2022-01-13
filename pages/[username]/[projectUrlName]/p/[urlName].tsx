@@ -81,7 +81,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisUser = await getThisUser(context);
 
-        return {props: cleanForJSON({pageUser, pageProject, pagePost, thisUser})};
+        let newPagePost = {...pagePost.toObject()};
+
+        if (!thisUser || (thisUser._id.toString() !== pageProject.userId.toString())) {
+            delete newPagePost.body.title;
+            delete newPagePost.body.body;
+        }
+
+        return {props: cleanForJSON({pageUser, pageProject, pagePost: newPagePost, thisUser})};
     } catch (e) {
         console.log(e);
         return ssr404;

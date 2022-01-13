@@ -15,7 +15,6 @@ import getProjectUrl from "../../utils/getProjectUrl";
 export default function MainShell({pageProject, pageUser, thisUser, children}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, children: ReactNode }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const {pathname} = useRouter();
-    console.log(pathname);
     const pageTab = pathname.split("/")[pathname.split("/").length - 1];
 
     return (

@@ -34,7 +34,14 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             const nodes = await NodeModel.find(query);
 
-            return res200(res, {nodes: nodes});
+            const newNodes = isOwner ? nodes : nodes.map(node => {
+                let newNode = {...node.toObject()};
+                delete newNode.body.title;
+                delete newNode.body.body;
+                return newNode;
+            });
+
+            return res200(res, {nodes: newNodes});
         }
 
         return res400(res);
