@@ -13,9 +13,16 @@ import {Node} from "slate";
 import ClickableField from "../../../components/headless/ClickableField";
 import axios from "axios";
 import AutosavingEditor from "../../../components/headless/AutosavingEditor";
+import slateWordCount from "../../../slate/slateWordCount";
+import UiH3 from "../../../components/style/UiH3";
+import Link from "next/link";
+import {FiArrowLeft} from "react-icons/fi";
+import InlineButton from "../../../components/style/InlineButton";
+import UiButton from "../../../components/style/UiButton";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const isOwner = thisUser && thisUser._id === pageUser._id;
+    const nodeType = pageNode.type;
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
 
@@ -49,11 +56,32 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         }
     }
 
+    const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
+
     return (
         <Container>
             <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
-            <ClickableField onSubmitEdit={onSubmitTitle} prevValue={thisNode.body.title} placeholder={`Untitled ${thisNode.type}`}/>
-            <AutosavingEditor prevValue={thisNode.body.body} onSubmitEdit={onSubmitBody}/>
+            <div className="pt-8 pb-32 mx-auto" style={{maxWidth: "78ch"}}> {/* 78ch bc font size is 16 here but we want 65ch for font size 20 */}
+                <UiH3 className="mb-8">Editing {nodeType}</UiH3>
+                <ClickableField
+                    onSubmitEdit={onSubmitTitle}
+                    prevValue={thisNode.body.title}
+                    placeholder={`Untitled ${thisNode.type}`}
+                    className="text-3xl font-bold font-manrope py-1 px-2 -ml-2 rounded-md"
+                    inputClassName="w-full focus:outline-none leading-none"
+                />
+                <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
+                <AutosavingEditor prevValue={thisNode.body.body} onSubmitEdit={onSubmitBody}/>
+            </div>
+            <div className="fixed w-full h-16 left-0 bottom-0 bg-white border-t border-gray-300 px-4 flex items-center">
+                <InlineButton href={`/@${pageUser.username}/${pageProject.urlName}/${nodeType}s`} flex={true}>
+                    <FiArrowLeft/>
+                    <span className="ml-2">{pageProject.name}</span>
+                </InlineButton>
+                <UiButton className="ml-auto">
+                    Publish
+                </UiButton>
+            </div>
         </Container>
     )
 }

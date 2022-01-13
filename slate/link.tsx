@@ -142,8 +142,7 @@ export const SlateLinkBalloon = () => {
             <div ref={ref} className="absolute transition-all bg-gray-100 p-2 rounded shadow-md flex items-center">
                 <a className="underline font-medium" href={link}>{link}</a>
                 <Button
-                    containerClassName="ml-2 flex items-center"
-                    className="p-1"
+                    className="ml-2 flex items-center p-1"
                     onMouseDown={e => {
                         e.preventDefault();
                         const href = window.prompt("Edit the URL of the link:", link);
@@ -152,8 +151,7 @@ export const SlateLinkBalloon = () => {
                     }}
                 ><FiEdit2/></Button>
                 <Button
-                    containerClassName="ml-2 flex items-center"
-                    className="p-1"
+                    className="ml-2 flex items-center p-1"
                     onClick={() => unwrapLink(editor)}
                 ><BiUnlink/></Button>
             </div>

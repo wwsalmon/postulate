@@ -3,22 +3,32 @@ import Button from "./Button";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import {useAutosave} from "react-autosave";
 
-export default function ClickableField({prevValue, onSubmitEdit, placeholder, className}: {prevValue: string, onSubmitEdit: (value: string) => Promise<any>, placeholder?: string, className?: string}) {
+export default function ClickableField({prevValue, onSubmitEdit, placeholder, className, inputClassName, buttonClassname}: {
+    prevValue: string,
+    onSubmitEdit: (value: string) => Promise<any>,
+    placeholder?: string,
+    className?: string,
+    inputClassName?: string,
+    buttonClassname?: string
+}) {
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [value, setValue] = useState<string>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    useAutosave({data: value, onSave: useCallback((value) => {
-        if (!isLoading) {
-        setIsLoading(true);
+    useAutosave({
+        data: value, onSave: useCallback((value) => {
+            if (!isLoading) {
+                setIsLoading(true);
 
-        onSubmitEdit(value).then(() => setIsLoading(false));
-    }}, []), interval: 1000});
+                onSubmitEdit(value).then(() => setIsLoading(false));
+            }
+        }, []), interval: 1000
+    });
 
     return isEdit ? (
         <>
             <input
-                className={className || ""} {...getInputStateProps(value, setValue)}
+                className={`${className || ""} ${inputClassName || ""}`} {...getInputStateProps(value, setValue)}
                 onKeyDown={e => {
                     if (e.key === "Escape") {
                         setValue(prevValue);
@@ -41,10 +51,10 @@ export default function ClickableField({prevValue, onSubmitEdit, placeholder, cl
         </>
     ) : (
         <Button
-            className={`${className || ""} hover:bg-gray-200 transition text-left`}
+            className={`${className || ""} ${buttonClassname || ""} hover:bg-gray-100 transition text-left`}
             onClick={() => setIsEdit(true)}
         >
             <span>{prevValue || <span className="text-gray-500">{placeholder || "Untitled"}</span>}</span>
         </Button>
-    )
+    );
 }

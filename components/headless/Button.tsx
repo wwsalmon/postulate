@@ -1,34 +1,31 @@
 import Link from "next/link";
 
 export type ButtonProps = (React.HTMLProps<HTMLButtonElement> | React.HTMLProps<HTMLAnchorElement>)
-    & {isLoading?: boolean, containerClassName?: string, childClassName?: string, block?: boolean};
+    & {isLoading?: boolean, childClassName?: string, block?: boolean, flex?: boolean};
 
 export default function Button(props: ButtonProps) {
-    const {href, isLoading, children, containerClassName, disabled, block} = props;
+    const {href, isLoading, children, disabled, block} = props;
     let domProps = {...props};
-    delete domProps.containerClassName;
+    domProps.className += ` relative text-left ${disabled ? "opacity-25 cursor-not-allowed" : ""}`;
     delete domProps.childClassName;
 
-    return (
-        <div className={`relative ${block ? "" : "inline-block"} ${containerClassName || ""} ${disabled ? "opacity-25 cursor-not-allowed" : ""} ${props.childClassName || ""}`}>
-            {href ? (
-                <Link href={href}>
-                    {/* @ts-ignore */}
-                    <a {...domProps} style={{display: block ? "block" : "inline-block"}}>
-                        <div className={(isLoading ? "invisible" : "") + (props.childClassName || "")}>
-                            {children}
-                        </div>
-                    </a>
-                </Link>
-            ) : (
-                // @ts-ignore
-                <button {...domProps}>
-                    <div className={(isLoading ? "invisible " : "") + (disabled ? "cursor-not-allowed " : "") + (props.childClassName || "")}>
-                        {children}
-                    </div>
-                </button>
-            )}
+    return href ? (
+        <Link href={href}>
+            {/* @ts-ignore */}
+            <a {...domProps} style={{display: block ? "block" : "inline-block"}}>
+                <div className={`${isLoading ? "invisible" : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
+                    {children}
+                </div>
+                {isLoading && <div className="up-spinner"/>}
+            </a>
+        </Link>
+    ) : (
+        // @ts-ignore
+        <button {...domProps}>
+            <div className={`${isLoading ? "invisible " : ""} ${disabled ? "cursor-not-allowed " : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
+                {children}
+            </div>
             {isLoading && <div className="up-spinner"/>}
-        </div>
+        </button>
     )
 }
