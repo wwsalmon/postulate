@@ -76,8 +76,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             }
         ]);
 
-        console.log(graphQuery);
-
         let pageUser = graphQuery.length ? graphQuery[0] : null;
         if (!pageUser) return ssr404;
 
