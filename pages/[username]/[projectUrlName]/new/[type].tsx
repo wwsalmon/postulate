@@ -39,7 +39,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 takeaways: slateInit,
             } :
             {
-                title: `New ${type}`,
+                title: `Untitled ${type}`,
                 body: slateInit,
             };
 
