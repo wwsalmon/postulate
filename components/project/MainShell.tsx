@@ -11,17 +11,13 @@ import Container from "../style/Container";
 import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
 import {usePopper} from "react-popper";
 import {useRouter} from "next/router";
+import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 
 export default function MainShell({pageProject, pageUser, thisUser, children}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, children: ReactNode }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const {pathname} = useRouter();
     console.log(pathname);
     const pageTab = pathname.split("/")[pathname.split("/").length - 1];
-
-    // popper for "new" dropdown
-    const [referenceElement, setReferenceElement] = useState<HTMLDivElement | null>(null);
-    const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-    const {styles, attributes} = usePopper(referenceElement, popperElement);
 
     return (
         <Container>
@@ -45,32 +41,25 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                         <input type="text" placeholder="Search" className="w-24 focus:outline-none"/>
                     </div>
                     {isOwner && (
-                        <Popover as={Fragment}>
-                            {({open}) => (
-                                <>
-                                    <Popover.Button ref={setReferenceElement} as="div" className="ml-auto md:ml-0">
-                                        <UiButton childClassName="flex items-center">
-                                            <span className="mr-1">New</span>
-                                            <FiChevronDown/>
-                                        </UiButton>
-                                    </Popover.Button>
-                                    <Popover.Panel
-                                        ref={setPopperElement}
-                                        style={styles.popper} {...attributes.popper}
-                                        className="absolute shadow-md rounded-md mt-4 z-10"
-                                    >
-                                        {["Post", "Evergreen", "Source"].map(type => (
-                                            <Button
-                                                href={`/@${pageUser.username}/${pageProject.urlName}/new/${type.toLowerCase()}`}
-                                                key={`project-new-${type}`}
-                                                block={true}
-                                                className="px-3 py-2 hover:bg-gray-50 w-full text-left bg-white text-gray-500"
-                                            >{type}</Button>
-                                        ))}
-                                    </Popover.Panel>
-                                </>
+                        <MoreMenu
+                            button={(
+                                <UiButton childClassName="flex items-center">
+                                    <span className="mr-1">New</span>
+                                    <FiChevronDown/>
+                                </UiButton>
                             )}
-                        </Popover>
+                            className="ml-auto md:ml-0"
+                        >
+                            {["Post", "Evergreen", "Source"].map(type => (
+                                <MoreMenuItem
+                                    href={`/@${pageUser.username}/${pageProject.urlName}/new/${type.toLowerCase()}`}
+                                    key={`project-new-${type}`}
+                                    block={true}
+                                >
+                                    {type}
+                                </MoreMenuItem>
+                            ))}
+                        </MoreMenu>
                     )}
                 </div>
                 <div className="overflow-x-auto">
