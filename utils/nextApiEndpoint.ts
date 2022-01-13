@@ -7,11 +7,11 @@ import {res403, res405, res500} from "next-response-helpers";
 
 export type MethodFunction = (req: NextApiRequest, res: NextApiResponse, session: Session, thisUser?: DatedObj<UserObj>) => any;
 
-export default function nextApiEndpoint(
-    getFunction?: MethodFunction,
-    postFunction?: MethodFunction,
-    deleteFunction?: MethodFunction,
-): NextApiHandler {
+export default function nextApiEndpoint({getFunction, postFunction, deleteFunction}: {
+                                            getFunction?: MethodFunction,
+                                            postFunction?: MethodFunction,
+                                            deleteFunction?: MethodFunction,
+                                        }): NextApiHandler {
     const handler: NextApiHandler = async (req, res) => {
         const session = await getSession({req});
 

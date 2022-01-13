@@ -4,9 +4,39 @@ import {NodeModel} from "../../models/node";
 import {res400, res403, res404, res200} from "next-response-helpers";
 import mongoose from "mongoose";
 import {NodeTypes} from "../../utils/types";
+import {ProjectModel} from "../../models/project";
 
-const handler: NextApiHandler = nextApiEndpoint(
-    async function postFunction(req, res, session, thisUser) {
+const handler: NextApiHandler = nextApiEndpoint({
+    getFunction: async function getFunction(req, res, session, thisUser) {
+        const {id, projectId, type, isOwner} = req.query;
+
+        if (id) {
+            const thisNode = await NodeModel.findById(id);
+
+            // fix up these permissions later
+            if (!(thisNode.body.publicBody || (isOwner && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+
+            return res200(res, {node: thisNode});
+        }
+
+        if (projectId) {
+            if (isOwner) {
+                const thisProject = await ProjectModel.findById(projectId);
+                if (!(thisProject && thisProject.userId.toString() === thisUser._id.toString())) return res403(res);
+            }
+
+            let query = {projectId: projectId};
+            if (type) query["type"] = type;
+            if (!isOwner) query["body.publicBody"] = {$exists: true};
+
+            const nodes = await NodeModel.find(query);
+
+            return res200(res, {nodes: nodes});
+        }
+
+        return res400(res);
+    },
+    postFunction: async function postFunction(req, res, session, thisUser) {
         const {id, projectId, type, body} = req.body;
 
         // if id as param, then update node
@@ -48,7 +78,9 @@ const handler: NextApiHandler = nextApiEndpoint(
 
         return res200(res, {id: thisNode._id});
     },
-);
+});
+
+export default handler;
 
 function isBodyValid(body: any, type: NodeTypes): boolean {
     return true;
