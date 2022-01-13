@@ -6,10 +6,14 @@ import UiModal from "../style/UiModal";
 import Mousetrap from "mousetrap";
 import NavbarSwitcher from "./NavbarSwitcher";
 import InlineButton from "../style/InlineButton";
+import {useRouter} from "next/router";
 
 export default function Navbar() {
+    const router = useRouter();
     const [session, loading] = useSession();
     const [switcherOpen, setSwitcherOpen] = useState<boolean>(false);
+
+    const isPublicPage = ["/[username]/[projectUrlName]/p/[urlName]"].includes(router.route);
 
     useEffect(() => {
         function onSwitcherShortcut(e) {
@@ -35,25 +39,26 @@ export default function Navbar() {
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
-                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className="h-8 sm:h-10 mr-10"/></a></Link>
-                    {session && (
-                        <Link href={"/projects"}>
-                            <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
-                                <div className="mr-3">
-                                    <FiGrid/>
-                                </div>
-                                Projects
-                            </a>
-                        </Link>
-                    )}
-                    <Link href="/explore">
-                        <a className="hidden md:flex items-center opacity-50 hover:opacity-100 mr-10">
+                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
+                <Link href={session ? "/projects" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
+                {session && (
+                    <Link href={"/projects"}>
+                        <a className={`hidden ${isPublicPage ? "xl" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
                             <div className="mr-3">
-                                <FiSearch/>
+                                <FiGrid/>
                             </div>
-                            Explore
+                            Projects
                         </a>
                     </Link>
+                )}
+                <Link href="/explore">
+                    <a className={`hidden ${isPublicPage ? "xl" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
+                        <div className="mr-3">
+                            <FiSearch/>
+                        </div>
+                        Explore
+                    </a>
+                </Link>
                 <div className="ml-auto flex items-center h-full">
                     {session && (
                         <UiModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>

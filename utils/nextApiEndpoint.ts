@@ -15,13 +15,13 @@ export default function nextApiEndpoint({getFunction, postFunction, deleteFuncti
     const handler: NextApiHandler = async (req, res) => {
         const session = await getSession({req});
 
-        if (!session) return res403(res);
+        if (!(req.method === "GET" || session)) return res403(res);
 
         try {
             await dbConnect();
 
-            const thisUser = await UserModel.findOne({email: session.user.email});
-            if (!thisUser) return res403(res);
+            const thisUser = session ? (await UserModel.findOne({email: session.user.email})) : null;
+            if (!(req.method === "GET" || thisUser)) return res403(res);
 
             switch (req.method) {
                 case "GET": {

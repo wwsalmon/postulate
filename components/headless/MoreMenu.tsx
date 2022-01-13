@@ -2,6 +2,7 @@ import React, {Fragment, ReactNode, useState} from "react";
 import {Popover} from "@headlessui/react";
 import Button, {ButtonProps} from "./Button";
 import {usePopper} from "react-popper";
+import {FiMoreVertical} from "react-icons/fi";
 
 export function MoreMenu({children, button, className}: {children: ReactNode, button: ReactNode, className?: string}) {
     const [referenceElement, setReferenceElement] = useState<HTMLDivElement | null>(null);
@@ -30,5 +31,11 @@ export function MoreMenuItem(props: ButtonProps) {
 
     return (
         <Button {...buttonProps}>{props.children}</Button>
+    )
+}
+
+export function MoreMenuButton() {
+    return (
+        <button className="hover:bg-gray-100 p-2 rounded-md"><FiMoreVertical/></button>
     )
 }

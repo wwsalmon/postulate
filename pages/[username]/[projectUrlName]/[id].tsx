@@ -18,10 +18,11 @@ import UiH3 from "../../../components/style/UiH3";
 import {FiArrowLeft, FiMoreVertical} from "react-icons/fi";
 import InlineButton from "../../../components/style/InlineButton";
 import UiButton from "../../../components/style/UiButton";
-import {MoreMenu, MoreMenuItem} from "../../../components/headless/MoreMenu";
+import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../../../components/headless/MoreMenu";
 import UiModal from "../../../components/style/UiModal";
 import {useRouter} from "next/router";
 import ConfirmModal from "../../../components/standard/ConfirmModal";
+import getProjectUrl from "../../../utils/getProjectUrl";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
@@ -74,7 +75,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         setIsDeleteLoading(true);
 
         axios.delete(`/api/node`, {data: {id: pageNode._id}}).then(() => {
-            router.push(`/@${pageUser.username}/${pageProject.urlName}/${pageNode.type}s`);
+            router.push(`${getProjectUrl(pageUser, pageProject)}/${pageNode.type}s`);
         }).catch(e => {
             setIsDeleteLoading(false);
             console.log(e);
@@ -93,7 +94,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
             id: pageNode._id,
             body: newBody,
         }).then(res => {
-            router.push(`/@${pageUser.username}/${pageProject.urlName}/p/${res.data.node.body.urlName}`);
+            router.push(`${getProjectUrl(pageUser, pageProject)}/p/${res.data.node.body.urlName}`);
         }).catch(e => {
             setIsPublishLoading(false);
             console.log(e);
@@ -111,7 +112,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     onSubmitEdit={onSubmitTitle}
                     prevValue={thisNode.body.title}
                     placeholder={`Untitled ${thisNode.type}`}
-                    className="text-3xl font-bold font-manrope py-1 px-2 -ml-2 rounded-md"
+                    className="text-3xl font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md"
                     inputClassName="w-full focus:outline-none leading-none"
                 />
                 <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
@@ -122,14 +123,21 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                 />
             </div>
             <div className="fixed w-full h-16 left-0 bottom-0 bg-white border-t border-gray-300 px-4 flex items-center">
-                <InlineButton href={`/@${pageUser.username}/${pageProject.urlName}/${nodeType}s`} flex={true}>
+                <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${nodeType}s`} flex={true}>
                     <FiArrowLeft/>
                     <span className="ml-2">{pageProject.name}</span>
                 </InlineButton>
                 <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
-                <MoreMenu button={<button className="hover:bg-gray-100 p-2 rounded-md"><FiMoreVertical/></button>} className="mr-4">
+                <MoreMenu button={<MoreMenuButton/>} className="mr-4">
                     <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
-                    <MoreMenuItem>Unpublish</MoreMenuItem>
+                    {isNodePublished && (
+                        <>
+                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/p/${thisNode.body.urlName}`}>
+                                View as public
+                            </MoreMenuItem>
+                            <MoreMenuItem>Unpublish</MoreMenuItem>
+                        </>
+                    )}
                 </MoreMenu>
                 <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
                     {isNodePublished ? "Update" : "Publish"}
@@ -180,6 +188,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         await dbConnect();
 
+        const thisUser = await getThisUser(context);
+
+        if (!thisUser) return ssr404;
+
         const graphQuery = await UserModel.aggregate([
             {$match: {username: username}},
             {
@@ -226,8 +238,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const pageNode = pageProject.nodeArr.length ? pageProject.nodeArr[0] : null;
         if (!pageNode) return ssr404;
-
-        const thisUser = await getThisUser(context);
 
         delete pageUser.projectArr;
         delete pageProject.nodeArr;

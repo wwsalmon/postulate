@@ -10,13 +10,14 @@ import short from "short-uuid";
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
-        const {id, projectId, type, isOwner} = req.query;
+        const {id, projectId, type, isOwner: queryIsOwner} = req.query;
+        const isOwner = queryIsOwner === "true";
 
         if (id) {
             const thisNode = await NodeModel.findById(id);
 
             // fix up these permissions later
-            if (!(thisNode.body.publishedBody || (isOwner && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+            if (!(thisNode.body.publishedBody || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
             return res200(res, {node: thisNode});
         }
@@ -24,12 +25,12 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (projectId) {
             if (isOwner) {
                 const thisProject = await ProjectModel.findById(projectId);
-                if (!(thisProject && thisProject.userId.toString() === thisUser._id.toString())) return res403(res);
+                if (!(thisProject && thisUser && thisProject.userId.toString() === thisUser._id.toString())) return res403(res);
             }
 
             let query = {projectId: projectId};
             if (type) query["type"] = type;
-            if (!isOwner) query["body.publicBody"] = {$exists: true};
+            if (!isOwner) query["body.publishedBody"] = {$exists: true};
 
             const nodes = await NodeModel.find(query);
 

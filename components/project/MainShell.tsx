@@ -10,6 +10,7 @@ import Container from "../style/Container";
 import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
+import getProjectUrl from "../../utils/getProjectUrl";
 
 export default function MainShell({pageProject, pageUser, thisUser, children}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, children: ReactNode }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -50,7 +51,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                         >
                             {["Post", "Evergreen", "Source"].map(type => (
                                 <MoreMenuItem
-                                    href={`/@${pageUser.username}/${pageProject.urlName}/new/${type.toLowerCase()}`}
+                                    href={`${getProjectUrl(pageUser, pageProject)}/new/${type.toLowerCase()}`}
                                     key={`project-new-${type}`}
                                     block={true}
                                 >
@@ -65,7 +66,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                         <Button
                             key={`project-tab-${tab}`}
                             className={`uppercase font-semibold text-sm tracking-wider mr-6 ${((tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")) ? "" : "text-gray-400"}`}
-                            href={`/@${pageUser.username}/${pageProject.urlName}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
+                            href={`${getProjectUrl(pageUser, pageProject)}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
                         >
                             {tab}
                         </Button>
