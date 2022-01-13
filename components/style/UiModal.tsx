@@ -14,7 +14,7 @@ export default function UiModal({isOpen, setIsOpen, children, wide = false}: {
             isOpen={isOpen}
             onRequestClose={() => setIsOpen(false)}
             className={ModalClasses}
-            style={{content: {transform: "translateX(calc(-50% - 16px))", maxWidth: "calc(100% - 32px)", width: wide ? 700 : 320}, overlay: {zIndex: 50}}}
+            style={{content: {transform: "translateX(calc(-50% - 16px))", maxWidth: "calc(100% - 32px)", width: wide ? 700 : 320}, overlay: {zIndex: 50, backgroundColor: "rgba(0,0,0,0.5)"}}}
         >
             {children}
         </Modal>

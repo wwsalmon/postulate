@@ -37,6 +37,7 @@ module.exports = {
             colors: {
                 upBlue: {
                     500: "#0026ff",
+                    700: "#001abb",
                 }
             },
             typography(theme) {

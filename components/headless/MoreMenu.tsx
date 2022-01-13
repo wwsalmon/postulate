@@ -16,7 +16,7 @@ export function MoreMenu({children, button, className}: {children: ReactNode, bu
             <Popover.Panel
                 ref={setPopperElement}
                 style={styles.popper} {...attributes.popper}
-                className="absolute shadow-md rounded-md mt-4 z-10"
+                className="absolute shadow-md rounded-md my-4 z-10"
             >
                 {children}
             </Popover.Panel>

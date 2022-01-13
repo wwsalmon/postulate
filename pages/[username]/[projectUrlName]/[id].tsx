@@ -15,16 +15,22 @@ import axios from "axios";
 import AutosavingEditor from "../../../components/headless/AutosavingEditor";
 import slateWordCount from "../../../slate/slateWordCount";
 import UiH3 from "../../../components/style/UiH3";
-import Link from "next/link";
-import {FiArrowLeft} from "react-icons/fi";
+import {FiArrowLeft, FiMoreVertical} from "react-icons/fi";
 import InlineButton from "../../../components/style/InlineButton";
 import UiButton from "../../../components/style/UiButton";
+import {MoreMenu, MoreMenuItem} from "../../../components/headless/MoreMenu";
+import UiModal from "../../../components/style/UiModal";
+import {useRouter} from "next/router";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
+    const router = useRouter();
+
     const isOwner = thisUser && thisUser._id === pageUser._id;
     const nodeType = pageNode.type;
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
     async function onSubmitTitle(title: string) {
         let newBody = {...thisNode.body};
@@ -56,6 +62,17 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         }
     }
 
+    function onDelete() {
+        setIsDeleteLoading(true);
+
+        axios.delete(`/api/node`, {data: {id: pageNode._id}}).then(() => {
+            router.push(`/@${pageUser.username}/${pageProject.urlName}/${pageNode.type}s`);
+        }).catch(e => {
+            setIsDeleteLoading(false);
+            console.log(e);
+        });
+    }
+
     const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
 
     return (
@@ -78,9 +95,31 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     <FiArrowLeft/>
                     <span className="ml-2">{pageProject.name}</span>
                 </InlineButton>
-                <UiButton className="ml-auto">
+                <MoreMenu button={<button className="hover:bg-gray-100 p-2 rounded-md"><FiMoreVertical/></button>} className="ml-auto mr-4">
+                    <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
+                    <MoreMenuItem>Unpublish</MoreMenuItem>
+                </MoreMenu>
+                <UiButton>
                     Publish
                 </UiButton>
+                <UiModal
+                    isOpen={isDeleteOpen}
+                    setIsOpen={(value: boolean) => isDeleteLoading ? null : setIsDeleteOpen(value)}
+                >
+                    Are you sure you want to delete this post? This action is irreversible.
+                    <div className="mt-4">
+                        <UiButton
+                            colorClass="bg-red-500 hover:bg-red-700 mr-2"
+                            isLoading={isDeleteLoading}
+                            onClick={onDelete}
+                        >
+                            Delete
+                        </UiButton>
+                        <UiButton noBg={true} onClick={() => setIsDeleteOpen(false)} disabled={isDeleteLoading}>
+                            Cancel
+                        </UiButton>
+                    </div>
+                </UiModal>
             </div>
         </Container>
     )

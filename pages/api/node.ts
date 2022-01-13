@@ -79,6 +79,19 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         return res200(res, {id: thisNode._id});
     },
+    deleteFunction: async function deleteFunction(req, res, session, thisUser) {
+        const {id} = req.body;
+
+        if (!id) return res400(res);
+
+        const thisNode = await NodeModel.findById(id);
+
+        if (thisNode.userId.toString() !== thisUser._id.toString()) return res403(res);
+
+        await NodeModel.deleteOne({_id: id});
+
+        return res200(res);
+    }
 });
 
 export default handler;
