@@ -12,6 +12,7 @@ import SEO from "../../../components/standard/SEO";
 import {Node} from "slate";
 import ClickableField from "../../../components/headless/ClickableField";
 import axios from "axios";
+import AutosavingEditor from "../../../components/headless/AutosavingEditor";
 
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const isOwner = thisUser && thisUser._id === pageUser._id;
@@ -21,7 +22,18 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     async function onSubmitTitle(title: string) {
         let newBody = {...thisNode.body};
         newBody.title = title;
+        await submitAndUpdate(newBody);
+        return;
+    }
 
+    async function onSubmitBody(body: Node[]) {
+        let newBody = {...thisNode.body};
+        newBody.body = body;
+        await submitAndUpdate(newBody);
+        return;
+    }
+
+    async function submitAndUpdate(newBody: any) {
         try {
             const {data: {node: newNode}} = await axios.post("/api/node", {
                 id: thisNode._id,
@@ -33,14 +45,15 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
             return;
         } catch (e) {
             console.log(e);
+            return;
         }
-
     }
 
     return (
         <Container>
             <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
             <ClickableField onSubmitEdit={onSubmitTitle} prevValue={thisNode.body.title} placeholder={`Untitled ${thisNode.type}`}/>
+            <AutosavingEditor prevValue={thisNode.body.body} onSubmitEdit={onSubmitBody}/>
         </Container>
     )
 }

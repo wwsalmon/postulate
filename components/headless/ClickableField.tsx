@@ -5,12 +5,10 @@ import {useAutosave} from "react-autosave";
 
 export default function ClickableField({prevValue, onSubmitEdit, placeholder, className}: {prevValue: string, onSubmitEdit: (value: string) => Promise<any>, placeholder?: string, className?: string}) {
     const [isEdit, setIsEdit] = useState<boolean>(false);
-    const [value, setValue] = useState<string>("");
+    const [value, setValue] = useState<string>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useAutosave({data: value, onSave: useCallback((value) => {
-        console.log("autosaving");
-
         if (!isLoading) {
         setIsLoading(true);
 
