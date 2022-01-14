@@ -33,17 +33,18 @@ const customSlateEditor = withImages(
     )
 );
 
-export default function SlateEditor({value, setValue, fontSize}: {
+export default function SlateEditor({value, setValue, fontSize, className}: {
     value: Node[],
     setValue: Dispatch<SetStateAction<Node[]>>,
     fontSize?: number,
+    className?: string,
 }) {
     const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
     return (
-        <div className="prose" style={{fontSize: fontSize || 20}}>
+        <div className={`prose ${className || ""}`} style={{fontSize: fontSize || 20}}>
             {/* @ts-ignore */}
             <Slate editor={editor} value={value} onChange={value => setValue(value)}>
                 <Editable
@@ -64,13 +65,13 @@ export default function SlateEditor({value, setValue, fontSize}: {
     );
 }
 
-export function SlateReadOnly({value, fontSize}: {value: Node[], fontSize?: number}) {
+export function SlateReadOnly({value, fontSize, className}: {value: Node[], fontSize?: number, className?: string}) {
     const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
     return (
-        <div className="prose" style={{fontSize: fontSize || 20}}>
+        <div className={`prose ${className || ""}`} style={{fontSize: fontSize || 20}}>
             {/* @ts-ignore */}
             <Slate editor={editor} value={value}>
                 <Editable
