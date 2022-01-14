@@ -7,7 +7,7 @@ import {FiMoreVertical} from "react-icons/fi";
 export function MoreMenu({children, button, className}: {children: ReactNode, button: ReactNode, className?: string}) {
     const [referenceElement, setReferenceElement] = useState<HTMLDivElement | null>(null);
     const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-    const {styles, attributes} = usePopper(referenceElement, popperElement);
+    const {styles, attributes} = usePopper(referenceElement, popperElement, {modifiers: [{name: "offset", options: {offset: [0, 16]}}]});
 
     return (
         <Popover as={Fragment}>
@@ -17,7 +17,7 @@ export function MoreMenu({children, button, className}: {children: ReactNode, bu
             <Popover.Panel
                 ref={setPopperElement}
                 style={styles.popper} {...attributes.popper}
-                className="absolute shadow-md rounded-md my-4 z-10"
+                className="absolute shadow-md rounded-md z-10"
             >
                 {children}
             </Popover.Panel>
