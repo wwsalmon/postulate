@@ -55,6 +55,7 @@ export default function SlateEditor({value, setValue, fontSize, className}: {
                     autoFocus
                     onKeyDown={event => {
                         onTabList(event, editor);
+                        // @ts-ignore not sure what isHotKey wants
                         onHotkey(event, editor);
                         onEnter(event, editor);
                     }}
