@@ -49,13 +49,13 @@ export default function EvergreenCard(props: PublicNodePageProps) {
                             <span>Unpublished changes</span>
                         </Badge>
                     )}
-                    <div className="max-h-48 text-gray-500 truncate relative">
+                    <div className="max-h-32 text-gray-500 truncate relative">
                         <SlateReadOnly
                             value={isPublished ? pageNode.body.publishedBody : pageNode.body.body}
-                            fontSize={16}
+                            fontSize={14}
                             className="text-gray-400"
                         />
-                        <div className="w-full absolute top-40 left-0 h-8 bg-gradient-to-t from-white"></div>
+                        <div className="w-full absolute top-24 left-0 h-8 bg-gradient-to-t from-white"></div>
                     </div>
                 </div>
                 <p className="text-gray-400 text-sm mt-auto pt-4">
@@ -63,8 +63,8 @@ export default function EvergreenCard(props: PublicNodePageProps) {
                 </p>
             </button>
             <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
-                <div className="p-4">
-                    <EvergreenInner {...props}/>
+                <div className="sm:px-4 py-4">
+                    <EvergreenInner {...props} small={true}/>
                 </div>
             </UiModal>
         </>
