@@ -1,7 +1,7 @@
 import {Editable, ReactEditor, Slate, withReact} from "slate-react";
 import {createEditor, Node} from "slate";
-import {HistoryEditor, withHistory} from "slate-history";
-import {Dispatch, SetStateAction, useCallback, useState} from "react";
+import {withHistory} from "slate-history";
+import {Dispatch, SetStateAction, useCallback, useMemo} from "react";
 import {SlateLinkBalloon, withLinks} from "./link";
 import {withShortcuts} from "./shortcuts";
 import {onHotkey} from "./hotkeys";
@@ -15,7 +15,7 @@ import withTex from "./withTex";
 import BlockTex from "./BlockTex";
 import withImages, {Image} from "./withImages";
 
-const customSlateEditor = withImages(
+export const customSlateEditorFactory = () => withImages(
     withTex(
         withLists(
             withCodeblocks(
@@ -39,7 +39,7 @@ export default function SlateEditor({value, setValue, fontSize, className}: {
     fontSize?: number,
     className?: string,
 }) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
+    const editor = useMemo(customSlateEditorFactory, []);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
@@ -67,7 +67,7 @@ export default function SlateEditor({value, setValue, fontSize, className}: {
 }
 
 export function SlateReadOnly({value, fontSize, className}: {value: Node[], fontSize?: number, className?: string}) {
-    const [editor] = useState<ReactEditor & HistoryEditor>(customSlateEditor);
+    const editor = useMemo(customSlateEditorFactory, []);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 

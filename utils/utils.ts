@@ -195,10 +195,8 @@ export function arrGraphGenerator(datesObj: {[key: string]: number}, numGraphDay
 }
 
 export const slateInitValue: Node[] = [{
-    // @ts-ignore doesn't recognize "type" property in Node
     type: "p",
     children: [{text: ""}],
-    id: 0,
 }];
 
 export const getCursorStages = (page?: string, search?: boolean) => {
