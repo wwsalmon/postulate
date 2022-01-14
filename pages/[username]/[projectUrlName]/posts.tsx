@@ -9,6 +9,7 @@ import Link from "next/link";
 import {format} from "date-fns";
 import slateWordCount from "../../../slate/slateWordCount";
 import getProjectUrl from "../../../utils/getProjectUrl";
+import Badge from "../../../components/style/Badge";
 
 export default function ProjectPosts({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -22,7 +23,10 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
                 const hasChanges = isOwner && isPublished && JSON.stringify(node.body.publishedBody) !== JSON.stringify(node.body.body);
 
                 return (
-                    <Link href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}>
+                    <Link
+                        href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}
+                        key={`project-posts-${node._id}`}
+                    >
                         <a className="block mb-8">
                             <h3
                                 className="font-manrope font-semibold"
@@ -30,24 +34,18 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
                             >{(isOwner ? node.body.title : node.body.publishedTitle) || "Untitled post"}</h3>
                             <div className="flex items-center mt-2 text-gray-400 text-sm">
                                 {!isPublished && (
-                                    <div
-                                        className="bg-gray-500 border border-gray-700 text-white rounded-md text-xs mr-3"
-                                        style={{padding: "2px 4px"}}
-                                    >
+                                    <Badge dark={true} className="mr-3">
                                         <span>Unpublished draft</span>
-                                    </div>
+                                    </Badge>
                                 )}
                                 <span className="mr-3">
                                     Last {isPublished ? "published" : "updated"} {format(new Date(isPublished ? node.body.lastPublishedDate : node.updatedAt), "MMM d, yyyy")}
                                 </span>
                                 <span className="mr-3">{Math.ceil(slateWordCount(isOwner ? node.body.body : node.body.publishedBody) / 200)} min read</span>
                                 {hasChanges && (
-                                    <div
-                                        className="bg-gray-50 border border-gray-300 text-gray-500 mr-3 rounded-md text-xs"
-                                        style={{padding: "2px 4px"}}
-                                    >
-                                        <span>Unpublished changes</span>
-                                    </div>
+                                    <Badge>
+                                        Unpublished changes
+                                    </Badge>
                                 )}
                             </div>
                         </a>

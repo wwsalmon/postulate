@@ -39,7 +39,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
     const [saveStatus, setSaveStatus] = useState<string>("");
     const isNodePublished = !!thisNode.body.publishedTitle;
-    const isNodeUpdated = isNodePublished && JSON.stringify(thisNode.body.body) === JSON.stringify(thisNode.body.publishedBody);
+    const isNodeUpdated = isNodePublished && JSON.stringify(thisNode.body.body) === JSON.stringify(thisNode.body.publishedBody) && thisNode.body.title === thisNode.body.publishedTitle;
 
     async function onSubmitTitle(title: string) {
         let newBody = {...thisNode.body};
