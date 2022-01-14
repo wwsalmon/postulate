@@ -42,24 +42,20 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     const isNodeUpdated = isNodePublished && JSON.stringify(thisNode.body.body) === JSON.stringify(thisNode.body.publishedBody) && thisNode.body.title === thisNode.body.publishedTitle;
 
     async function onSubmitTitle(title: string) {
-        let newBody = {...thisNode.body};
-        newBody.title = title;
-        await submitAndUpdate(newBody);
+        await submitAndUpdate({title});
         return;
     }
 
     async function onSubmitBody(body: Node[]) {
-        let newBody = {...thisNode.body};
-        newBody.body = body;
-        await submitAndUpdate(newBody);
+        await submitAndUpdate({body});
         return;
     }
 
-    async function submitAndUpdate(newBody: any) {
+    async function submitAndUpdate(data: any) {
         try {
             const {data: {node: newNode}} = await axios.post("/api/node", {
                 id: thisNode._id,
-                body: newBody,
+                ...data,
             });
 
             setThisNode(newNode);
@@ -85,16 +81,12 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     function onPublish() {
         setIsPublishLoading(true);
 
-        let newBody = {...thisNode.body};
-        newBody.publishedBody = thisNode.body.body;
-        newBody.publishedTitle = thisNode.body.title;
-        newBody.lastPublishedDate = new Date();
-
         axios.post("/api/node", {
             id: pageNode._id,
-            body: newBody,
+            publishedBody: thisNode.body.body,
+            publishedTitle: thisNode.body.title,
+            lastPublishedDate: new Date(),
         }).then(res => {
-            console.log(res);
             router.push(`${getProjectUrl(pageUser, pageProject)}/${isEvergreen ? "e" : "p"}/${res.data.node.body.urlName}`);
         }).catch(e => {
             setIsPublishLoading(false);

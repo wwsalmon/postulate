@@ -3,7 +3,6 @@ import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {NodeModel} from "../../models/node";
 import {res400, res403, res404, res200} from "next-response-helpers";
 import mongoose from "mongoose";
-import {NodeTypes} from "../../utils/types";
 import {ProjectModel} from "../../models/project";
 import {format} from "date-fns";
 import short from "short-uuid";
@@ -47,7 +46,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res400(res);
     },
     postFunction: async function postFunction(req, res, session, thisUser) {
-        const {id, projectId, type, body} = req.body;
+        const {id, projectId, type, body, title, publishedBody, publishedTitle, lastPublishedDate} = req.body;
 
         // if id as param, then update node
         if (id) {
@@ -64,27 +63,33 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (thisProject.userId.toString() !== thisUser._id.toString()) return res403(res);
 
-            if (!isBodyValid(body, thisNode.type)) return res400(res);
+            let newBody = {...thisNode.body};
 
-            let newBody = {...body};
-
-            const isPublish = !!body.publishedTitle;
+            const isPublish = !!(publishedTitle || publishedBody || lastPublishedDate);
 
             // if trying to publish and missing urlName or publishedDate, generate them
             if (isPublish) {
+                if (!(publishedTitle && publishedBody && lastPublishedDate)) return res400(res);
+
                 if (!thisNode.body.publishedDate) {
-                    newBody["publishedDate"] = body.lastPublishedDate;
+                    newBody["publishedDate"] = lastPublishedDate;
                 }
 
                 if (!thisNode.body.urlName) {
                     const urlName: string =
                         format(new Date(), "yyyy-MM-dd") +
-                        "-" + encodeURIComponent(body.publishedTitle.split(" ").slice(0, 5).join("-")) +
+                        "-" + encodeURIComponent(publishedTitle.split(" ").slice(0, 5).join("-")) +
                         "-" + short.generate();
 
                     newBody["urlName"] = urlName;
                 }
             }
+
+            if (title) newBody.title = title;
+            if (body) newBody.body = body;
+            if (publishedBody) newBody.publishedBody = publishedBody;
+            if (publishedTitle) newBody.publishedTitle = publishedTitle;
+            if (lastPublishedDate) newBody.lastPublishedDate = lastPublishedDate;
 
             const newNode = await NodeModel.findOneAndUpdate(
                 {_id: id},
@@ -96,14 +101,12 @@ const handler: NextApiHandler = nextApiEndpoint({
         }
 
         // else create new
-        if (!(projectId && type && body)) return res400(res);
-
-        if (!isBodyValid(body, type)) return res400(res);
+        if (!(projectId && type && body && title)) return res400(res);
 
         const thisNode = await NodeModel.create({
             projectId,
             type,
-            body,
+            body: {body, title},
             userId: thisUser._id,
         });
 
@@ -125,24 +128,5 @@ const handler: NextApiHandler = nextApiEndpoint({
 });
 
 export default handler;
-
-function isBodyValid(body: any, type: NodeTypes): boolean {
-    if (type === "post" || type === "evergreen") {
-        const hasBody = !!body.body; // todo: validate this as Node[]
-        const hasTitle = isString(body.title);
-        const hasPublishedBody = !!body.publishedBody; // todo: validate this as Node[]
-        const hasPublishedTitle = isString(body.publishedTitle);
-        const hasLastPublishedDate = body.lastPublishedDate !== undefined;
-
-        const validDraft = hasBody && hasTitle;
-        const tryingToPublish = hasPublishedBody || hasPublishedTitle || hasLastPublishedDate;
-        const validPublished = hasPublishedBody && hasPublishedTitle && hasLastPublishedDate;
-        const isValid = validDraft && (!tryingToPublish || validPublished);
-
-        return isValid;
-    }
-
-    return true;
-}
 
 const isString = (value: any) => typeof value === "string" || value instanceof String;
