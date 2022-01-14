@@ -1,21 +1,39 @@
 import {PublicNodePageProps} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
-import Link from "next/link";
-import getProjectUrl from "../../utils/getProjectUrl";
 import Badge from "../style/Badge";
 import {SlateReadOnly} from "../../slate/SlateEditor";
 import {format} from "date-fns";
-import React from "react";
+import React, {useEffect, useState} from "react";
+import UiModal from "../style/UiModal";
+import {useRouter} from "next/router";
+import getProjectUrl from "../../utils/getProjectUrl";
+import EvergreenInner from "./EvergreenInner";
 
-export default function EvergreenCard({pageNode, pageProject, pageUser, thisUser}: PublicNodePageProps) {
+export default function EvergreenCard(props: PublicNodePageProps) {
+    const router = useRouter();
+    const {id} = router.query;
+    const {pageNode, pageProject, pageUser, thisUser} = props;
+
     const isPublished = !!pageNode.body.publishedTitle;
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const hasChanges = isOwner && isPublished && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
 
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    const setIsModalOpen = (value: boolean) => {
+        router.push({
+            pathname: `${getProjectUrl(pageUser, pageProject)}/evergreens`,
+            query : value ? {id: pageNode._id} : {},
+        }, null, {shallow: true}).then(() => setIsOpen(value));
+    }
+
+    useEffect(() => {
+        if (id === pageNode._id) setIsOpen(true);
+        else setIsOpen(false);
+    }, [id]);
+
     return (
-        <Link
-            href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? pageNode._id : `/e/${pageNode.body.urlName}`}`}
-        >
-            <a className="p-4 border border-gray-300 rounded-md flex flex-col">
+        <>
+            <button className="p-4 border border-gray-300 rounded-md flex flex-col text-left" onClick={() => setIsModalOpen(true)}>
                 <div>
                     <h3
                         className="font-manrope font-semibold mb-1"
@@ -43,7 +61,12 @@ export default function EvergreenCard({pageNode, pageProject, pageUser, thisUser
                 <p className="text-gray-400 text-sm mt-auto pt-4">
                     Last {isPublished ? "published" : "updated"} {format(new Date(isPublished ? pageNode.body.lastPublishedDate : pageNode.updatedAt), "MMM d, yyyy")}
                 </p>
-            </a>
-        </Link>
+            </button>
+            <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
+                <div className="p-4">
+                    <EvergreenInner {...props}/>
+                </div>
+            </UiModal>
+        </>
     );
 }
