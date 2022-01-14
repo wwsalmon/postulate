@@ -23,12 +23,24 @@ import {useRouter} from "next/router";
 import ConfirmModal from "../../../components/standard/ConfirmModal";
 import getProjectUrl from "../../../utils/getProjectUrl";
 
+export const getIsNodeUpdated = (node: NodeObj): boolean => {
+    if (!node.body.publishedTitle) return false;
+    const fields = node.type === "source" ? ["title", "link", "notes", "summary", "takeaways"] : ["title", "body"];
+
+    const areFieldsUpdated = fields.every(d =>
+        JSON.stringify(node.body[d])
+        === JSON.stringify(node.body[`published${d.charAt(0).toUpperCase()}${d.substr(1)}`])
+    );
+
+    return areFieldsUpdated;
+}
+
 export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageNode: DatedObj<NodeObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const router = useRouter();
 
-    const isOwner = thisUser && thisUser._id === pageUser._id;
     const nodeType = pageNode.type;
     const isEvergreen = nodeType === "evergreen";
+    const isSource = nodeType === "source";
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -39,17 +51,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
     const [saveStatus, setSaveStatus] = useState<string>("");
     const isNodePublished = !!thisNode.body.publishedTitle;
-    const isNodeUpdated = isNodePublished && JSON.stringify(thisNode.body.body) === JSON.stringify(thisNode.body.publishedBody) && thisNode.body.title === thisNode.body.publishedTitle;
-
-    async function onSubmitTitle(title: string) {
-        await submitAndUpdate({title});
-        return;
-    }
-
-    async function onSubmitBody(body: Node[]) {
-        await submitAndUpdate({body});
-        return;
-    }
+    const isNodeUpdated = getIsNodeUpdated(thisNode);
 
     async function submitAndUpdate(data: any) {
         try {
@@ -81,13 +83,24 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     function onPublish() {
         setIsPublishLoading(true);
 
-        axios.post("/api/node", {
+        let data: any = {
             id: pageNode._id,
-            publishedBody: thisNode.body.body,
             publishedTitle: thisNode.body.title,
             lastPublishedDate: new Date(),
-        }).then(res => {
-            router.push(`${getProjectUrl(pageUser, pageProject)}/${isEvergreen ? "e" : "p"}/${res.data.node.body.urlName}`);
+        };
+
+        data = isSource ? {
+            ...data,
+            publishedNotes: thisNode.body.notes,
+            publishedSummary: thisNode.body.summary,
+            publishedTakeaways: thisNode.body.takeaways,
+        } : {
+            ...data,
+            publishedBody: thisNode.body.body,
+        };
+
+        axios.post("/api/node", data).then(res => {
+            router.push(`${getProjectUrl(pageUser, pageProject)}/${isSource ? "s" : isEvergreen ? "e" : "p"}/${res.data.node.body.urlName}`);
         }).catch(e => {
             setIsPublishLoading(false);
             console.log(e);
@@ -96,69 +109,102 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
     const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
 
-    return (
-        <div>
-            <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
-            <div className={`mx-auto pt-8 ${isEvergreen ? "bg-white border border-gray-300 rounded-md px-8 mb-8" : "pb-32"}`} style={{maxWidth: "78ch"}}> {/* 78ch bc font size is 16 here but we want 65ch for font size 20 */}
-                <UiH3 className="mb-8">Editing {nodeType}</UiH3>
-                <ClickableField
-                    onSubmitEdit={onSubmitTitle}
-                    prevValue={thisNode.body.title}
-                    placeholder={`Untitled ${thisNode.type}`}
-                    className={`font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md ${isEvergreen ? "text-2xl" : "text-3xl"}`}
-                    inputClassName="w-full focus:outline-none leading-none"
-                />
-                {!isEvergreen && (
-                    <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
+    const ActionBar = () => (
+        <div className={`h-16 border-t border-gray-300 px-4 flex items-center ${isEvergreen ? "-mx-8 mt-8" : "fixed left-0 bottom-0 bg-white w-full"}`}>
+            <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${nodeType}s`} flex={true}>
+                <FiArrowLeft/>
+                <span className="ml-2">{pageProject.name}</span>
+            </InlineButton>
+            <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
+            <MoreMenu button={<MoreMenuButton/>} className="mr-4">
+                <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
+                {isNodePublished && (
+                    <>
+                        <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${isSource ? "s" : isEvergreen ? "e" : "p"}/${thisNode.body.urlName}`}>
+                            View as public
+                        </MoreMenuItem>
+                        <MoreMenuItem>Unpublish</MoreMenuItem>
+                    </>
                 )}
-                <AutosavingEditor
-                    prevValue={thisNode.body.body}
-                    onSubmitEdit={onSubmitBody}
-                    setStatus={setSaveStatus}
-                />
-                <div className={`h-16 border-t border-gray-300 px-4 flex items-center ${isEvergreen ? "-mx-8 mt-8" : "fixed left-0 bottom-0 bg-white w-full"}`}>
-                    <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${nodeType}s`} flex={true}>
-                        <FiArrowLeft/>
-                        <span className="ml-2">{pageProject.name}</span>
-                    </InlineButton>
-                    <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
-                    <MoreMenu button={<MoreMenuButton/>} className="mr-4">
-                        <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
-                        {isNodePublished && (
-                            <>
-                                <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${isEvergreen ? "e" : "p"}/${thisNode.body.urlName}`}>
-                                    View as public
-                                </MoreMenuItem>
-                                <MoreMenuItem>Unpublish</MoreMenuItem>
-                            </>
-                        )}
-                    </MoreMenu>
-                    <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
-                        {isNodePublished ? "Update" : "Publish"}
-                    </UiButton>
-                    <ConfirmModal
-                        isOpen={isDeleteOpen}
-                        setIsOpen={setIsDeleteOpen}
-                        isLoading={isDeleteLoading}
-                        setIsLoading={setIsDeleteLoading}
-                        onConfirm={onDelete}
-                        confirmText="Delete"
-                    >
-                        Are you sure you want to delete this {nodeType}? This action is irreversible.
-                    </ConfirmModal>
-                    <ConfirmModal
-                        isOpen={isPublishOpen}
-                        setIsOpen={setIsPublishOpen}
-                        isLoading={isPublishLoading}
-                        setIsLoading={setIsPublishLoading}
-                        onConfirm={onPublish}
-                        confirmText={isNodePublished ? "Update" : "Publish"}
-                    >
-                        Are you sure you want to {isNodePublished ? "update the public version of" : "publish"} this {nodeType}? This will make the latest contents publicly viewable.
-                    </ConfirmModal>
-                </div>
-            </div>
+            </MoreMenu>
+            <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
+                {isNodePublished ? "Update" : "Publish"}
+            </UiButton>
+            <ConfirmModal
+                isOpen={isDeleteOpen}
+                setIsOpen={setIsDeleteOpen}
+                isLoading={isDeleteLoading}
+                setIsLoading={setIsDeleteLoading}
+                onConfirm={onDelete}
+                confirmText="Delete"
+            >
+                Are you sure you want to delete this {nodeType}? This action is irreversible.
+            </ConfirmModal>
+            <ConfirmModal
+                isOpen={isPublishOpen}
+                setIsOpen={setIsPublishOpen}
+                isLoading={isPublishLoading}
+                setIsLoading={setIsPublishLoading}
+                onConfirm={onPublish}
+                confirmText={isNodePublished ? "Update" : "Publish"}
+            >
+                Are you sure you want to {isNodePublished ? "update the public version of" : "publish"} this {nodeType}? This will make the latest contents publicly viewable.
+            </ConfirmModal>
         </div>
+    );
+
+    return (
+        <>
+            <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
+            {isSource ? (
+                <div className="lg:flex max-w-7xl mx-auto">
+                    <div className="flex-grow border-r border-gray-300 pr-8">
+                        <UiH3>Source name</UiH3>
+                        <UiH3>Source link</UiH3>
+                        <UiH3>Summary</UiH3>
+                        <AutosavingEditor
+                            prevValue={thisNode.body.summary}
+                            // onSubmitEdit={(notes) => submitAndUpdate({notes})}
+                            onSubmitEdit={async () => false}
+                            setStatus={setSaveStatus}
+                        />
+                        <UiH3>Takeaways</UiH3>
+                    </div>
+                    <div className="flex-grow" style={{maxWidth: "65ch"}}>
+                        <UiH3>Notes</UiH3>
+                        <AutosavingEditor
+                            prevValue={thisNode.body.notes}
+                            // onSubmitEdit={(notes) => submitAndUpdate({notes})}
+                            onSubmitEdit={async () => false}
+                            setStatus={setSaveStatus}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <div
+                    className={`mx-auto pt-8 ${isEvergreen ? "bg-white border border-gray-300 rounded-md px-8 mb-8" : "pb-32"}`}
+                    style={{maxWidth: "78ch"}} // 78ch bc font size is 16 here but we want 65ch for font size 20
+                >
+                    <UiH3 className="mb-8">Editing {nodeType}</UiH3>
+                    <ClickableField
+                        onSubmitEdit={(title) => submitAndUpdate({title})}
+                        prevValue={thisNode.body.title}
+                        placeholder={`Untitled ${thisNode.type}`}
+                        className={`font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md ${isEvergreen ? "text-2xl" : "text-3xl"}`}
+                        inputClassName="w-full focus:outline-none leading-none"
+                    />
+                    {!isEvergreen && (
+                        <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
+                    )}
+                    <AutosavingEditor
+                        prevValue={thisNode.body.body}
+                        onSubmitEdit={(body) => submitAndUpdate({body})}
+                        setStatus={setSaveStatus}
+                    />
+                    <ActionBar/>
+                </div>
+            )}
+        </>
     )
 }
 
