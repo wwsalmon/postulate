@@ -13,4 +13,4 @@ const UserSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const UserModel: Model<Document<UserObj>> = mongoose.models.user || mongoose.model("user", UserSchema);
+export const UserModel: Model<Document<UserObj>> = (!!mongoose.models && mongoose.models.user) || mongoose.model("user", UserSchema);

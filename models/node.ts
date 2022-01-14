@@ -10,4 +10,4 @@ const NodeSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const NodeModel: Model<Document<NodeObj>> = mongoose.models.node || mongoose.model("node", NodeSchema);
+export const NodeModel: Model<Document<NodeObj>> = (!!mongoose.models && mongoose.models.node) || mongoose.model("node", NodeSchema);

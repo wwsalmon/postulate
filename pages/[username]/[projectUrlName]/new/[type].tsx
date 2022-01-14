@@ -13,6 +13,8 @@ export default function NewNodeRedirect() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const {username, projectUrlName, type} = context.params;
 
+    console.log(username, projectUrlName, type);
+
     if (!["post", "evergreen", "source"].includes(type.toString())) return ssr404;
 
     try {
@@ -43,12 +45,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 body: slateInit,
             };
 
+        console.log(thisBody);
+
         const thisNode = await NodeModel.create({
             type: type,
             userId: thisUser._id,
             projectId: pageProject._id,
             body: thisBody,
         })
+
+        console.log(thisNode);
 
         return ssrRedirect(`/${username}/${projectUrlName}/${thisNode._id}`);
     } catch (e) {

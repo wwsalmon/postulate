@@ -127,7 +127,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 export default handler;
 
 function isBodyValid(body: any, type: NodeTypes): boolean {
-    if (type === "post") {
+    if (type === "post" || type === "evergreen") {
         const hasBody = !!body.body; // todo: validate this as Node[]
         const hasTitle = isString(body.title);
         const hasPublishedBody = !!body.publishedBody; // todo: validate this as Node[]

@@ -10,10 +10,10 @@ import {format} from "date-fns";
 import slateWordCount from "../../../slate/slateWordCount";
 import getProjectUrl from "../../../utils/getProjectUrl";
 
-export default function ProjectPosts({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+export default function ProjectEvergreens({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
-    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(`/api/node?projectId=${pageProject._id}&type=post&isOwner=${!!isOwner}`, fetcher);
+    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(`/api/node?projectId=${pageProject._id}&type=evergreen&isOwner=${!!isOwner}`, fetcher);
 
     return (
         <MainShell thisUser={thisUser} pageProject={pageProject} pageUser={pageUser}>
@@ -22,7 +22,7 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
                 const hasChanges = isOwner && isPublished && JSON.stringify(node.body.publishedBody) !== JSON.stringify(node.body.body);
 
                 return (
-                    <Link href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}>
+                    <Link href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? node._id : `/e/${node.body.urlName}`}`}>
                         <a className="block mb-8">
                             <h3
                                 className="font-manrope font-semibold"

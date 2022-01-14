@@ -13,4 +13,4 @@ const ProjectSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const ProjectModel: Model<Document<ProjectObj>> = mongoose.models.project || mongoose.model("project", ProjectSchema);
+export const ProjectModel: Model<Document<ProjectObj>> = (!!mongoose.models && mongoose.models.project) || mongoose.model("project", ProjectSchema);

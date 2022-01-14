@@ -6,7 +6,6 @@ import {cleanForJSON} from "../../../utils/utils";
 import {ssr404} from "next-response-helpers";
 import mongoose from "mongoose";
 import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../utils/types";
-import Container from "../../../components/style/Container";
 import {useState} from "react";
 import SEO from "../../../components/standard/SEO";
 import {Node} from "slate";
@@ -29,6 +28,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
     const isOwner = thisUser && thisUser._id === pageUser._id;
     const nodeType = pageNode.type;
+    const isEvergreen = nodeType === "evergreen";
 
     const [thisNode, setThisNode] = useState<DatedObj<NodeObj>>(pageNode);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -94,7 +94,8 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
             id: pageNode._id,
             body: newBody,
         }).then(res => {
-            router.push(`${getProjectUrl(pageUser, pageProject)}/p/${res.data.node.body.urlName}`);
+            console.log(res);
+            router.push(`${getProjectUrl(pageUser, pageProject)}/${isEvergreen ? "e" : "p"}/${res.data.node.body.urlName}`);
         }).catch(e => {
             setIsPublishLoading(false);
             console.log(e);
@@ -104,66 +105,68 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
 
     return (
-        <Container>
+        <div>
             <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
-            <div className="pt-8 pb-32 mx-auto" style={{maxWidth: "78ch"}}> {/* 78ch bc font size is 16 here but we want 65ch for font size 20 */}
+            <div className={`mx-auto pt-8 ${isEvergreen ? "bg-white border border-gray-300 rounded-md px-8 mb-8" : "pb-32"}`} style={{maxWidth: "78ch"}}> {/* 78ch bc font size is 16 here but we want 65ch for font size 20 */}
                 <UiH3 className="mb-8">Editing {nodeType}</UiH3>
                 <ClickableField
                     onSubmitEdit={onSubmitTitle}
                     prevValue={thisNode.body.title}
                     placeholder={`Untitled ${thisNode.type}`}
-                    className="text-3xl font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md"
+                    className={`font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md ${isEvergreen ? "text-2xl" : "text-3xl"}`}
                     inputClassName="w-full focus:outline-none leading-none"
                 />
-                <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
+                {!isEvergreen && (
+                    <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
+                )}
                 <AutosavingEditor
                     prevValue={thisNode.body.body}
                     onSubmitEdit={onSubmitBody}
                     setStatus={setSaveStatus}
                 />
+                <div className={`h-16 border-t border-gray-300 px-4 flex items-center ${isEvergreen ? "-mx-8 mt-8" : "fixed left-0 bottom-0 bg-white w-full"}`}>
+                    <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${nodeType}s`} flex={true}>
+                        <FiArrowLeft/>
+                        <span className="ml-2">{pageProject.name}</span>
+                    </InlineButton>
+                    <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
+                    <MoreMenu button={<MoreMenuButton/>} className="mr-4">
+                        <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
+                        {isNodePublished && (
+                            <>
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${isEvergreen ? "e" : "p"}/${thisNode.body.urlName}`}>
+                                    View as public
+                                </MoreMenuItem>
+                                <MoreMenuItem>Unpublish</MoreMenuItem>
+                            </>
+                        )}
+                    </MoreMenu>
+                    <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
+                        {isNodePublished ? "Update" : "Publish"}
+                    </UiButton>
+                    <ConfirmModal
+                        isOpen={isDeleteOpen}
+                        setIsOpen={setIsDeleteOpen}
+                        isLoading={isDeleteLoading}
+                        setIsLoading={setIsDeleteLoading}
+                        onConfirm={onDelete}
+                        confirmText="Delete"
+                    >
+                        Are you sure you want to delete this {nodeType}? This action is irreversible.
+                    </ConfirmModal>
+                    <ConfirmModal
+                        isOpen={isPublishOpen}
+                        setIsOpen={setIsPublishOpen}
+                        isLoading={isPublishLoading}
+                        setIsLoading={setIsPublishLoading}
+                        onConfirm={onPublish}
+                        confirmText={isNodePublished ? "Update" : "Publish"}
+                    >
+                        Are you sure you want to {isNodePublished ? "update the public version of" : "publish"} this {nodeType}? This will make the latest contents publicly viewable.
+                    </ConfirmModal>
+                </div>
             </div>
-            <div className="fixed w-full h-16 left-0 bottom-0 bg-white border-t border-gray-300 px-4 flex items-center">
-                <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${nodeType}s`} flex={true}>
-                    <FiArrowLeft/>
-                    <span className="ml-2">{pageProject.name}</span>
-                </InlineButton>
-                <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
-                <MoreMenu button={<MoreMenuButton/>} className="mr-4">
-                    <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
-                    {isNodePublished && (
-                        <>
-                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/p/${thisNode.body.urlName}`}>
-                                View as public
-                            </MoreMenuItem>
-                            <MoreMenuItem>Unpublish</MoreMenuItem>
-                        </>
-                    )}
-                </MoreMenu>
-                <UiButton onClick={() => setIsPublishOpen(true)} disabled={isNodeUpdated}>
-                    {isNodePublished ? "Update" : "Publish"}
-                </UiButton>
-                <ConfirmModal
-                    isOpen={isDeleteOpen}
-                    setIsOpen={setIsDeleteOpen}
-                    isLoading={isDeleteLoading}
-                    setIsLoading={setIsDeleteLoading}
-                    onConfirm={onDelete}
-                    confirmText="Delete"
-                >
-                    Are you sure you want to delete this post? This action is irreversible.
-                </ConfirmModal>
-                <ConfirmModal
-                    isOpen={isPublishOpen}
-                    setIsOpen={setIsPublishOpen}
-                    isLoading={isPublishLoading}
-                    setIsLoading={setIsPublishLoading}
-                    onConfirm={onPublish}
-                    confirmText={isNodePublished ? "Update" : "Publish"}
-                >
-                    Are you sure you want to {isNodePublished ? "update the public version of" : "publish"} this post? This will make the latest contents publicly viewable.
-                </ConfirmModal>
-            </div>
-        </Container>
+        </div>
     )
 }
 
