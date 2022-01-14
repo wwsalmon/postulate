@@ -5,7 +5,7 @@ import {getProjectPageInfo} from "../new/[type]";
 import {ssr404} from "next-response-helpers";
 import {NodeModel} from "../../../../models/node";
 import {cleanForJSON} from "../../../../utils/utils";
-import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../../utils/types";
+import {DatedObj, NodeObj, NodeTypes, ProjectObj, UserObj} from "../../../../utils/types";
 import Container from "../../../../components/style/Container";
 import SEO from "../../../../components/standard/SEO";
 import H1 from "../../../../components/style/H1";
@@ -14,17 +14,18 @@ import {format} from "date-fns";
 import slateWordCount from "../../../../slate/slateWordCount";
 import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../../../../components/headless/MoreMenu";
 import getProjectUrl from "../../../../utils/getProjectUrl";
-import InlineButton from "../../../../components/style/InlineButton";
-import Button from "../../../../components/headless/Button";
+import PublicNavbar from "../../../../components/project/PublicNavbar";
 
-export default function PublicPostPage({pageUser, pageProject, pagePost, thisUser}: {
+export interface PublicNodePageProps {
     pageUser: DatedObj<UserObj>,
     pageProject: DatedObj<ProjectObj>,
-    pagePost: DatedObj<NodeObj>,
+    pageNode: DatedObj<NodeObj>,
     thisUser: DatedObj<UserObj>,
-}) {
-    const {body: {publishedTitle: title, publishedBody: body, publishedDate, lastPublishedDate}} = pagePost;
-    const isOwner = thisUser && pagePost.userId === thisUser._id;
+}
+
+export default function PublicPostPage({pageUser, pageProject, pageNode, thisUser}: PublicNodePageProps) {
+    const {body: {publishedTitle: title, publishedBody: body, publishedDate, lastPublishedDate}} = pageNode;
+    const isOwner = thisUser && pageNode.userId === thisUser._id;
 
     return (
         <Container>
@@ -37,29 +38,18 @@ export default function PublicPostPage({pageUser, pageProject, pagePost, thisUse
                     <span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>
                     {isOwner && (
                         <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
-                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pagePost._id}`}>Edit</MoreMenuItem>
+                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode._id}`}>Edit</MoreMenuItem>
                         </MoreMenu>
                     )}
                 </div>
                 <SlateReadOnly value={body}/>
             </div>
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 flex items-center z-40 transform h-12 sm:h-16">
-                <Button href={getProjectUrl(pageUser, pageProject)} className="font-manrope font-bold text-lg">
-                    {pageProject.name}
-                </Button>
-                <span className="mx-4 text-gray-300 hidden sm:inline">|</span>
-                <div className="hidden sm:flex items-center">
-                    <InlineButton href={`/@${pageUser.username}`} flex={true}>
-                        <img src={pageUser.image} alt={`Profile picture of ${pageUser.name}`} className="rounded-full w-6 h-6"/>
-                        <span className="ml-2">{pageUser.name}</span>
-                    </InlineButton>
-                </div>
-            </div>
+            <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
         </Container>
     )
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (nodeType) => async (context) => {
     const {urlName} = context.params;
 
     try {
@@ -71,26 +61,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const {pageUser, pageProject} = pageInfo;
 
-        const pagePost = await NodeModel.findOne({
-            type: "post",
+        const pageNode = await NodeModel.findOne({
+            type: nodeType,
             "body.urlName": encodeURIComponent(urlName.toString()),
             projectId: pageProject._id,
         });
 
-        if (!pagePost) return ssr404;
+        if (!pageNode) return ssr404;
 
         const thisUser = await getThisUser(context);
 
-        let newPagePost = {...pagePost.toObject()};
+        let newPageNode = {...pageNode.toObject()};
 
         if (!thisUser || (thisUser._id.toString() !== pageProject.userId.toString())) {
-            delete newPagePost.body.title;
-            delete newPagePost.body.body;
+            delete newPageNode.body.title;
+            delete newPageNode.body.body;
         }
 
-        return {props: cleanForJSON({pageUser, pageProject, pagePost: newPagePost, thisUser})};
+        return {props: cleanForJSON({pageUser, pageProject, pageNode: newPageNode, thisUser})};
     } catch (e) {
         console.log(e);
         return ssr404;
     }
 }
+
+export const getServerSideProps: GetServerSideProps = getPublicNodeSSRFunction("post");
