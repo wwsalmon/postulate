@@ -7,7 +7,7 @@ import {PublicNodePageProps} from "../../pages/[username]/[projectUrlName]/p/[ur
 import Badge from "../style/Badge";
 import React from "react";
 
-export default function EvergreenInner({pageUser, pageNode, pageProject, thisUser, small}: PublicNodePageProps & {small?: boolean}) {
+export default function EvergreenInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
     const {body: {title: privateTitle, body: privateBody, publishedTitle, publishedBody, publishedDate, lastPublishedDate}, createdAt, updatedAt} = pageNode;
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isPublished = !!publishedTitle;
@@ -33,6 +33,7 @@ export default function EvergreenInner({pageUser, pageNode, pageProject, thisUse
                     {isOwner && (
                         <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
                             <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode._id}`}>Edit</MoreMenuItem>
+                            {modal && isPublished && <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/e/${pageNode.body.urlName}`}>View as page</MoreMenuItem>}
                         </MoreMenu>
                     )}
                 </div>
@@ -42,7 +43,7 @@ export default function EvergreenInner({pageUser, pageNode, pageProject, thisUse
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
                 </div>
             </div>
-            <SlateReadOnly value={body} fontSize={small ? 18 : 20}/>
+            <SlateReadOnly value={body} fontSize={modal ? 18 : 20}/>
         </>
     ) : (
         <p>Invalid node</p>

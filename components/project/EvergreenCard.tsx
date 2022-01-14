@@ -64,7 +64,7 @@ export default function EvergreenCard(props: PublicNodePageProps) {
             </button>
             <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
                 <div className="sm:px-4 py-4">
-                    <EvergreenInner {...props} small={true}/>
+                    <EvergreenInner {...props} modal={true}/>
                 </div>
             </UiModal>
         </>
