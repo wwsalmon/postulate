@@ -4,15 +4,15 @@ import {SnippetObj} from "../utils/types";
 const SnippetSchema = new mongoose.Schema({
     projectId: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
-    urlName: {type: String, required: true},
-    type: {type: String, required: true},
-    body: {type: String, required: false},
+    urlName: {type: String, required: false}, // legacy
+    type: {type: String, required: false}, // legacy
+    body: {type: String, required: false}, // legacy
     slateBody: {type: Object, required: false},
-    date: {type: String, required: true},
-    url: {type: String, required: false},
-    tags: [{type: String, required: true}],
-    linkedPosts: [mongoose.Schema.Types.ObjectId],
-    privacy: {type: String, required: true},
+    date: {type: String, required: false}, // legacy
+    url: {type: String, required: false}, // legacy
+    tags: [{type: String, required: true}], // legacy
+    linkedPosts: [mongoose.Schema.Types.ObjectId], // legacy
+    privacy: {type: String, required: false}, // legacy
 }, {
     timestamps: true,
 });
