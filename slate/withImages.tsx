@@ -34,11 +34,11 @@ const withImages = (editor: CustomEditor) => {
     return editor;
 };
 
-const insertImage = (editor: CustomEditor, src: string) => {
+const insertImage = (editor: CustomEditor, url: string) => {
     // console.log("inserting image");
 
     const text = {text: ""};
-    const image = {type: "img", src, children: [text]};
+    const image = {type: "img", url, children: [text]};
     insertNodesAndClearEmpty(editor, image);
 };
 
@@ -54,7 +54,7 @@ export function Image({
     return (
         <div {...attributes}>
             <div contentEditable={false}>
-                <img src={element.src} className={showOutline ? "border-2 border-blue-500" : ""}/>
+                <img src={element.url} className={showOutline ? "border-2 border-blue-500" : ""}/>
             </div>
             {children}
         </div>

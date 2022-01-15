@@ -5,8 +5,7 @@ import {HistoryEditor} from "slate-history";
 export type CustomElement = {
     type: string,
     children: Descendant[],
-    src?: string,
-    href?: string,
+    url?: string,
 }
 
 export type CustomText = {

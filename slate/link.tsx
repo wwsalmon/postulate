@@ -57,7 +57,7 @@ const unwrapLink = editor => {
     });
 };
 
-const wrapLink = (editor, href) => {
+const wrapLink = (editor, url) => {
     const activeLink = getActiveLink(editor);
 
     if (!!activeLink) {
@@ -68,8 +68,8 @@ const wrapLink = (editor, href) => {
     const isCollapsed = selection && Range.isCollapsed(selection);
     const link: Node = {
         type: "a",
-        href,
-        children: isCollapsed ? [{text: href}] : [],
+        url,
+        children: isCollapsed ? [{text: url}] : [],
     };
 
     if (isCollapsed) {
@@ -80,7 +80,7 @@ const wrapLink = (editor, href) => {
     }
 };
 
-const updateLink = (editor, href) => {
+const updateLink = (editor, url) => {
     const {selection} = editor;
 
     const activeLink = getActiveLink(editor);
@@ -91,7 +91,7 @@ const updateLink = (editor, href) => {
 
     Transforms.select(editor, path);
     unwrapLink(editor);
-    wrapLink(editor, normalizeUrl(href));
+    wrapLink(editor, normalizeUrl(url));
     Transforms.setSelection(editor, selection);
 };
 
@@ -123,8 +123,8 @@ export const SlateLinkBalloon = () => {
             return;
         }
 
-        setLink(activeLink[0].href);
-        setNewLink(activeLink[0].href);
+        setLink(activeLink[0].url);
+        setNewLink(activeLink[0].url);
         const domSelection = window.getSelection();
         const domRange = domSelection.getRangeAt(0);
         const rect = domRange.getBoundingClientRect();
