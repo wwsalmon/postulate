@@ -1,19 +1,16 @@
 import TruncatedText from "../standard/TruncatedText";
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {DatedObj, SnippetObj} from "../../utils/types";
 import UiModal from "../style/UiModal";
 import axios from "axios";
 import {Node} from "slate";
 import AutosavingEditor from "../standard/AutosavingEditor";
-import UiH3 from "../style/UiH3";
 import {format} from "date-fns";
 import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
-import getProjectUrl from "../../utils/getProjectUrl";
-import UiButton from "../style/UiButton";
 import ConfirmModal from "../standard/ConfirmModal";
 
-export default function SnippetCard({snippet: initSnippet, iter, setIter}: {snippet: DatedObj<SnippetObj>, iter: number, setIter: Dispatch<SetStateAction<number>>}) {
-    const [isOpen, setIsOpen] = useState<boolean>(false);
+export default function SnippetCard({snippet: initSnippet, iter, setIter, snippetId, setSnippetId}: {snippet: DatedObj<SnippetObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, snippetId: string, setSnippetId: Dispatch<SetStateAction<string>>}) {
+    const [isOpen, setIsOpen] = useState<boolean>(snippetId === initSnippet._id);
     const [snippet, setSnippet] = useState<DatedObj<SnippetObj>>(initSnippet);
     const [saveStatus, setSaveStatus] = useState<string>("");
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
@@ -47,6 +44,10 @@ export default function SnippetCard({snippet: initSnippet, iter, setIter}: {snip
             console.log(e);
         });
     }
+
+    useEffect(() => {
+        if (snippetId === snippet._id) setSnippetId("");
+    }, [snippetId]);
 
     return (
         <>

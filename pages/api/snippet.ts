@@ -57,7 +57,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!isUserIdMatch(thisProject, thisUser)) return res403(res);
 
-            const thisSnippet = await SnippetModel.create({userId: thisUser._id, projectId: projectId, body: slateInitValue});
+            const thisSnippet = await SnippetModel.create({userId: thisUser._id, projectId: projectId, slateBody: slateInitValue});
 
             return res200(res, {snippet: thisSnippet});
         }

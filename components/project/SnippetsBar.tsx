@@ -4,13 +4,15 @@ import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
 import {FiChevronLeft, FiChevronRight} from "react-icons/fi";
 import {Transition} from "@headlessui/react";
 import useSWR from "swr";
-import {fetcher} from "../../utils/utils";
+import {fetcher, slateInitValue} from "../../utils/utils";
 import TruncatedText from "../standard/TruncatedText";
 import {format} from "date-fns";
 import UiH3 from "../style/UiH3";
 import SnippetCard from "./SnippetCard";
+import UiButton from "../style/UiButton";
+import axios from "axios";
 
-export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
+export default function SnippetsBar({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
     if (!isOwner) return (<></>);
@@ -18,12 +20,31 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProj
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [iter, setIter] = useState<number>(null);
     const [snippets, setSnippets] = useState<DatedObj<SnippetObj>[]>([]);
+    const [newSnippetId, setNewSnippetId] = useState<string>("");
+    const [page, setPage] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const {data} = useSWR<{snippets: DatedObj<SnippetObj>[]}>(`/api/snippet?projectId=${pageProject._id}&iter=${iter}`, fetcher);
+    const {data} = useSWR<{ snippets: DatedObj<SnippetObj>[] }>(`/api/snippet?projectId=${pageProject._id}&iter=${iter}`, fetcher);
 
     useEffect(() => {
-        if (data && data.snippets) setSnippets(data.snippets);
+        if (data && data.snippets) {
+            setSnippets(data.snippets);
+            setIsLoading(false);
+        }
     }, [data]);
+
+    function onNew() {
+        setIsLoading(true);
+
+        axios.post("/api/snippet", {projectId: pageProject._id, body: slateInitValue}).then(res => {
+            setNewSnippetId(res.data.snippet._id);
+            setPage(0);
+            setIter(iter + 1);
+        }).catch(e => {
+            console.log(e);
+            setIsLoading(false);
+        });
+    }
 
     return (
         <>
@@ -52,7 +73,7 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProj
                     <p className="text-gray-400">Fleeting notes that only you can see</p>
                     {snippets.map((snippet, i, a) => (
                         <>
-                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
+                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i - 1].createdAt), "yyyy-MM-dd")) && (
                                 <p className="mb-4 mt-12 text-sm text-gray-400 font-medium font-manrope">
                                     {format(
                                         new Date(snippet.createdAt),
@@ -60,18 +81,30 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProj
                                     )}
                                 </p>
                             )}
-                            <SnippetCard snippet={snippet} iter={iter} setIter={setIter} key={snippet._id}/>
+                            <SnippetCard
+                                snippet={snippet}
+                                iter={iter}
+                                setIter={setIter}
+                                key={snippet._id}
+                                snippetId={newSnippetId}
+                                setSnippetId={setNewSnippetId}
+                            />
                         </>
                     ))}
                 </div>
-                <Button
-                    className="h-12 mt-auto hover:bg-gray-100 transition px-4 flex-shrink-0 border-t border-gray-300"
-                    onClick={() => setIsOpen(false)}
-                    flex={true}
+                <div
+                    className="h-12 mt-auto flex-shrink-0 border-t border-gray-300 flex items-center"
                 >
-                    <FiChevronRight/>
-                    <span className="ml-2">Hide snippets</span>
-                </Button>
+                    <Button
+                        className="h-full hover:bg-gray-100 transition px-4 flex-grow"
+                        onClick={() => setIsOpen(false)}
+                        flex={true}
+                    >
+                        <FiChevronRight/>
+                        <span className="ml-2">Hide snippets</span>
+                    </Button>
+                    <UiButton className="mx-4" isLoading={isLoading} onClick={onNew}>New</UiButton>
+                </div>
             </Transition>
         </>
     );
