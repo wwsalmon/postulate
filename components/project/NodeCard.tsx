@@ -8,6 +8,7 @@ import {useRouter} from "next/router";
 import EvergreenInner from "./EvergreenInner";
 import {Node} from "slate";
 import UiH3 from "../style/UiH3";
+import NodeInner from "./NodeInner";
 
 const TruncatedText = ({value}: {value: Node[]}) => (
     <div className="max-h-32 text-gray-500 truncate relative">
@@ -107,12 +108,10 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
                 )}
             </button>
             <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
-                <div className="sm:px-4 py-4">
-                    {pageNode.type === "evergreen" ? (
-                        <EvergreenInner {...props} modal={true}/>
-                    ) : (
-                        <p>Source</p>
-                    )}
+                <div className="-mx-4 overflow-y-auto" style={{maxHeight: "calc(100vh - 192px)"}}>
+                    <div className="sm:px-8 px-4 py-4">
+                        <NodeInner {...props} modal={true}/>
+                    </div>
                 </div>
             </UiModal>
         </>
