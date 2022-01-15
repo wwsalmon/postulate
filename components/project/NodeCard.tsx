@@ -95,10 +95,8 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
                 )}
             </button>
             <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
-                <div className="-mx-4 overflow-y-auto" style={{maxHeight: "calc(100vh - 192px)"}}>
-                    <div className="sm:px-8 px-4 py-4">
-                        <NodeInner {...props} modal={true}/>
-                    </div>
+                <div className="sm:px-4 px-0 py-4">
+                    <NodeInner {...props} modal={true}/>
                 </div>
             </UiModal>
         </>

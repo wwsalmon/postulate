@@ -1,4 +1,4 @@
-import {Dispatch, ReactNode, SetStateAction} from 'react';
+import React, {Dispatch, ReactNode, SetStateAction} from 'react';
 import Modal from "react-modal";
 
 export default function UiModal({isOpen, setIsOpen, children, wide = false}: {
@@ -7,7 +7,7 @@ export default function UiModal({isOpen, setIsOpen, children, wide = false}: {
     children: ReactNode,
     wide?: boolean,
 }) {
-    const ModalClasses = "top-24 left-1/2 fixed bg-white p-4 rounded-md shadow-xl mx-4";
+    const ModalClasses = "top-24 left-1/2 fixed bg-white py-4 rounded-md shadow-xl mx-4 p-4";
 
     return (
         <Modal
@@ -16,7 +16,9 @@ export default function UiModal({isOpen, setIsOpen, children, wide = false}: {
             className={ModalClasses}
             style={{content: {transform: "translateX(calc(-50% - 16px))", maxWidth: "calc(100% - 32px)", width: wide ? 700 : 320}, overlay: {zIndex: 50, backgroundColor: "rgba(0,0,0,0.5)"}}}
         >
-            {children}
+            <div className="-mx-4 px-4 overflow-y-auto" style={{maxHeight: "calc(100vh - 192px)"}}>
+                {children}
+            </div>
         </Modal>
     );
 }
