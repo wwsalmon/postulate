@@ -9,7 +9,7 @@ import React from "react";
 import {getIsNodeUpdated} from "../../pages/[username]/[projectUrlName]/[id]";
 import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
-import InlineButton from "../style/InlineButton";
+import UserButton from "../standard/UserButton";
 
 export default function NodeInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
     const {
@@ -76,14 +76,7 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                 </div>
             </div>
             {!modal && (
-                <InlineButton flex={true} className="mb-8" href={`/@${pageUser.username}`}>
-                    <img
-                        src={pageUser.image}
-                        alt={`Profile picture of ${pageUser.name}`}
-                        className="w-6 h-6 rounded-full mr-2"
-                    />
-                    <span>{pageUser.name}</span>
-                </InlineButton>
+                <UserButton user={pageUser} className="mb-8"/>
             )}
             {isSource ? (
                 <>
