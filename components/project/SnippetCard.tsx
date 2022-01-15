@@ -63,15 +63,17 @@ export default function SnippetCard({snippet: initSnippet, iter, setIter, snippe
                         fontSize={18}
                         hideStatus={true}
                     />
-                    <div className="flex items-center font-manrope text-gray-400 font-semibold text-sm mt-2">
-                        <span className="mr-6">{saveStatus}</span>
+                    <div className="md:flex items-center font-manrope text-gray-400 font-semibold text-sm mt-2">
+                        <p className="mr-6">{saveStatus}</p>
                         {snippet.updatedAt !== snippet.createdAt && (
-                            <span className="mr-6">Last updated {format(new Date(snippet.updatedAt), "MMM d, yyyy 'at' h:mm a")}</span>
+                            <p className="mr-6">Last updated {format(new Date(snippet.updatedAt), "MMM d, yyyy 'at' h:mm a")}</p>
                         )}
-                        <span className="mr-6">Created {format(new Date(snippet.createdAt), "MMM d, yyyy 'at' h:mm a")}</span>
-                        <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
-                            <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
-                        </MoreMenu>
+                        <p className="mr-6">Created {format(new Date(snippet.createdAt), "MMM d, yyyy 'at' h:mm a")}</p>
+                        <div className="flex items-center ml-auto">
+                            <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
+                                <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
+                            </MoreMenu>
+                        </div>
                         <ConfirmModal
                             isOpen={isDeleteOpen}
                             setIsOpen={setIsDeleteOpen}
