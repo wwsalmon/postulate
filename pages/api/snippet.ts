@@ -22,7 +22,9 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             const snippets = await SnippetModel.find({projectId: projectId}).sort({createdAt: -1}).limit(10).skip(10 * +(page || 0));
 
-            return res200(res, {snippets});
+            const count = await SnippetModel.find({projectId: projectId}).countDocuments();
+
+            return res200(res, {snippets, count});
         }
 
         if (id) {

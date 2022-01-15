@@ -11,6 +11,7 @@ import UiH3 from "../style/UiH3";
 import SnippetCard from "./SnippetCard";
 import UiButton from "../style/UiButton";
 import axios from "axios";
+import PaginationBar from "../standard/PaginationBar";
 
 export default function SnippetsBar({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -24,7 +25,7 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: { pagePro
     const [page, setPage] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const {data} = useSWR<{ snippets: DatedObj<SnippetObj>[] }>(`/api/snippet?projectId=${pageProject._id}&iter=${iter}`, fetcher);
+    const {data} = useSWR<{ snippets: DatedObj<SnippetObj>[], count: number }>(`/api/snippet?projectId=${pageProject._id}&page=${page}&iter=${iter}`, fetcher);
 
     useEffect(() => {
         if (data && data.snippets) {
@@ -91,6 +92,13 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: { pagePro
                             />
                         </>
                     ))}
+                    <PaginationBar
+                        page={page}
+                        count={data && data.count}
+                        label="snippets"
+                        setPage={setPage}
+                        className="my-8"
+                    />
                 </div>
                 <div
                     className="h-12 mt-auto flex-shrink-0 border-t border-gray-300 flex items-center"
