@@ -5,13 +5,7 @@ import MainShell from "../../../components/project/MainShell";
 import getProjectSSRProps from "../../../utils/getProjectSSRProps";
 import useSWR from "swr";
 import {fetcher} from "../../../utils/utils";
-import Link from "next/link";
-import {format} from "date-fns";
-import getProjectUrl from "../../../utils/getProjectUrl";
-import Badge from "../../../components/style/Badge";
-import {SlateReadOnly} from "../../../slate/SlateEditor";
-import {PublicNodePageProps} from "./p/[urlName]";
-import EvergreenCard from "../../../components/project/EvergreenCard";
+import NodeCard from "../../../components/project/NodeCard";
 
 export default function ProjectEvergreens({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -21,7 +15,7 @@ export default function ProjectEvergreens({pageProject, pageUser, thisUser}: { p
     return (
         <MainShell thisUser={thisUser} pageProject={pageProject} pageUser={pageUser}>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {data && data.nodes.map(node => <EvergreenCard
+                {data && data.nodes.map(node => <NodeCard
                     pageUser={pageUser}
                     pageProject={pageProject}
                     pageNode={node}
