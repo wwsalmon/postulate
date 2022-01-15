@@ -37,7 +37,8 @@ const withDeserializeMD = (editor: CustomEditor) => {
                             6: "h6",
                         },
                     },
-                    linkDestinationKey: "href",
+                    linkDestinationKey: "url",
+                    imageSourceKey: "url",
                 })
                 .processSync(content)
                 .result as Descendant[];
