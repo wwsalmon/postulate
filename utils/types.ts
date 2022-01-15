@@ -71,17 +71,9 @@ export interface ProjectObjWithCounts extends ProjectObjWithStats {
 }
 
 export interface SnippetObj {
-    urlName: string,
     projectId: string,
     userId: string, // ID
-    type: "snippet" | "resource",
-    body?: string,
-    slateBody?: Node[],
-    date: string, // ISO datestring
-    url: string,
-    tags: string[],
-    linkedPosts: string[], // array of IDs
-    privacy: "public" | "private",
+    slateBody: Node[],
 }
 
 export type privacyTypes = "public" | "private" | "unlisted" | "draft";

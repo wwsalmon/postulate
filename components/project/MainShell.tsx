@@ -11,6 +11,7 @@ import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
+import SnippetsBar from "./SnippetsBar";
 
 export default function MainShell({pageProject, pageUser, thisUser, children}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, children: ReactNode }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -73,6 +74,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: {
                 </div>
             </div>
             {children}
+            <SnippetsBar pageProject={pageProject} pageUser={pageUser} thisUser={thisUser}/>
         </Container>
     );
 }

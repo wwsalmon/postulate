@@ -1,25 +1,12 @@
 import {PublicNodePageProps} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
 import Badge from "../style/Badge";
-import {SlateReadOnly} from "../../slate/SlateEditor";
 import {format} from "date-fns";
 import React, {HTMLProps, ReactNode, useEffect, useState} from "react";
 import UiModal from "../style/UiModal";
 import {useRouter} from "next/router";
-import EvergreenInner from "./EvergreenInner";
-import {Node} from "slate";
 import UiH3 from "../style/UiH3";
 import NodeInner from "./NodeInner";
-
-const TruncatedText = ({value}: {value: Node[]}) => (
-    <div className="max-h-32 text-gray-500 truncate relative">
-        <SlateReadOnly
-            value={value}
-            fontSize={14}
-            className="text-gray-400"
-        />
-        <div className="w-full absolute top-24 left-0 h-8 bg-gradient-to-t from-white"></div>
-    </div>
-);
+import TruncatedText from "../standard/TruncatedText";
 
 const ThirdColumn = ({children}: {children: ReactNode}) => (
     <div className="md:w-1/3 md:px-4 my-4 md:my-0">
