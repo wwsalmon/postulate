@@ -20,7 +20,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!isUserIdMatch(thisProject, thisUser)) return res403(res);
 
-            const snippets = await SnippetModel.find({projectId: projectId}).sort({updatedAt: -1}).limit(10).skip(10 * +(page || 0));
+            const snippets = await SnippetModel.find({projectId: projectId}).sort({createdAt: -1}).limit(10).skip(10 * +(page || 0));
 
             return res200(res, {snippets});
         }
@@ -45,9 +45,9 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!isUserIdMatch(thisSnippet, thisUser)) return res403(res);
 
-            await SnippetModel.updateOne({_id: id}, {slateBody: body});
+            const newSnippet = await SnippetModel.findOneAndUpdate({_id: id}, {slateBody: body}, {returnOriginal: false});
 
-            return res200(res);
+            return res200(res, {snippet: newSnippet});
         }
 
         if (projectId && body) {

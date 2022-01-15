@@ -1,5 +1,5 @@
 import Button from "../headless/Button";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {DatedObj, ProjectObj, SnippetObj, UserObj} from "../../utils/types";
 import {FiChevronLeft, FiChevronRight} from "react-icons/fi";
 import {Transition} from "@headlessui/react";
@@ -8,6 +8,7 @@ import {fetcher} from "../../utils/utils";
 import TruncatedText from "../standard/TruncatedText";
 import {format} from "date-fns";
 import UiH3 from "../style/UiH3";
+import SnippetCard from "./SnippetCard";
 
 export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>}) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -15,8 +16,14 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProj
     if (!isOwner) return (<></>);
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [iter, setIter] = useState<number>(null);
+    const [snippets, setSnippets] = useState<DatedObj<SnippetObj>[]>([]);
 
-    const {data} = useSWR<{snippets: DatedObj<SnippetObj>[]}>(`/api/snippet?projectId=${pageProject._id}`, fetcher);
+    const {data} = useSWR<{snippets: DatedObj<SnippetObj>[]}>(`/api/snippet?projectId=${pageProject._id}&iter=${iter}`, fetcher);
+
+    useEffect(() => {
+        if (data && data.snippets) setSnippets(data.snippets);
+    }, [data]);
 
     return (
         <>
@@ -43,19 +50,17 @@ export default function SnippetsBar({pageProject, pageUser, thisUser}: {pageProj
                 <div className="px-4 sm:px-6 overflow-y-auto">
                     <UiH3>Snippets</UiH3>
                     <p className="text-gray-400">Fleeting notes that only you can see</p>
-                    {data && data.snippets.map((snippet, i, a) => (
+                    {snippets.map((snippet, i, a) => (
                         <>
-                            {(i === 0 || format(new Date(snippet.updatedAt), "yyyy-MM-dd") !== format(new Date(a[i-1].updatedAt), "yyyy-MM-dd")) && (
+                            {(i === 0 || format(new Date(snippet.createdAt), "yyyy-MM-dd") !== format(new Date(a[i-1].createdAt), "yyyy-MM-dd")) && (
                                 <p className="mb-4 mt-12 text-sm text-gray-400 font-medium font-manrope">
                                     {format(
-                                        new Date(snippet.updatedAt),
-                                        `EEEE, MMM d ${+new Date() - +new Date(snippet.updatedAt) > 365 * 24 * 60 * 60 * 1000 ? "yyyy" : ""}`
+                                        new Date(snippet.createdAt),
+                                        `EEEE, MMM d ${+new Date() - +new Date(snippet.createdAt) > 365 * 24 * 60 * 60 * 1000 ? "yyyy" : ""}`
                                     )}
                                 </p>
                             )}
-                            <button key={snippet._id} className="p-4 border border-gray-300 rounded-md mb-4 text-left w-full block hover:bg-gray-50 transition">
-                                <TruncatedText value={snippet.slateBody}/>
-                            </button>
+                            <SnippetCard snippet={snippet} iter={iter} setIter={setIter} key={snippet._id}/>
                         </>
                     ))}
                 </div>

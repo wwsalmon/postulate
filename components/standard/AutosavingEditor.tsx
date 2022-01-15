@@ -3,7 +3,7 @@ import {useAutosave} from "react-autosave";
 import SlateEditor, {SlateEditorProps} from "../../slate/SlateEditor";
 import {Node} from "slate";
 
-export default function AutosavingEditor({prevValue, onSubmitEdit, setStatus, ...slateEditorProps}: Partial<SlateEditorProps> & {value?: never, setValue?: never} & {prevValue: Node[], onSubmitEdit: (value: Node[]) => Promise<any>, setStatus?: Dispatch<SetStateAction<string>>}) {
+export default function AutosavingEditor({prevValue, onSubmitEdit, setStatus, hideStatus, ...slateEditorProps}: Partial<SlateEditorProps> & { value?: never, setValue?: never } & { prevValue: Node[], onSubmitEdit: (value: Node[]) => Promise<any>, setStatus?: Dispatch<SetStateAction<string>>, hideStatus?: boolean }) {
     const [value, setValue] = useState<Node[]>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -24,7 +24,9 @@ export default function AutosavingEditor({prevValue, onSubmitEdit, setStatus, ..
     return (
         <>
             <SlateEditor value={value} setValue={setValue} {...slateEditorProps}/>
-            <p className="text-sm mt-3">{getStatus(isLoading, value, prevValue)}</p>
+            {!hideStatus && (
+                <p className="text-sm mt-3">{getStatus(isLoading, value, prevValue)}</p>
+            )}
         </>
     )
 }
