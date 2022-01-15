@@ -8,7 +8,6 @@ import {useRouter} from "next/router";
 import EvergreenInner from "./EvergreenInner";
 import {Node} from "slate";
 import UiH3 from "../style/UiH3";
-import {classNames} from "@headlessui/react/dist/utils/class-names";
 
 const TruncatedText = ({value}: {value: Node[]}) => (
     <div className="max-h-32 text-gray-500 truncate relative">
