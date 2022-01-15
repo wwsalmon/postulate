@@ -1,9 +1,14 @@
-import {Dispatch, SetStateAction, useCallback, useEffect, useState} from "react";
+import {Dispatch, SetStateAction, useCallback, useEffect, useState, HTMLProps} from "react";
 import {useAutosave} from "react-autosave";
-import SlateEditor from "../../slate/SlateEditor";
 import {Node} from "slate";
+import {getStatus} from "./AutosavingEditor";
+import {getInputStateProps} from "react-controlled-component-helpers";
 
-export default function AutosavingEditor({prevValue, onSubmitEdit, setStatus}: {prevValue: Node[], onSubmitEdit: (value: Node[]) => Promise<any>, setStatus?: Dispatch<SetStateAction<string>>}) {
+export default function AutosavingField({prevValue, onSubmitEdit, setStatus, ...domProps}: HTMLProps<HTMLInputElement> & {
+    prevValue: Node[],
+    onSubmitEdit: (value: Node[]) => Promise<any>,
+    setStatus?: Dispatch<SetStateAction<string>>,
+}) {
     const [value, setValue] = useState<Node[]>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -23,10 +28,8 @@ export default function AutosavingEditor({prevValue, onSubmitEdit, setStatus}: {
 
     return (
         <>
-            <SlateEditor value={value} setValue={setValue}/>
+            <input type="text" {...domProps} {...getInputStateProps(value, setValue)}/>
             <p className="text-sm mt-3">{getStatus(isLoading, value, prevValue)}</p>
         </>
     )
 }
-
-const getStatus = (isLoading: boolean, value: Node[], prevValue: Node[]) => isLoading ? "Saving..." : JSON.stringify(value) === JSON.stringify(prevValue) ? "Saved" : "Unsaved changes"

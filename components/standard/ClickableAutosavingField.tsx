@@ -1,19 +1,25 @@
-import {useCallback, useState} from "react";
-import Button from "./Button";
+import {Dispatch, SetStateAction, useCallback, useEffect, useState} from "react";
+import Button from "../headless/Button";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import {useAutosave} from "react-autosave";
+import {getStatus} from "./AutosavingEditor";
 
-export default function ClickableField({prevValue, onSubmitEdit, placeholder, className, inputClassName, buttonClassname}: {
+export default function ClickableAutosavingField({prevValue, onSubmitEdit, placeholder, className, inputClassName, buttonClassname, setStatus}: {
     prevValue: string,
     onSubmitEdit: (value: string) => Promise<any>,
     placeholder?: string,
     className?: string,
     inputClassName?: string,
-    buttonClassname?: string
+    buttonClassname?: string,
+    setStatus?: Dispatch<SetStateAction<string>>,
 }) {
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [value, setValue] = useState<string>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        setStatus(getStatus(isLoading, value, prevValue));
+    }, [value, prevValue, isLoading]);
 
     useAutosave({
         data: value, onSave: useCallback((value) => {

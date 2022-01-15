@@ -33,12 +33,14 @@ export const customSlateEditorFactory = () => withImages(
     )
 );
 
-export default function SlateEditor({value, setValue, fontSize, className}: {
+export interface SlateEditorProps {
     value: Node[],
     setValue: Dispatch<SetStateAction<Node[]>>,
     fontSize?: number,
     className?: string,
-}) {
+}
+
+export default function SlateEditor({value, setValue, fontSize, className}: SlateEditorProps) {
     const editor = useMemo(customSlateEditorFactory, []);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);

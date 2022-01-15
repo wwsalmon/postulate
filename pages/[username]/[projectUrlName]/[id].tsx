@@ -8,20 +8,19 @@ import mongoose from "mongoose";
 import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../utils/types";
 import {useState} from "react";
 import SEO from "../../../components/standard/SEO";
-import {Node} from "slate";
-import ClickableField from "../../../components/headless/ClickableField";
+import ClickableAutosavingField from "../../../components/standard/ClickableAutosavingField";
 import axios from "axios";
-import AutosavingEditor from "../../../components/headless/AutosavingEditor";
+import AutosavingEditor from "../../../components/standard/AutosavingEditor";
 import slateWordCount from "../../../slate/slateWordCount";
 import UiH3 from "../../../components/style/UiH3";
-import {FiArrowLeft, FiMoreVertical} from "react-icons/fi";
+import {FiArrowLeft} from "react-icons/fi";
 import InlineButton from "../../../components/style/InlineButton";
 import UiButton from "../../../components/style/UiButton";
 import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../../../components/headless/MoreMenu";
-import UiModal from "../../../components/style/UiModal";
 import {useRouter} from "next/router";
 import ConfirmModal from "../../../components/standard/ConfirmModal";
 import getProjectUrl from "../../../utils/getProjectUrl";
+import AutosavingField from "../../../components/standard/AutosavingField";
 
 export const getIsNodeUpdated = (node: NodeObj): boolean => {
     if (!node.body.publishedTitle) return false;
@@ -91,6 +90,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
         data = isSource ? {
             ...data,
+            publishedLink: thisNode.body.link,
             publishedNotes: thisNode.body.notes,
             publishedSummary: thisNode.body.summary,
             publishedTakeaways: thisNode.body.takeaways,
@@ -157,28 +157,48 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         <>
             <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
             {isSource ? (
-                <div className="lg:flex max-w-7xl mx-auto">
-                    <div className="flex-grow border-r border-gray-300 pr-8">
-                        <UiH3>Source name</UiH3>
-                        <UiH3>Source link</UiH3>
-                        <UiH3>Summary</UiH3>
+                <div className="lg:flex max-w-7xl mx-auto pb-32 px-4">
+                    <div className="flex-grow lg:border-r border-gray-300 lg:pr-8 mx-auto" style={{maxWidth: "76ch"}}>
+                        <UiH3 className="mb-4">Source name</UiH3>
+                        <ClickableAutosavingField
+                            prevValue={thisNode.body.title}
+                            onSubmitEdit={(title) => submitAndUpdate({title})}
+                            setStatus={setSaveStatus}
+                            className="text-2xl font-bold font-manrope focus:outline-none w-full"
+                        />
+                        <UiH3 className="mt-12 mb-2">Source link</UiH3>
+                        <AutosavingField
+                            prevValue={thisNode.body.link}
+                            onSubmitEdit={(link) => submitAndUpdate({link})}
+                            setStatus={setSaveStatus}
+                            placeholder="ex. https://www.goodreads.com/book/show/125441.An_Autobiography"
+                            className="w-full focus:outline-none text-gray-500"
+                        />
+                        <UiH3 className="mt-12 mb-2">Summary</UiH3>
                         <AutosavingEditor
                             prevValue={thisNode.body.summary}
-                            // onSubmitEdit={(notes) => submitAndUpdate({notes})}
-                            onSubmitEdit={async () => false}
+                            onSubmitEdit={(summary) => submitAndUpdate({summary})}
                             setStatus={setSaveStatus}
+                            fontSize={18}
                         />
-                        <UiH3>Takeaways</UiH3>
+                        <UiH3 className="mt-12 mb-2">Takeaways</UiH3>
+                        <AutosavingEditor
+                            prevValue={thisNode.body.takeaways}
+                            onSubmitEdit={(takeaways) => submitAndUpdate({takeaways})}
+                            setStatus={setSaveStatus}
+                            fontSize={18}
+                        />
                     </div>
-                    <div className="flex-grow" style={{maxWidth: "65ch"}}>
-                        <UiH3>Notes</UiH3>
+                    <div className="flex-grow w-full lg:pl-12 mx-auto" style={{maxWidth: "76ch"}}>
+                        <UiH3 className="mb-2 mt-12 lg:mt-0">Notes</UiH3>
                         <AutosavingEditor
                             prevValue={thisNode.body.notes}
-                            // onSubmitEdit={(notes) => submitAndUpdate({notes})}
-                            onSubmitEdit={async () => false}
+                            onSubmitEdit={(notes) => submitAndUpdate({notes})}
                             setStatus={setSaveStatus}
+                            fontSize={18}
                         />
                     </div>
+                    <ActionBar/>
                 </div>
             ) : (
                 <div
@@ -186,12 +206,13 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                     style={{maxWidth: "78ch"}} // 78ch bc font size is 16 here but we want 65ch for font size 20
                 >
                     <UiH3 className="mb-8">Editing {nodeType}</UiH3>
-                    <ClickableField
+                    <ClickableAutosavingField
                         onSubmitEdit={(title) => submitAndUpdate({title})}
                         prevValue={thisNode.body.title}
                         placeholder={`Untitled ${thisNode.type}`}
                         className={`font-bold font-manrope leading-snug py-1 px-2 -ml-2 rounded-md ${isEvergreen ? "text-2xl" : "text-3xl"}`}
                         inputClassName="w-full focus:outline-none leading-none"
+                        setStatus={setSaveStatus}
                     />
                     {!isEvergreen && (
                         <p className="my-4 text-gray-400 font-medium font-manrope">{wordCountAndTime}</p>
