@@ -139,7 +139,7 @@ export const SlateLinkBalloon = () => {
 
     return (
         <Portal>
-            <div ref={ref} className="absolute transition-all bg-gray-100 p-2 rounded shadow-md flex items-center">
+            <div ref={ref} className="absolute transition-all bg-gray-100 p-2 rounded shadow-md flex items-center z-50">
                 <a className="underline font-medium" href={link}>{link}</a>
                 <Button
                     className="ml-2 flex items-center p-1"
