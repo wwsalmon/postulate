@@ -6,6 +6,13 @@ import mongoose from "mongoose";
 import {ProjectModel} from "../../models/project";
 import {format} from "date-fns";
 import short from "short-uuid";
+import {NodeTypes} from "../../utils/types";
+
+const baseBodyFields = ["title"]
+const sourceBodyFields = [...baseBodyFields, "link", "notes", "summary", "takeaways"];
+const docBodyFields = [...baseBodyFields, "body"];
+const getPrivateFields = (type: NodeTypes) => type === "source" ? sourceBodyFields : docBodyFields;
+const getPublishedFields = (type: NodeTypes) => [...(type === "source" ? sourceBodyFields : docBodyFields).map(d => `published${d.charAt(0).toUpperCase()}${d.substr(1)}`), "lastPublishedDate"];
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
@@ -16,7 +23,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             const thisNode = await NodeModel.findById(id);
 
             // fix up these permissions later
-            if (!(thisNode.body.publishedBody || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+            if (!(thisNode.body.publishedTitle || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
             return res200(res, {node: thisNode});
         }
@@ -29,14 +36,14 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             let query = {projectId: projectId};
             if (type) query["type"] = type;
-            if (!isOwner) query["body.publishedBody"] = {$exists: true};
+            if (!isOwner) query["body.publishedTitle"] = {$exists: true};
 
             const nodes = await NodeModel.find(query);
 
             const newNodes = isOwner ? nodes : nodes.map(node => {
                 let newNode = {...node.toObject()};
-                delete newNode.body.title;
-                delete newNode.body.body;
+                const fields = getPrivateFields(node.type);
+                for (let field of fields) {delete newNode.body[field]};
                 return newNode;
             });
 
@@ -46,7 +53,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res400(res);
     },
     postFunction: async function postFunction(req, res, session, thisUser) {
-        const {id, projectId, type, body, title, publishedBody, publishedTitle, lastPublishedDate} = req.body;
+        const {id, projectId, type} = req.body;
 
         // if id as param, then update node
         if (id) {
@@ -65,11 +72,17 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             let newBody = {...thisNode.body};
 
-            const isPublish = !!(publishedTitle || publishedBody || lastPublishedDate);
+            const publishedFields = getPublishedFields(thisNode.type);
+            const privateFields = getPrivateFields(thisNode.type);
+
+            const isPublish = !!(publishedFields.some(d => req.body[d] !== undefined));
 
             // if trying to publish and missing urlName or publishedDate, generate them
             if (isPublish) {
-                if (!(publishedTitle && publishedBody && lastPublishedDate)) return res400(res);
+                // if missing field, reject request
+                if (!publishedFields.every(d => req.body[d] !== undefined)) return res400(res);
+
+                const {lastPublishedDate, publishedTitle} = req.body;
 
                 if (!thisNode.body.publishedDate) {
                     newBody["publishedDate"] = lastPublishedDate;
@@ -85,11 +98,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                 }
             }
 
-            if (title) newBody.title = title;
-            if (body) newBody.body = body;
-            if (publishedBody) newBody.publishedBody = publishedBody;
-            if (publishedTitle) newBody.publishedTitle = publishedTitle;
-            if (lastPublishedDate) newBody.lastPublishedDate = lastPublishedDate;
+            for (let field of [...privateFields, ...publishedFields]) if (req.body[field]) newBody[field] = req.body[field];
 
             const newNode = await NodeModel.findOneAndUpdate(
                 {_id: id},
@@ -101,12 +110,14 @@ const handler: NextApiHandler = nextApiEndpoint({
         }
 
         // else create new
-        if (!(projectId && type && body && title)) return res400(res);
+        const privateFields = type && getPrivateFields(type);
+
+        if (!(projectId && type && privateFields.every(d => req.body[d] !== undefined))) return res400(res);
 
         const thisNode = await NodeModel.create({
             projectId,
             type,
-            body: {body, title},
+            body: Object.fromEntries(privateFields.map(d => [d, req.body[d]])),
             userId: thisUser._id,
         });
 
