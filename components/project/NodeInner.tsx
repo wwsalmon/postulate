@@ -9,6 +9,7 @@ import React from "react";
 import {getIsNodeUpdated} from "../../pages/[username]/[projectUrlName]/[id]";
 import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
+import InlineButton from "../style/InlineButton";
 
 export default function NodeInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
     const {
@@ -42,6 +43,8 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
     const link = publishedLink || privateLink;
     const isUpdated = isOwner && getIsNodeUpdated(pageNode);
 
+    const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !d.every(x => isNodeEmpty(x)));
+
     return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
@@ -72,19 +75,39 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
                 </div>
             </div>
+            {!modal && (
+                <InlineButton flex={true} className="mb-8" href={`/@${pageUser.username}`}>
+                    <img
+                        src={pageUser.image}
+                        alt={`Profile picture of ${pageUser.name}`}
+                        className="w-6 h-6 rounded-full mr-2"
+                    />
+                    <span>{pageUser.name}</span>
+                </InlineButton>
+            )}
             {isSource ? (
                 <>
-                    {
-                        ["summary", "takeaways", "notes"]
-                            .filter(field => !eval(field).every(node => isNodeEmpty(node)))
-                            .map((field, i) => (
-                                <React.Fragment key={field}>
-                                    {i !== 0 && (<hr className="my-6"/>)}
-                                    <UiH3 className="mb-2">{field.charAt(0).toUpperCase() + field.substr(1)}</UiH3>
-                                    <SlateReadOnly value={eval(field)} fontSize={modal ? 18 : 20}/>
-                                </React.Fragment>
-                            ))
-                    }
+                    {hasSummaryOrTakeaways && (
+                        <div className="p-6 border border-gray-300 rounded-md mb-16 shadow-lg">
+                            {
+                                ["summary", "takeaways"]
+                                    .filter(field => !eval(field).every(node => isNodeEmpty(node)))
+                                    .map((field, i) => (
+                                        <React.Fragment key={field}>
+                                            {i !== 0 && (<hr className="my-6 -mx-6"/>)}
+                                            <UiH3 className="mb-2">{field.charAt(0).toUpperCase() + field.substr(1)}</UiH3>
+                                            <SlateReadOnly value={eval(field)} fontSize={modal ? 18 : 20}/>
+                                        </React.Fragment>
+                                    ))
+                            }
+                        </div>
+                    )}
+                    {!notes.every(node => isNodeEmpty(node)) && (
+                        <>
+                            <UiH3 className="mb-2">Notes</UiH3>
+                            <SlateReadOnly value={notes} fontSize={modal ? 16 : 18} className="mb-8"/>
+                        </>
+                    )}
                 </>
             ) : (
                 <SlateReadOnly value={body} fontSize={modal ? 18 : 20}/>
