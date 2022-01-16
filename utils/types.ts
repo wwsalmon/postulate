@@ -154,6 +154,14 @@ export interface NodeObj {
     type: NodeTypes,
 }
 
+export interface ShortcutObj {
+    projectId: string,
+    userId: string,
+    targetId: string, // ObjectId
+    urlName: string,
+    type: NodeTypes,
+}
+
 // generic / type alias from https://stackoverflow.com/questions/26652179/extending-interface-with-generic-in-typescript
 export type DatedObj<T extends {}> = T & {
     _id: string,
