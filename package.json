@@ -61,6 +61,7 @@
     "remark-math": "^5.1.1",
     "remark-parse": "^10.0.1",
     "remark-slate": "^1.8.2",
+    "remove-markdown": "^0.3.0",
     "short-uuid": "^4.1.0",
     "showdown": "^1.9.1",
     "showdown-htmlescape": "^0.1.9",

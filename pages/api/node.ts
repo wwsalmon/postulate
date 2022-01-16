@@ -40,7 +40,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             if (type) match["type"] = type;
             if (!isOwner) match["body.publishedTitle"] = {$exists: true};
 
-            let shortcutMatch = {userId: thisUser._id};
+            let shortcutMatch = {userId: thisProject.userId};
             if (type) shortcutMatch["type"] = type;
 
             let sort = {}
@@ -88,7 +88,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             ]);
 
             const newNodes = isOwner ? nodes : nodes.map(node => {
-                let newNode = {...node.toObject()};
+                let newNode = {...node};
                 const fields = getPrivateFields(node.type);
                 for (let field of fields) {delete newNode.body[field]};
                 return newNode;
