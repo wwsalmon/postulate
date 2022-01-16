@@ -1,4 +1,4 @@
-import {NextApiHandler} from "next";
+import {NextApiHandler, NextApiResponse} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {res400, res403, res404, res200} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
@@ -15,10 +15,8 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         if (projectId) {
             const thisProject = await ProjectModel.findById(projectId);
-
-            if (!thisProject) return res404(res);
-
-            if (!isUserIdMatch(thisProject, thisUser)) return res403(res);
+            const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+            if (projectError) return projectError;
 
             const snippets = await SnippetModel.find({projectId: projectId}).sort({createdAt: -1}).limit(10).skip(10 * +(page || 0));
 
@@ -42,10 +40,8 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         if (id) {
             const thisSnippet = await SnippetModel.findById(id);
-
-            if (!thisSnippet) return res404(res);
-
-            if (!isUserIdMatch(thisSnippet, thisUser)) return res403(res);
+            const snippetError = getErrorIfNotExistsAndAuthed(thisSnippet, thisUser, res);
+            if (snippetError) return snippetError;
 
             const newSnippet = await SnippetModel.findOneAndUpdate({_id: id}, {slateBody: body}, {returnOriginal: false});
 
@@ -54,10 +50,8 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         if (projectId && body) {
             const thisProject = await ProjectModel.findById(projectId);
-
-            if (!thisProject) return res404(res);
-
-            if (!isUserIdMatch(thisProject, thisUser)) return res403(res);
+            const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+            if (projectError) return projectError;
 
             const thisSnippet = await SnippetModel.create({userId: thisUser._id, projectId: projectId, slateBody: slateInitValue});
 
@@ -73,10 +67,8 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (!id) return res400(res);
 
         const thisSnippet = await SnippetModel.findById(id);
-
-        if (!thisSnippet) return res404(res);
-
-        if (!isUserIdMatch(thisSnippet, thisUser)) return res403(res);
+        const snippetError = getErrorIfNotExistsAndAuthed(thisSnippet, thisUser, res);
+        if (snippetError) return snippetError;
 
         await SnippetModel.deleteOne({_id: id});
 
@@ -84,6 +76,14 @@ const handler: NextApiHandler = nextApiEndpoint({
     },
 });
 
-const isUserIdMatch = (doc: {userId: mongoose.Types.ObjectId, [key: string]: any}, thisUser: DatedObj<UserObj>) => doc.userId.toString() === thisUser._id.toString();
+export const isUserIdMatch = (doc: {userId: mongoose.Types.ObjectId, [key: string]: any}, thisUser: DatedObj<UserObj>) => doc.userId.toString() === thisUser._id.toString();
+
+export const getErrorIfNotExistsAndAuthed = (doc: {userId: mongoose.Types.ObjectId, [key: string]: any} | null, thisUser: DatedObj<UserObj>, res: NextApiResponse) => {
+    if (!doc) return res404(res);
+
+    if (!isUserIdMatch(doc, thisUser)) return res403(res);
+
+    return false;
+}
 
 export default handler;
