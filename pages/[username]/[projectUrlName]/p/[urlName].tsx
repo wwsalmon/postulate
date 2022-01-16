@@ -94,7 +94,9 @@ export default function PublicPostPage(props: PublicNodePageProps) {
                                     <MoreMenuItem onClick={() => setIsDeleteShortcutOpen(true)}>Delete shortcut</MoreMenuItem>
                                 )}
                             </MoreMenu>
-                            <DeleteShortcutModal {...props} isOpen={isDeleteShortcutOpen} setIsOpen={setIsDeleteShortcutOpen}/>
+                            {isExternal && (
+                                <DeleteShortcutModal {...props} isOpen={isDeleteShortcutOpen} setIsOpen={setIsDeleteShortcutOpen}/>
+                            )}
                         </>
                     )}
                 </div>
