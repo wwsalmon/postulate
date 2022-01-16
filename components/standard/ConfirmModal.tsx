@@ -26,7 +26,7 @@ export default function ConfirmModal({isOpen, setIsLoading, isLoading, setIsOpen
                 >
                     {confirmText}
                 </UiButton>
-                <UiButton noBg={true} onClick={() => setIsOpen(false)} disabled={isLoading}>
+                <UiButton noBg={true} onClick={() => setIsOpen(false)} disabled={isLoading} className="ml-2">
                     Cancel
                 </UiButton>
             </div>

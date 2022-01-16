@@ -18,12 +18,13 @@ import PublicNavbar from "../../../../components/project/PublicNavbar";
 import UserButton from "../../../../components/standard/UserButton";
 import React from "react";
 
-export interface PublicNodePageProps {
+export interface ProjectPageProps {
     pageUser: DatedObj<UserObj>,
     pageProject: DatedObj<ProjectObj>,
-    pageNode: DatedObj<NodeObj>,
     thisUser: DatedObj<UserObj>,
 }
+
+export type PublicNodePageProps = ProjectPageProps & {pageNode: DatedObj<NodeObj>};
 
 export default function PublicPostPage({pageUser, pageProject, pageNode, thisUser}: PublicNodePageProps) {
     const {body: {publishedTitle: title, publishedBody: body, publishedDate, lastPublishedDate}} = pageNode;
