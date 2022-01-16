@@ -2,6 +2,7 @@ import {CustomEditor, CustomElement} from "./slate-types";
 import {insertNodesAndClearEmpty} from "./withDeserializeMD";
 import {ReactNode} from "react";
 import {useFocused, useSelected} from "slate-react";
+import {Node, Element, Text} from "slate";
 
 const withImages = (editor: CustomEditor) => {
     const {insertData, isVoid} = editor;
@@ -59,6 +60,16 @@ export function Image({
             {children}
         </div>
     );
+}
+
+export const findImages = (nodes: Node[]) => {
+    let images = [];
+    for (let node of nodes) {
+        if (!Element.isElement(node)) continue;
+        if (node.type === "img") images.push(node.url);
+        if (node.children) images.push(...findImages(node.children));
+    }
+    return images;
 }
 
 export default withImages;
