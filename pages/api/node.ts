@@ -7,7 +7,7 @@ import {ProjectModel} from "../../models/project";
 import {format} from "date-fns";
 import short from "short-uuid";
 import {NodeTypes} from "../../utils/types";
-import {getErrorIfNotExistsAndAuthed} from "../../utils/apiUtils";
+import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils";
 
 const baseBodyFields = ["title"]
 const sourceBodyFields = [...baseBodyFields, "link", "notes", "summary", "takeaways"];
@@ -17,7 +17,7 @@ const getPublishedFields = (type: NodeTypes) => [...(type === "source" ? sourceB
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
-        const {id, projectId, type, isOwner: queryIsOwner} = req.query;
+        const {id, projectId, type, isOwner: queryIsOwner, page} = req.query;
         const isOwner = queryIsOwner === "true";
 
         if (id) {
@@ -32,17 +32,52 @@ const handler: NextApiHandler = nextApiEndpoint({
         }
 
         if (projectId) {
-            if (isOwner) {
-                const thisProject = await ProjectModel.findById(projectId);
-                const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
-                if (projectError) return projectError;
-            }
+            const thisProject = await ProjectModel.findById(projectId);
+            if (!thisProject) return res404(res);
+            if (isOwner && !isUserIdMatch(thisProject, thisUser)) return res403(res);
 
-            let query = {projectId: projectId};
-            if (type) query["type"] = type;
-            if (!isOwner) query["body.publishedTitle"] = {$exists: true};
+            let match = {projectId: mongoose.Types.ObjectId(projectId.toString())};
+            if (type) match["type"] = type;
+            if (!isOwner) match["body.publishedTitle"] = {$exists: true};
 
-            const nodes = await NodeModel.find(query);
+            let shortcutMatch = {userId: thisUser._id};
+            if (type) shortcutMatch["type"] = type;
+
+            let sort = {}
+            sort[isOwner ? "createdAt" : "body.publishedDate"] = -1;
+
+            const nodes = await NodeModel.aggregate([
+                {$match: match},
+                {
+                    $unionWith: {
+                        coll: "nodes",
+                        pipeline: [
+                            {$match: shortcutMatch},
+                            {
+                                $lookup: {
+                                    from: "shortcuts",
+                                    let: {"targetId": "$_id"},
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                $and: [
+                                                    {$expr: {$eq: ["$targetId", "$$targetId"]}},
+                                                    {$expr: {$eq: ["$projectId", mongoose.Types.ObjectId(projectId.toString())]}},
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                    as: "shortcutsArr",
+                                }
+                            },
+                            {$match: {shortcutsArr: {$ne: []}}},
+                        ],
+                    },
+                },
+                {$sort: sort},
+                {$limit: 20},
+                {$skip: page ? +page * 20 : 0},
+            ]);
 
             const newNodes = isOwner ? nodes : nodes.map(node => {
                 let newNode = {...node.toObject()};
