@@ -102,7 +102,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                 return newNode;
             });
 
-            return res200(res, {nodes: newNodes, count: graph.count[0].count});
+            return res200(res, {nodes: newNodes, count: graph.count.length ? graph.count[0].count : 0});
         }
 
         return res400(res);
