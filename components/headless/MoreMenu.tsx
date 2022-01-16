@@ -27,8 +27,7 @@ export function MoreMenu({children, button, className}: {children: ReactNode, bu
 
 export function MoreMenuItem(props: ButtonProps) {
     let buttonProps = {...props};
-    buttonProps.className += ` px-3 py-2 hover:bg-gray-50 bg-white text-gray-500`;
-    if (props.onClick) buttonProps.className += ` w-full`;
+    buttonProps.className = `${buttonProps.className || ""} px-3 py-2 hover:bg-gray-50 bg-white text-gray-500 ${props.onClick ? "w-full" : ""}`;
 
     return (
         <Button block={true} {...buttonProps}>{props.children}</Button>

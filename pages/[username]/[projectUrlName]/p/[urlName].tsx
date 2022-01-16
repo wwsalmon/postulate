@@ -17,11 +17,12 @@ import ConfirmModal from "../../../../components/standard/ConfirmModal";
 import axios from "axios";
 import {useRouter} from "next/router";
 
-function DeleteShortcutModal ({pageUser, pageProject, pageNode, thisUser, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
+export function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
 
     const originalProject = pageNode.orrProjectArr[0];
     const pageShortcut = pageNode.shortcutArr[0];
+    const nodeType = pageNode.type;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -29,7 +30,7 @@ function DeleteShortcutModal ({pageUser, pageProject, pageNode, thisUser, isOpen
         setIsLoading(true);
 
         axios.delete("/api/shortcut", {data: {id: pageShortcut._id}}).then(() => {
-            router.push(`${getProjectUrl(pageUser, pageProject)}/posts`);
+            router.push(`${getProjectUrl(pageUser, pageProject)}/${nodeType}s?refresh=true`);
         }).catch(e => {
             console.log(e);
             setIsLoading(false);
@@ -50,7 +51,7 @@ function DeleteShortcutModal ({pageUser, pageProject, pageNode, thisUser, isOpen
                 Are you sure you want to delete this shortcut?
             </p>
             <p className="mb-3">
-                This post will stop appearing under <b>{pageProject.name}</b> but the original version in <b>{originalProject.name}</b> will be untouched.
+                This {nodeType} will stop appearing under <b>{pageProject.name}</b> but the original version in <b>{originalProject.name}</b> will be untouched.
             </p>
         </ConfirmModal>
     )

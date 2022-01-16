@@ -4,7 +4,7 @@ import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {SlateReadOnly} from "../../slate/SlateEditor";
 import Badge from "../style/Badge";
-import React from "react";
+import React, {useState} from "react";
 import {getIsNodeUpdated} from "../../pages/[username]/[projectUrlName]/[id]";
 import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
@@ -13,8 +13,11 @@ import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 import InlineButton from "../style/InlineButton";
 import {FiExternalLink} from "react-icons/fi";
 import Banner from "../style/Banner";
+import {DeleteShortcutModal} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
 
-export default function NodeInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
+export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}) {
+    const {pageUser, pageNode, pageProject, thisUser, modal} = props;
+
     const {
         body: {
             title: privateTitle,
@@ -50,6 +53,8 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
 
     const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !d.every(x => isNodeEmpty(x)));
 
+    const [isDeleteShortcutOpen, setIsDeleteShortcutOpen] = useState<boolean>(false);
+
     return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
@@ -68,7 +73,7 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                     </div>
                 </Banner>
             )}
-            <div className={`${(!isPublished || isUpdated) ? "sm:flex" : "flex"} items-center ${isSource ? "mb-8" : "my-8"} font-manrope text-gray-400 font-semibold w-full`}>
+            <div className={`${(!isPublished || isUpdated) ? "sm:flex" : "flex"} items-center ${isSource ? "mb-8" : "my-8"} w-full`}>
                 <div className="flex items-center justify-between flex-grow mb-2 sm:mb-0 order-2">
                     {!isPublished && (
                         <Badge dark={true}>
@@ -91,14 +96,26 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                                 </MoreMenuItem>
                             )}
                             {isExternal && (
-                                <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
-                                    View in original project
-                                </MoreMenuItem>
+                                <>
+                                    <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
+                                        View in original project
+                                    </MoreMenuItem>
+                                    <MoreMenuItem onClick={() => setIsDeleteShortcutOpen(true)}>
+                                        Delete shortcut
+                                    </MoreMenuItem>
+                                </>
                             )}
                         </MoreMenu>
                     )}
+                    {isExternal && (
+                        <DeleteShortcutModal
+                            {...props}
+                            isOpen={isDeleteShortcutOpen}
+                            setIsOpen={setIsDeleteShortcutOpen}
+                        />
+                    )}
                 </div>
-                <div className="flex items-center flex-wrap">
+                <div className="flex items-center flex-wrap font-manrope text-gray-400 font-semibold">
                     <span className="mr-4">{format(new Date(publishedDate || createdAt), "MMM d, yyyy")}</span>
                     {isPublished && publishedDate !== lastPublishedDate && (<span className="mr-4">Last updated {format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
