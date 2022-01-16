@@ -47,7 +47,14 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
             projectId: pageProject._id,
             targetId: nodes[selectedIndex]._id,
         }).then(() => {
-            router.replace(`${getProjectUrl(pageUser, pageProject)}/${currType}s`, null, {shallow: false});
+            const currAsPath = router.asPath;
+
+            router.replace(`${getProjectUrl(pageUser, pageProject)}/${currType}s?refresh=true`, null).then(() => {
+                if (router.asPath === currAsPath) {
+                    setIsLoading(false);
+                    setIsOpen(false);
+                }
+            });
         }).catch(e => {
             console.log(e);
             setIsLoading(false);
