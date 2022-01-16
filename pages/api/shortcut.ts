@@ -2,9 +2,9 @@ import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {res200, res400, res404, res500} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
-import {getErrorIfNotExistsAndAuthed} from "./snippet";
 import {NodeModel} from "../../models/node";
 import {ShortcutModel} from "../../models/shortcut";
+import {getErrorIfNotExistsAndAuthed} from "../../utils/apiUtils";
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {

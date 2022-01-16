@@ -7,6 +7,7 @@ import {ProjectModel} from "../../models/project";
 import {format} from "date-fns";
 import short from "short-uuid";
 import {NodeTypes} from "../../utils/types";
+import {getErrorIfNotExistsAndAuthed} from "../../utils/apiUtils";
 
 const baseBodyFields = ["title"]
 const sourceBodyFields = [...baseBodyFields, "link", "notes", "summary", "takeaways"];
@@ -22,6 +23,8 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (id) {
             const thisNode = await NodeModel.findById(id);
 
+            if (!thisNode) return res400(res);
+
             // fix up these permissions later
             if (!(thisNode.body.publishedTitle || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
@@ -31,7 +34,8 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (projectId) {
             if (isOwner) {
                 const thisProject = await ProjectModel.findById(projectId);
-                if (!(thisProject && thisUser && thisProject.userId.toString() === thisUser._id.toString())) return res403(res);
+                const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+                if (projectError) return projectError;
             }
 
             let query = {projectId: projectId};
@@ -65,10 +69,8 @@ const handler: NextApiHandler = nextApiEndpoint({
             if (!thisNode) return res404(res);
 
             const thisProject = thisNode.projectArr[0];
-
-            if (!thisProject) return res404(res);
-
-            if (thisProject.userId.toString() !== thisUser._id.toString()) return res403(res);
+            const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+            if (projectError) return projectError;
 
             let newBody = {...thisNode.body};
 
@@ -129,8 +131,8 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (!id) return res400(res);
 
         const thisNode = await NodeModel.findById(id);
-
-        if (thisNode.userId.toString() !== thisUser._id.toString()) return res403(res);
+        const nodeError = getErrorIfNotExistsAndAuthed(thisNode, thisUser, res);
+        if (nodeError) return nodeError;
 
         await NodeModel.deleteOne({_id: id});
 
@@ -139,5 +141,3 @@ const handler: NextApiHandler = nextApiEndpoint({
 });
 
 export default handler;
-
-const isString = (value: any) => typeof value === "string" || value instanceof String;

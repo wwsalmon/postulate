@@ -1,11 +1,10 @@
-import {NextApiHandler, NextApiResponse} from "next";
+import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
-import {res400, res403, res404, res200} from "next-response-helpers";
+import {res200, res400, res403} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
 import {SnippetModel} from "../../models/snippet";
 import {slateInitValue} from "../../utils/utils";
-import {DatedObj, UserObj} from "../../utils/types";
-import * as mongoose from "mongoose";
+import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils";
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
@@ -75,15 +74,5 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res200(res);
     },
 });
-
-export const isUserIdMatch = (doc: {userId: mongoose.Types.ObjectId, [key: string]: any}, thisUser: DatedObj<UserObj>) => doc.userId.toString() === thisUser._id.toString();
-
-export const getErrorIfNotExistsAndAuthed = (doc: {userId: mongoose.Types.ObjectId, [key: string]: any} | null, thisUser: DatedObj<UserObj>, res: NextApiResponse) => {
-    if (!doc) return res404(res);
-
-    if (!isUserIdMatch(doc, thisUser)) return res403(res);
-
-    return false;
-}
 
 export default handler;
