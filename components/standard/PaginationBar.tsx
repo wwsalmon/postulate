@@ -14,7 +14,7 @@ export default function PaginationBar({page, count, label, setPage, className, c
     return (
         <div className={className || ""}>
             <p className="text-sm text-gray-400">
-                Showing {label} {page * countPerPage + 1}
+                Showing {label} {count === 0 ? count : page * countPerPage + 1}
                 -{((page + 1) < Math.ceil(count / countPerPage)) ? (page + 1) * countPerPage : count} of {count}
             </p>
             {count > countPerPage && (
