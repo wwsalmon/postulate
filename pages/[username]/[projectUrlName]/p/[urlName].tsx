@@ -81,10 +81,11 @@ export default function PublicPostPage(props: PublicNodePageProps) {
                 )}
                 <H1>{title}</H1>
                 <UserButton user={pageUser} className="mt-8"/>
-                <div className="flex items-center mt-2 mb-8 font-manrope text-gray-400 font-semibold">
-                    <span className="mr-4">{format(new Date(publishedDate), "MMM d, yyyy")}</span>
-                    {publishedDate !== lastPublishedDate && (<span className="mr-4">{format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
-                    <span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>
+                <div className="flex items-center mt-2 mb-8">
+                    <div className="md:flex items-center font-manrope text-gray-400 font-semibold"><span className="mr-4">{format(new Date(publishedDate), "MMM d, yyyy")}</span>
+                        {publishedDate !== lastPublishedDate && (<span className="mr-4">{format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
+                        <span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>
+                    </div>
                     {isOwner && (
                         <>
                             <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
