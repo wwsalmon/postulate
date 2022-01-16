@@ -11,15 +11,17 @@ import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import SnippetsBar from "./SnippetsBar";
-import {ProjectPageProps} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
 import UiModal from "../style/UiModal";
 import UiH3 from "../style/UiH3";
 import AsyncSelect from "react-select/async";
 import axios from "axios";
-import {DatedObj, NodeObj, NodeTypes, ProjectObj} from "../../utils/types";
-import {getSelectStateProps, getInputStateProps} from "react-controlled-component-helpers";
+import {DatedObj, NodeObj, NodeTypes, ShortcutObj} from "../../utils/types";
+import {getInputStateProps, getSelectStateProps} from "react-controlled-component-helpers";
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
+import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
+
+export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[]};
 
 function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: ProjectPageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();

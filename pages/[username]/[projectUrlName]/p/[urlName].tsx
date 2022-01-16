@@ -1,11 +1,4 @@
 import {GetServerSideProps} from "next";
-import dbConnect from "../../../../utils/dbConnect";
-import getThisUser from "../../../../utils/getThisUser";
-import {getProjectPageInfo} from "../new/[type]";
-import {ssr404} from "next-response-helpers";
-import {NodeModel} from "../../../../models/node";
-import {cleanForJSON} from "../../../../utils/utils";
-import {DatedObj, NodeObj, NodeTypes, ProjectObj, UserObj} from "../../../../utils/types";
 import Container from "../../../../components/style/Container";
 import SEO from "../../../../components/standard/SEO";
 import H1 from "../../../../components/style/H1";
@@ -17,14 +10,7 @@ import getProjectUrl from "../../../../utils/getProjectUrl";
 import PublicNavbar from "../../../../components/project/PublicNavbar";
 import UserButton from "../../../../components/standard/UserButton";
 import React from "react";
-
-export interface ProjectPageProps {
-    pageUser: DatedObj<UserObj>,
-    pageProject: DatedObj<ProjectObj>,
-    thisUser: DatedObj<UserObj>,
-}
-
-export type PublicNodePageProps = ProjectPageProps & {pageNode: DatedObj<NodeObj>};
+import getPublicNodeSSRFunction, {PublicNodePageProps} from "../../../../utils/getPublicNodeSSRFunction";
 
 export default function PublicPostPage({pageUser, pageProject, pageNode, thisUser}: PublicNodePageProps) {
     const {body: {publishedTitle: title, publishedBody: body, publishedDate, lastPublishedDate}} = pageNode;
@@ -51,42 +37,6 @@ export default function PublicPostPage({pageUser, pageProject, pageNode, thisUse
             <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
         </Container>
     )
-}
-
-export const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (nodeType) => async (context) => {
-    const {urlName} = context.params;
-
-    try {
-        await dbConnect();
-
-        const pageInfo = await getProjectPageInfo(context);
-
-        if (!pageInfo) return ssr404;
-
-        const {pageUser, pageProject} = pageInfo;
-
-        const pageNode = await NodeModel.findOne({
-            type: nodeType,
-            "body.urlName": encodeURIComponent(urlName.toString()),
-            projectId: pageProject._id,
-        });
-
-        if (!pageNode) return ssr404;
-
-        const thisUser = await getThisUser(context);
-
-        let newPageNode = {...pageNode.toObject()};
-
-        if (!thisUser || (thisUser._id.toString() !== pageProject.userId.toString())) {
-            delete newPageNode.body.title;
-            delete newPageNode.body.body;
-        }
-
-        return {props: cleanForJSON({pageUser, pageProject, pageNode: newPageNode, thisUser})};
-    } catch (e) {
-        console.log(e);
-        return ssr404;
-    }
 }
 
 export const getServerSideProps: GetServerSideProps = getPublicNodeSSRFunction("post");

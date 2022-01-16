@@ -1,4 +1,3 @@
-import {PublicNodePageProps} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
 import Badge from "../style/Badge";
 import {format} from "date-fns";
 import React, {HTMLProps, ReactNode, useEffect, useState} from "react";
@@ -7,6 +6,7 @@ import {useRouter} from "next/router";
 import UiH3 from "../style/UiH3";
 import NodeInner from "./NodeInner";
 import TruncatedText from "../standard/TruncatedText";
+import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 
 const ThirdColumn = ({children}: {children: ReactNode}) => (
     <div className="md:w-1/3 md:px-4 my-4 md:my-0">

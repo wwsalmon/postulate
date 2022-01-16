@@ -1,8 +1,8 @@
 import {GetServerSideProps} from "next";
 import SEO from "../../../../components/standard/SEO";
-import {getPublicNodeSSRFunction, PublicNodePageProps} from "../p/[urlName]";
 import PublicNavbar from "../../../../components/project/PublicNavbar";
 import NodeInner from "../../../../components/project/NodeInner";
+import getPublicNodeSSRFunction, {PublicNodePageProps} from "../../../../utils/getPublicNodeSSRFunction";
 
 export default function PublicSourcePage(props: PublicNodePageProps) {
     const {pageNode, pageUser, pageProject} = props;

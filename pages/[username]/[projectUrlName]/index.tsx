@@ -2,7 +2,7 @@ import React from "react";
 import {GetServerSideProps} from "next";
 import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
 import MainShell from "../../../components/project/MainShell";
-import getProjectSSRProps from "../../../utils/getProjectSSRProps";
+import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
 
 export default function ProjectPage({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     return (
@@ -12,4 +12,4 @@ export default function ProjectPage({pageProject, pageUser, thisUser}: { pagePro
     );
 }
 
-export const getServerSideProps: GetServerSideProps = getProjectSSRProps;
+export const getServerSideProps: GetServerSideProps = getProjectSSRFunction();

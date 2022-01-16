@@ -1,16 +1,16 @@
 import React from "react";
 import {GetServerSideProps} from "next";
-import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../../utils/types";
-import MainShell from "../../../components/project/MainShell";
-import getProjectSSRProps from "../../../utils/getProjectSSRProps";
+import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
+import MainShell, {NodeWithShortcut} from "../../../components/project/MainShell";
+import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
+import NodeCard from "../../../components/project/NodeCard";
 import useSWR from "swr";
 import {fetcher} from "../../../utils/utils";
-import NodeCard from "../../../components/project/NodeCard";
 
 export default function ProjectEvergreens({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
-    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(`/api/node?projectId=${pageProject._id}&type=evergreen&isOwner=${!!isOwner}`, fetcher);
+    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[]}>(`/api/node?projectId=${pageProject._id}&type=evergreen&isOwner=${!!isOwner}`, fetcher);
 
     return (
         <MainShell thisUser={thisUser} pageProject={pageProject} pageUser={pageUser}>
@@ -27,4 +27,4 @@ export default function ProjectEvergreens({pageProject, pageUser, thisUser}: { p
     );
 }
 
-export const getServerSideProps: GetServerSideProps = getProjectSSRProps;
+export const getServerSideProps: GetServerSideProps = getProjectSSRFunction("evergreen");
