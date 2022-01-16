@@ -12,13 +12,15 @@ import useSWR from "swr";
 import {fetcher} from "../../../utils/utils";
 import {ExternalBadge} from "../../../components/project/NodeCard";
 import {useRouter} from "next/router";
+import PaginationBar from "../../../components/standard/PaginationBar";
 
 export default function ProjectPosts({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
     const [iter, setIter] = useState<number>(0);
+    const [page, setPage] = useState<number>(0);
 
-    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[]}>(`/api/node?projectId=${pageProject._id}&type=post&isOwner=${!!isOwner}&iter=${iter}`, fetcher);
+    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=post&isOwner=${!!isOwner}&iter=${iter}&page=${page}`, fetcher);
 
     const router = useRouter();
     const {refresh} = router.query;
@@ -69,6 +71,7 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
                     </Link>
                 );
             })}
+            <PaginationBar page={page} count={data ? data.count : 0} label="posts" setPage={setPage} countPerPage={20} className="mb-32"/>
         </MainShell>
     );
 }

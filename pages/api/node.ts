@@ -47,7 +47,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             let sort = {}
             sort[isOwner ? "createdAt" : "body.publishedDate"] = -1;
 
-            const nodes = await NodeModel.aggregate([
+            const graph = (await NodeModel.aggregate([
                 {$match: match},
                 {
                     $unionWith: {
@@ -83,19 +83,26 @@ const handler: NextApiHandler = nextApiEndpoint({
                         ],
                     },
                 },
-                {$sort: sort},
-                {$limit: 20},
-                {$skip: page ? +page * 20 : 0},
-            ]);
+                {
+                    $facet: {
+                        count: [{$count: "count"}],
+                        sample: [
+                            {$sort: sort},
+                            {$skip: page ? (+page * 20) : 0},
+                            {$limit: 20},
+                        ],
+                    }
+                },
+            ]))[0];
 
-            const newNodes = isOwner ? nodes : nodes.map(node => {
+            const newNodes = isOwner ? graph.sample : graph.sample.map(node => {
                 let newNode = {...node};
                 const fields = getPrivateFields(node.type);
                 for (let field of fields) {delete newNode.body[field]};
                 return newNode;
             });
 
-            return res200(res, {nodes: newNodes});
+            return res200(res, {nodes: newNodes, count: graph.count[0].count});
         }
 
         return res400(res);
