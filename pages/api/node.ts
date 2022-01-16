@@ -8,6 +8,7 @@ import {format} from "date-fns";
 import short from "short-uuid";
 import {NodeTypes} from "../../utils/types";
 import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils";
+import {ShortcutModel} from "../../models/shortcut";
 
 const baseBodyFields = ["title"]
 const sourceBodyFields = [...baseBodyFields, "link", "notes", "summary", "takeaways"];
@@ -178,6 +179,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (nodeError) return nodeError;
 
         await NodeModel.deleteOne({_id: id});
+        await ShortcutModel.deleteMany({targetId: id});
 
         return res200(res);
     }

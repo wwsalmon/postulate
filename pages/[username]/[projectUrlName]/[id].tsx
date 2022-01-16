@@ -138,7 +138,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                 onConfirm={onDelete}
                 confirmText="Delete"
             >
-                Are you sure you want to delete this {nodeType}? This action is irreversible.
+                Are you sure you want to delete this {nodeType}? This will delete all shortcuts to this {nodeType} as well. This action is irreversible.
             </ConfirmModal>
             <ConfirmModal
                 isOpen={isPublishOpen}
