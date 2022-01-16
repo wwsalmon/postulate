@@ -35,11 +35,10 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
                 const isPublished = !!node.body.publishedTitle;
                 const hasChanges = isOwner && isPublished && JSON.stringify(node.body.publishedBody) !== JSON.stringify(node.body.body);
                 const isExternal = !!node.shortcutArr;
-                const originalProject = isExternal && node.orrProjectArr[0];
 
                 return (
                     <Link
-                        href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}
+                        href={`${getProjectUrl(pageUser, pageProject)}/${(isOwner && !isExternal) ? node._id : `/p/${node.body.urlName}`}`}
                         key={`project-posts-${node._id}`}
                     >
                         <a className="block mb-8">
