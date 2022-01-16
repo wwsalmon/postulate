@@ -113,7 +113,7 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
             </button>
             <UiModal isOpen={isOpen} setIsOpen={setIsModalOpen} wide={true}>
                 <div className="sm:px-4 px-0 py-4">
-                    <NodeInner {...props} modal={true}/>
+                    <NodeInner {...props} isModal={true}/>
                 </div>
             </UiModal>
         </>

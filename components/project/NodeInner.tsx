@@ -4,7 +4,7 @@ import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {SlateReadOnly} from "../../slate/SlateEditor";
 import Badge from "../style/Badge";
-import React, {useState} from "react";
+import React, {Dispatch, SetStateAction, useState} from "react";
 import {getIsNodeUpdated} from "../../pages/[username]/[projectUrlName]/[id]";
 import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
@@ -13,10 +13,52 @@ import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 import InlineButton from "../style/InlineButton";
 import {FiExternalLink} from "react-icons/fi";
 import Banner from "../style/Banner";
-import {DeleteShortcutModal} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
+import {useRouter} from "next/router";
+import axios from "axios";
+import ConfirmModal from "../standard/ConfirmModal";
 
-export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}) {
-    const {pageUser, pageNode, pageProject, thisUser, modal} = props;
+function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
+    const router = useRouter();
+
+    const originalProject = pageNode.orrProjectArr[0];
+    const pageShortcut = pageNode.shortcutArr[0];
+    const nodeType = pageNode.type;
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    function onDelete() {
+        setIsLoading(true);
+
+        axios.delete("/api/shortcut", {data: {id: pageShortcut._id}}).then(() => {
+            router.push(`${getProjectUrl(pageUser, pageProject)}/${nodeType}s?refresh=true`);
+        }).catch(e => {
+            console.log(e);
+            setIsLoading(false);
+        });
+    }
+
+    return (
+        <ConfirmModal
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            onConfirm={onDelete}
+            confirmText="Delete"
+            colorClass="bg-red-500 hover:bg-red-700"
+        >
+            <p className="mb-3">
+                Are you sure you want to delete this shortcut?
+            </p>
+            <p className="mb-3">
+                This {nodeType} will stop appearing under <b>{pageProject.name}</b> but the original version in <b>{originalProject.name}</b> will be untouched.
+            </p>
+        </ConfirmModal>
+    )
+}
+
+export default function NodeInner(props: PublicNodePageProps & {isModal?: boolean}) {
+    const {pageUser, pageNode, pageProject, thisUser, isModal} = props;
 
     const {
         body: {
@@ -38,6 +80,7 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
         createdAt,
         updatedAt
     } = pageNode;
+    const isPost = pageNode.type === "post";
     const isSource = pageNode.type === "source";
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isPublished = !!publishedTitle;
@@ -58,9 +101,20 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
     return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
-            <H1 small={true}>{title}</H1>
+            {isExternal && isPost && (
+                <div className="flex items-center mb-8">
+                    <FiExternalLink/>
+                    <InlineButton href={`${getProjectUrl(pageUser, originalProject)}/p/${pageNode.body.urlName}`} className="ml-2">Originally published</InlineButton>
+                    <span className="mx-4"> in </span>
+                    <InlineButton href={getProjectUrl(pageUser, originalProject)}>{originalProject.name}</InlineButton>
+                </div>
+            )}
+            <H1 small={!isPost}>{title}</H1>
+            {!isModal && (
+                <UserButton user={pageUser} className="mt-8"/>                
+            )}
             {isSource && link && (<a className="text-gray-400 my-4 truncate underline block" href={link}>{link}</a>)}
-            {isExternal && (
+            {isExternal && !isPost && (
                 <Banner className="my-6">
                     <FiExternalLink/>
                     <div className="ml-4">
@@ -90,7 +144,7 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
                             <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
                                 {`Edit${isExternal ? " in original project" : ""}`}
                             </MoreMenuItem>
-                            {modal && isPublished && (
+                            {isModal && isPublished && (
                                 <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
                                     View as page
                                 </MoreMenuItem>
@@ -121,9 +175,6 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
                 </div>
             </div>
-            {!modal && (
-                <UserButton user={pageUser} className="mb-8"/>
-            )}
             {isSource ? (
                 <>
                     {hasSummaryOrTakeaways && (
@@ -135,7 +186,7 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
                                         <React.Fragment key={field}>
                                             {i !== 0 && (<hr className="my-6 -mx-6"/>)}
                                             <UiH3 className="mb-2">{field.charAt(0).toUpperCase() + field.substr(1)}</UiH3>
-                                            <SlateReadOnly value={eval(field)} fontSize={modal ? 18 : 20}/>
+                                            <SlateReadOnly value={eval(field)} fontSize={isModal ? 18 : 20}/>
                                         </React.Fragment>
                                     ))
                             }
@@ -144,12 +195,12 @@ export default function NodeInner(props: PublicNodePageProps & {modal?: boolean}
                     {!notes.every(node => isNodeEmpty(node)) && (
                         <>
                             <UiH3 className="mb-2">Notes</UiH3>
-                            <SlateReadOnly value={notes} fontSize={modal ? 16 : 18} className="mb-8"/>
+                            <SlateReadOnly value={notes} fontSize={isModal ? 16 : 18} className="mb-8"/>
                         </>
                     )}
                 </>
             ) : (
-                <SlateReadOnly value={body} fontSize={modal ? 18 : 20}/>
+                <SlateReadOnly value={body} fontSize={isModal ? 18 : 20}/>
             )}
         </>
     ) : (
