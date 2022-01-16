@@ -1,12 +1,15 @@
 import {GetServerSideProps} from "next";
 import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
-import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
 import React from "react";
-import TypeShell from "../../../components/project/TypeShell";
+import {ProjectPageProps} from "../../../utils/getPublicNodeSSRFunction";
+import MainShell from "../../../components/project/MainShell";
+import NodeFeed from "../../../components/project/NodeFeed";
 
-export default function ProjectSources(props: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+export default function ProjectSources(props: ProjectPageProps) {
     return (
-        <TypeShell {...props} type="source"/>
+        <MainShell {...props}>
+            <NodeFeed {...props} type="source"/>
+        </MainShell>
     );
 }
 

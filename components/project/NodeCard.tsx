@@ -25,7 +25,7 @@ export const ExternalBadge = ({className}: {className?: string}) => (
 export default function NodeCard(props: PublicNodePageProps & {className?: string}) {
     const router = useRouter();
     const {id} = router.query;
-    const {pageNode, pageProject, pageUser, thisUser} = props;
+    const {pageNode, pageUser, thisUser} = props;
 
     const isPublished = !!pageNode.body.publishedTitle;
     const isExternal = !!pageNode.shortcutArr;

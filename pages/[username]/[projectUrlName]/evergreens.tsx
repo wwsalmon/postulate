@@ -1,12 +1,15 @@
 import React from "react";
 import {GetServerSideProps} from "next";
-import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
 import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
-import TypeShell from "../../../components/project/TypeShell";
+import {ProjectPageProps} from "../../../utils/getPublicNodeSSRFunction";
+import MainShell from "../../../components/project/MainShell";
+import NodeFeed from "../../../components/project/NodeFeed";
 
-export default function ProjectEvergreens(props: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+export default function ProjectEvergreens(props: ProjectPageProps) {
     return (
-        <TypeShell {...props} type="evergreen"/>
+        <MainShell {...props}>
+            <NodeFeed {...props} type="evergreen"/>
+        </MainShell>
     );
 }
 
