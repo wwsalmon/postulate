@@ -83,7 +83,7 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                     {isOwner && (
                         <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
                             <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
-                                {`Edit${isExternal ? " (in original project)" : ""}`}
+                                {`Edit${isExternal ? " in original project" : ""}`}
                             </MoreMenuItem>
                             {modal && isPublished && (
                                 <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>

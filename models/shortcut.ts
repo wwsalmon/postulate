@@ -11,4 +11,4 @@ const ShortcutSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const ShortcutModel: Model<Document<ShortcutObj>> = mongoose.models.Shortcut || mongoose.model("shortcut", ShortcutSchema);
+export const ShortcutModel: Model<Document<ShortcutObj>> = (!!mongoose.models && mongoose.models.shortcut) || mongoose.model("shortcut", ShortcutSchema);

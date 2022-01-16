@@ -7,6 +7,8 @@ import getThisUser from "./getThisUser";
 import {cleanForJSON} from "./utils";
 import {ssr404} from "next-response-helpers";
 import {NodeWithShortcut} from "../components/project/MainShell";
+import {ShortcutModel} from "../models/shortcut";
+import getLookup from "./getLookup";
 
 export interface ProjectPageProps {
     pageUser: DatedObj<UserObj>,
@@ -28,17 +30,44 @@ const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (n
 
         const {pageUser, pageProject} = pageInfo;
 
-        const pageNode = await NodeModel.findOne({
+        let pageNode = await NodeModel.findOne({
             type: nodeType,
             "body.urlName": encodeURIComponent(urlName.toString()),
             projectId: pageProject._id,
         });
 
-        if (!pageNode) return ssr404;
+        if (!pageNode) {
+            const pageShortcut = await ShortcutModel.aggregate([
+                {$match: {type: nodeType, projectId: pageProject._id, urlName: encodeURIComponent(urlName.toString())}},
+                {
+                    $lookup: {
+                        from: "nodes",
+                        let: {"targetId": "$targetId"},
+                        pipeline: [
+                            {$match: {$expr: {$eq: ["$_id", "$$targetId"]}}},
+                            getLookup("projects", "_id", "projectId", "orrProjectArr"),
+                        ],
+                        as: "nodeArr",
+                    }
+                },
+            ]);
+
+            if (!pageShortcut.length) return ssr404;
+
+            let shortcutOnly = {...pageShortcut[0]};
+            delete shortcutOnly.nodeArr;
+
+            pageNode = {
+                ...pageShortcut[0].nodeArr[0],
+                shortcutArr: [shortcutOnly],
+            };
+        } else {
+            pageNode = pageNode.toObject();
+        }
 
         const thisUser = await getThisUser(context);
 
-        let newPageNode = {...pageNode.toObject()};
+        let newPageNode = {...pageNode};
 
         if (!thisUser || (thisUser._id.toString() !== pageProject.userId.toString())) {
             delete newPageNode.body.title;
