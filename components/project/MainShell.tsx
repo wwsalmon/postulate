@@ -52,7 +52,10 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
         });
     }
 
-    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(`/api/search/shortcutNode?query=${query}&projectId=${project ? project.value : ""}&type=${type}`, project ? fetcher : async () => ({nodes: []}));
+    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(
+        `/api/search/shortcutNode?query=${query}&projectId=${project ? project.value : ""}&thisProjectId=${pageProject._id}&type=${type}`,
+        project ? fetcher : async () => ({nodes: []})
+    );
 
     useEffect(() => {
         if (data && data.nodes) {
