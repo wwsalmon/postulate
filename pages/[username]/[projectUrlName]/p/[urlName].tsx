@@ -9,16 +9,62 @@ import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../../../../components/hea
 import getProjectUrl from "../../../../utils/getProjectUrl";
 import PublicNavbar from "../../../../components/project/PublicNavbar";
 import UserButton from "../../../../components/standard/UserButton";
-import React from "react";
+import React, {Dispatch, SetStateAction, useState} from "react";
 import getPublicNodeSSRFunction, {PublicNodePageProps} from "../../../../utils/getPublicNodeSSRFunction";
 import InlineButton from "../../../../components/style/InlineButton";
 import {FiExternalLink} from "react-icons/fi";
+import ConfirmModal from "../../../../components/standard/ConfirmModal";
+import axios from "axios";
+import {useRouter} from "next/router";
 
-export default function PublicPostPage({pageUser, pageProject, pageNode, thisUser}: PublicNodePageProps) {
+function DeleteShortcutModal ({pageUser, pageProject, pageNode, thisUser, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
+    const router = useRouter();
+
+    const originalProject = pageNode.orrProjectArr[0];
+    const pageShortcut = pageNode.shortcutArr[0];
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    function onDelete() {
+        setIsLoading(true);
+
+        axios.delete("/api/shortcut", {data: {id: pageShortcut._id}}).then(() => {
+            router.push(`${getProjectUrl(pageUser, pageProject)}/posts`);
+        }).catch(e => {
+            console.log(e);
+            setIsLoading(false);
+        });
+    }
+
+    return (
+        <ConfirmModal
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            onConfirm={onDelete}
+            confirmText="Delete"
+            colorClass="bg-red-500 hover:bg-red-700"
+        >
+            <p className="mb-3">
+                Are you sure you want to delete this shortcut?
+            </p>
+            <p className="mb-3">
+                This post will stop appearing under <b>{pageProject.name}</b> but the original version in <b>{originalProject.name}</b> will be untouched.
+            </p>
+        </ConfirmModal>
+    )
+}
+
+export default function PublicPostPage(props: PublicNodePageProps) {
+    const {pageUser, pageProject, pageNode, thisUser} = props;
+
     const {body: {publishedTitle: title, publishedBody: body, publishedDate, lastPublishedDate}} = pageNode;
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isExternal = !!pageNode.shortcutArr;
     const originalProject = isExternal && pageNode.orrProjectArr[0];
+
+    const [isDeleteShortcutOpen, setIsDeleteShortcutOpen] = useState<boolean>(false);
 
     return (
         <Container>
@@ -39,9 +85,15 @@ export default function PublicPostPage({pageUser, pageProject, pageNode, thisUse
                     {publishedDate !== lastPublishedDate && (<span className="mr-4">{format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
                     <span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>
                     {isOwner && (
-                        <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
-                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode._id}`}>Edit</MoreMenuItem>
-                        </MoreMenu>
+                        <>
+                            <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode._id}`}>Edit</MoreMenuItem>
+                                {isExternal && (
+                                    <MoreMenuItem onClick={() => setIsDeleteShortcutOpen(true)}>Delete shortcut</MoreMenuItem>
+                                )}
+                            </MoreMenu>
+                            <DeleteShortcutModal {...props} isOpen={isDeleteShortcutOpen} setIsOpen={setIsDeleteShortcutOpen}/>
+                        </>
                     )}
                 </div>
                 <SlateReadOnly value={body}/>

@@ -167,7 +167,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
                     {type}
                 </MoreMenuItem>
             ))}
-            <MoreMenuItem onClick={() => setIsOpen(true)} className="w-full">
+            <MoreMenuItem onClick={() => setIsOpen(true)}>
                 Shortcut
             </MoreMenuItem>
         </MoreMenu>
