@@ -63,7 +63,7 @@ export default function TypeShell({pageProject, pageUser, thisUser, type}: { pag
 
                 return (
                     <Link
-                        href={`${getProjectUrl(pageUser, pageProject)}/${(isOwner && !isExternal) ? node._id : `/p/${node.body.urlName}`}`}
+                        href={`${getProjectUrl(pageUser, pageProject)}/${(isOwner && !isExternal && !isPublished) ? node._id : `/p/${node.body.urlName}`}`}
                         key={`project-${type}-${node._id}`}
                     >
                         <a className="block mb-8 flex items-center">
