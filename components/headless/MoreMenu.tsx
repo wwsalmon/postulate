@@ -27,10 +27,10 @@ export function MoreMenu({children, button, className}: {children: ReactNode, bu
 
 export function MoreMenuItem(props: ButtonProps) {
     let buttonProps = {...props};
-    buttonProps.className += ` px-3 py-2 hover:bg-gray-50 w-full bg-white text-gray-500`;
+    buttonProps.className += ` px-3 py-2 hover:bg-gray-50 bg-white text-gray-500`;
 
     return (
-        <Button {...buttonProps}>{props.children}</Button>
+        <Button block={true} {...buttonProps}>{props.children}</Button>
     )
 }
 

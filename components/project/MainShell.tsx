@@ -15,13 +15,13 @@ import UiModal from "../style/UiModal";
 import UiH3 from "../style/UiH3";
 import AsyncSelect from "react-select/async";
 import axios from "axios";
-import {DatedObj, NodeObj, NodeTypes, ShortcutObj} from "../../utils/types";
+import {DatedObj, NodeObj, NodeTypes, ProjectObj, ShortcutObj} from "../../utils/types";
 import {getInputStateProps, getSelectStateProps} from "react-controlled-component-helpers";
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
 import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
 
-export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[]};
+export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
 function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: ProjectPageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
@@ -47,7 +47,7 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
             projectId: pageProject._id,
             targetId: nodes[selectedIndex]._id,
         }).then(() => {
-            router.push(`${getProjectUrl(pageUser, pageProject)}/${currType}s`, null, {shallow: false});
+            router.replace(`${getProjectUrl(pageUser, pageProject)}/${currType}s`, null, {shallow: false});
         }).catch(e => {
             console.log(e);
             setIsLoading(false);
@@ -167,7 +167,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
                     {type}
                 </MoreMenuItem>
             ))}
-            <MoreMenuItem block={true} onClick={() => setIsOpen(true)}>
+            <MoreMenuItem onClick={() => setIsOpen(true)} className="w-full">
                 Shortcut
             </MoreMenuItem>
         </MoreMenu>

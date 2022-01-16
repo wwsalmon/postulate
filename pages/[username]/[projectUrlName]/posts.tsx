@@ -10,6 +10,7 @@ import getProjectUrl from "../../../utils/getProjectUrl";
 import Badge from "../../../components/style/Badge";
 import useSWR from "swr";
 import {fetcher} from "../../../utils/utils";
+import {ExternalBadge} from "../../../components/project/NodeCard";
 
 export default function ProjectPosts({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -21,31 +22,36 @@ export default function ProjectPosts({pageProject, pageUser, thisUser}: { pagePr
             {data && data.nodes.map(node => {
                 const isPublished = !!node.body.publishedTitle;
                 const hasChanges = isOwner && isPublished && JSON.stringify(node.body.publishedBody) !== JSON.stringify(node.body.body);
+                const isExternal = !!node.shortcutArr;
+                const originalProject = isExternal && node.orrProjectArr[0];
 
                 return (
                     <Link
-                        href={`${getProjectUrl(pageUser, pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}
+                        href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${isOwner ? node._id : `/p/${node.body.urlName}`}`}
                         key={`project-posts-${node._id}`}
                     >
                         <a className="block mb-8">
                             <h3
-                                className="font-manrope font-semibold"
+                                className="font-manrope font-semibold mb-2 md:mb-0"
                                 key={node._id}
                             >{(isOwner ? node.body.title : node.body.publishedTitle) || "Untitled post"}</h3>
-                            <div className="flex items-center mt-2 text-gray-400 text-sm">
+                            <div className="md:flex items-center text-gray-400 text-sm">
                                 {!isPublished && (
-                                    <Badge dark={true} className="mr-3">
+                                    <Badge dark={true} className="mr-3 mt-2">
                                         <span>Unpublished draft</span>
                                     </Badge>
                                 )}
-                                <span className="mr-3">
+                                <span className="mr-3 mt-2">
                                     Last {isPublished ? "published" : "updated"} {format(new Date(isPublished ? node.body.lastPublishedDate : node.updatedAt), "MMM d, yyyy")}
                                 </span>
-                                <span className="mr-3">{Math.ceil(slateWordCount(isOwner ? node.body.body : node.body.publishedBody) / 200)} min read</span>
+                                <span className="mr-3 mt-2">{Math.ceil(slateWordCount(isOwner ? node.body.body : node.body.publishedBody) / 200)} min read</span>
                                 {hasChanges && (
-                                    <Badge>
+                                    <Badge className="mr-3 mt-2">
                                         Unpublished changes
                                     </Badge>
+                                )}
+                                {isExternal && (
+                                    <ExternalBadge className="mt-2"/>
                                 )}
                             </div>
                         </a>

@@ -10,6 +10,9 @@ import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
 import UserButton from "../standard/UserButton";
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
+import InlineButton from "../style/InlineButton";
+import {FiExternalLink} from "react-icons/fi";
+import Banner from "../style/Banner";
 
 export default function NodeInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
     const {
@@ -35,6 +38,8 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
     const isSource = pageNode.type === "source";
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isPublished = !!publishedTitle;
+    const isExternal = !!pageNode.shortcutArr;
+    const originalProject = isExternal && pageNode.orrProjectArr[0];
     const title = publishedTitle || privateTitle;
     const body = publishedBody || privateBody;
     const notes = publishedNotes || privateNotes;
@@ -50,6 +55,19 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
             <H1 small={true}>{title}</H1>
             {isSource && link && (<a className="text-gray-400 my-4 truncate underline block" href={link}>{link}</a>)}
+            {isExternal && (
+                <Banner className="my-6">
+                    <FiExternalLink/>
+                    <div className="ml-4">
+                        <span className="mr-2">This is a shortcut to the {pageNode.type} originally posted in </span>
+                        <InlineButton className="-my-[11px]" href={getProjectUrl(pageUser, originalProject)}>{originalProject.name}</InlineButton><br/>
+                        <span className="mr-2">See the original </span>
+                        <InlineButton className="-my-[11px]" href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
+                            here
+                        </InlineButton>
+                    </div>
+                </Banner>
+            )}
             <div className={`${(!isPublished || isUpdated) ? "sm:flex" : "flex"} items-center ${isSource ? "mb-8" : "my-8"} font-manrope text-gray-400 font-semibold w-full`}>
                 <div className="flex items-center justify-between flex-grow mb-2 sm:mb-0 order-2">
                     {!isPublished && (
@@ -64,8 +82,19 @@ export default function NodeInner({pageUser, pageNode, pageProject, thisUser, mo
                     )}
                     {isOwner && (
                         <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
-                            <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode._id}`}>Edit</MoreMenuItem>
-                            {modal && isPublished && <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>View as page</MoreMenuItem>}
+                            <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
+                                {`Edit${isExternal ? " (in original project)" : ""}`}
+                            </MoreMenuItem>
+                            {modal && isPublished && (
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
+                                    View as page
+                                </MoreMenuItem>
+                            )}
+                            {isExternal && (
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
+                                    View in original project
+                                </MoreMenuItem>
+                            )}
                         </MoreMenu>
                     )}
                 </div>

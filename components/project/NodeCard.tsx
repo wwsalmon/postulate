@@ -7,10 +7,18 @@ import UiH3 from "../style/UiH3";
 import NodeInner from "./NodeInner";
 import TruncatedText from "../standard/TruncatedText";
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
+import {FiExternalLink} from "react-icons/fi";
 
 const ThirdColumn = ({children}: {children: ReactNode}) => (
     <div className="md:w-1/3 md:px-4 my-4 md:my-0">
         {children}
+    </div>
+);
+
+export const ExternalBadge = ({className}: {className?: string}) => (
+    <div className={`flex items-center text-gray-400 text-xs font-manrope font-semibold ${className || ""}`}>
+        <FiExternalLink/>
+        <span className="ml-2">From another project</span>
     </div>
 );
 
@@ -20,6 +28,7 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
     const {pageNode, pageProject, pageUser, thisUser} = props;
 
     const isPublished = !!pageNode.body.publishedTitle;
+    const isExternal = !!pageNode.shortcutArr;
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const hasChanges = isOwner && isPublished && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
 
@@ -43,7 +52,7 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
     const takeaways = isPublished ? pageNode.body.publishedTakeaways : pageNode.body.takeaways;
     const summary = isPublished ? pageNode.body.publishedSummary : pageNode.body.summary;
 
-    const dateString = `Last ${isPublished ? "published" : "updated"} ${format(new Date(isPublished ? pageNode.body.lastPublishedDate : pageNode.updatedAt), "MMM d, yyyy")}`;
+    const dateString = `${format(new Date(isPublished ? pageNode.body.publishedDate : pageNode.createdAt), "MMM d, yyyy")}`;
 
     const StatusBadge = (props: HTMLProps<HTMLDivElement>) => (
         <div {...props}>
@@ -73,7 +82,12 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
                             <StatusBadge/>
                             <TruncatedText value={body}/>
                         </div>
-                        <p className="text-gray-400 text-sm mt-auto pt-4">{dateString}</p>
+                        <div className="flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto pt-4">
+                            <p className="mr-4">{dateString}</p>
+                            {isExternal && (
+                                <ExternalBadge/>
+                            )}
+                        </div>
                     </>
                 ) : (
                     <div className="w-full flex flex-col md:flex-row -my-4 md:my-0 md:-mx-4">
@@ -82,6 +96,9 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
                             <StatusBadge className="mb-2"/>
                             <p className="text-gray-500 text-sm mb-2 truncate">{link}</p>
                             <p className="text-gray-400 text-sm">{dateString}</p>
+                            {isExternal && (
+                                <ExternalBadge className="mt-2"/>
+                            )}
                         </ThirdColumn>
                         <ThirdColumn>
                             <UiH3 className="text-sm mb-2">Summary</UiH3>

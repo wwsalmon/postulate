@@ -67,10 +67,18 @@ const handler: NextApiHandler = nextApiEndpoint({
                                             },
                                         },
                                     ],
-                                    as: "shortcutsArr",
+                                    as: "shortcutArr",
                                 }
                             },
-                            {$match: {shortcutsArr: {$ne: []}}},
+                            {$match: {shortcutArr: {$ne: []}}},
+                            {
+                                $lookup: {
+                                    from: "projects",
+                                    foreignField: "_id",
+                                    localField: "projectId",
+                                    as: "orrProjectArr",
+                                }
+                            },
                         ],
                     },
                 },
