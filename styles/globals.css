@@ -51,45 +51,6 @@ body, div.chart-container {
     100% {transform: rotate(360deg); }
 }
 
-/* SimpleMDE styling */
-
-.EasyMDEContainer .editor-toolbar {
-    font-size: 1rem;
-    border: 0;
-    padding-left: 0;
-    padding-right: 0;
-    position: sticky;
-    top: 4rem;
-    z-index: 5;
-    background-color: white;
-}
-
-.modal-editor .EasyMDEContainer .editor-toolbar {
-    top: 0;
-}
-
-.EasyMDEContainer div.CodeMirror {
-    border: 0;
-    padding-left: 0;
-    padding-right: 0;
-}
-
-.snippet-editor .EasyMDEContainer div.CodeMirror-scroll {
-    min-height: 150px!important;
-}
-
-.prose .task-list-item:before {
-    display: none;
-}
-
-.prose li p, .prose blockquote p {
-    padding: 0;
-}
-
-.prose img {
-    max-height: unset;
-}
-
 /* replicate Slate styling for inline code */
 .prose p code {
     font-size: 85%;
@@ -100,4 +61,8 @@ body, div.chart-container {
 
 .slate-read-only-container p, .slate-read-only-container code, .slate-read-only-container pre, .slate-read-only-container blockquote {
     white-space: pre-wrap;
+}
+
+.prose a {
+    word-break: break-all;
 }
