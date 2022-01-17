@@ -21,8 +21,8 @@ export default function NodeShell(props: PublicNodePageProps) {
             <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
             <div className="px-4 lg:flex justify-center">
                 <div
-                    className={`order-1 mx-auto lg:mx-0 ${isPost ? "pb-32" : isSource ? "" : "p-8 border border-gray-300 rounded-md"}`}
-                    style={{maxWidth: "78ch"}} // 78ch bc font size is 16 here but we want 65ch for font size 20
+                    className={`order-1 mx-auto lg:mx-0 max-w-full ${isPost ? "pb-32" : isSource ? "" : "p-8 border border-gray-300 rounded-md"}`}
+                    style={{width: "78ch"}} // 78ch bc font size is 16 here but we want 65ch for font size 20
                 >
                     <NodeInner {...props}/>
                 </div>
