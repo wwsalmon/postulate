@@ -1,4 +1,4 @@
-import {signIn} from "next-auth/client";
+import {signIn} from "next-auth/react";
 import {FaGoogle} from "react-icons/fa";
 import React from "react";
 import UiButton from "../style/UiButton";

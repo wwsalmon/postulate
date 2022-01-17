@@ -1,4 +1,4 @@
-import {getSession} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import {GetServerSideProps} from "next";
 import {ssr404, ssrRedirect} from "next-response-helpers";
 import dbConnect from "../utils/dbConnect";

@@ -3,7 +3,7 @@ import {res200, res400, res404, res405, res500} from "next-response-helpers";
 import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
-import {getSession} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import {isUserIdMatch} from "../../../utils/apiUtils";
 import {NodeModel} from "../../../models/node";
 

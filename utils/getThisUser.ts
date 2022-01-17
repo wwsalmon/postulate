@@ -1,4 +1,4 @@
-import {getSession} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import {UserModel} from "../models/user";
 import {GetServerSidePropsContext} from "next";
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {signOut, useSession} from "next-auth/client";
+import {signOut, useSession} from "next-auth/react";
 import {FiChevronDown, FiGrid, FiSearch} from "react-icons/fi";
 import {useEffect} from "react";
 import {useRouter} from "next/router";
@@ -8,7 +8,7 @@ import UiButton from "../style/UiButton";
 
 export default function Navbar() {
     const router = useRouter();
-    const [session, loading] = useSession();
+    const {data: session, status} = useSession();
 
     const isPublicPage = ["/[username]/[projectUrlName]/p/[urlName]"].includes(router.route);
 
@@ -18,7 +18,7 @@ export default function Navbar() {
             username: session.username,
             email: session.user.email,
         });
-    }, [loading]);
+    }, [status]);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
@@ -54,7 +54,7 @@ export default function Navbar() {
                             <MoreMenuItem href="/profile">Profile</MoreMenuItem>
                             <MoreMenuItem onClick={() => signOut()}>Sign out</MoreMenuItem>
                         </MoreMenu>
-                    ) : loading ? (
+                    ) : status === "loading" ? (
                         <p>Loading...</p>
                     ) : (
                         <>

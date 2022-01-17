@@ -1,10 +1,10 @@
-import NextAuth, {InitOptions} from "next-auth";
-import Providers from "next-auth/providers";
+import NextAuth, {NextAuthOptions} from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import {NextApiRequest, NextApiResponse} from "next";
 
-const options: InitOptions = {
+const options: NextAuthOptions = {
     providers: [
-        Providers.Google({
+        GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET
         }),

@@ -1,6 +1,6 @@
 import React from "react";
 import {GetServerSideProps} from "next";
-import {getSession} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import SignInButton from "../../components/standard/SignInButton";
 import SEO from "../../components/standard/SEO";
 import {ssrRedirect} from "next-response-helpers";

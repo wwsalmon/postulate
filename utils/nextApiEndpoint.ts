@@ -1,9 +1,10 @@
 import {DatedObj, UserObj} from "./types";
 import {NextApiHandler, NextApiRequest, NextApiResponse} from "next";
-import {getSession, Session} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import dbConnect from "./dbConnect";
 import {UserModel} from "../models/user";
 import {res403, res405, res500} from "next-response-helpers";
+import {Session} from "next-auth";
 
 export type MethodFunction = (req: NextApiRequest, res: NextApiResponse, session: Session, thisUser?: DatedObj<UserObj>) => any;
 

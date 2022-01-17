@@ -1,7 +1,7 @@
 import SEO from "../../components/standard/SEO";
 import H1 from "../../components/style/H1";
 import {GetServerSideProps} from "next";
-import {getSession, useSession} from "next-auth/client";
+import {getSession, useSession} from "next-auth/react";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import React, {useState} from "react";
@@ -15,7 +15,7 @@ import {useRouter} from "next/router";
 export default function Welcome() {
     const router = useRouter();
 
-    const [session] = useSession();
+    const {data: session} = useSession();
     const [username, setUsername] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [usernameError, setUsernameError] = useState<boolean>(false);

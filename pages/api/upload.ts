@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {getSession} from "next-auth/client";
+import {getSession} from "next-auth/react";
 import multiparty from "multiparty";
 import short from "short-uuid";
 import {PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
@@ -9,8 +9,6 @@ import * as fs from "fs";
 import dbConnect from "../../utils/dbConnect";
 import {res200, res400, res403, res500} from "next-response-helpers";
 import {UserModel} from "../../models/user";
-import {ProjectModel} from "../../models/project";
-import {getErrorIfNotExistsAndAuthed} from "../../utils/apiUtils";
 
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res400(res);
@@ -59,7 +57,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
             const imageObj: ImageObj = {
                 key: fileKey,
-                userId: session.userId,
+                userId: thisUser._id,
                 size: thisFile.size,
             }
 
