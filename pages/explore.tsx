@@ -12,7 +12,7 @@ export default function OldExplore({}: {  }) {
             <hr className="my-8"/>
             <UserSearch/>
             <hr className="my-8"/>
-            <p>to be built</p>
+            <p>A full explore page is coming soon! <a href="https://twitter.com/postulateapp" className="underline">Follow Postulate on Twitter</a> for the latest updates.</p>
         </div>
     )
 }
