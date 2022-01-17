@@ -11,8 +11,9 @@ import PaginationBar from "../standard/PaginationBar";
 import Link from "next/link";
 import getProjectUrl from "../../utils/getProjectUrl";
 import InlineButton from "../style/InlineButton";
+import HomePostItem from "./HomePostItem";
 
-export default function NodeFeed({type, ...props}: ProjectPageProps & {type: NodeTypes, isSidebar?: boolean}) {
+export default function NodeFeed({type, isHome, ...props}: ProjectPageProps & {type: NodeTypes, isSidebar?: boolean, isHome?: boolean}) {
     const {pageProject, pageUser, thisUser, isSidebar} = props;
 
     const isOwner = thisUser && pageUser._id === thisUser._id;
@@ -20,7 +21,7 @@ export default function NodeFeed({type, ...props}: ProjectPageProps & {type: Nod
     const [iter, setIter] = useState<number>(0);
     const [page, setPage] = useState<number>(0);
 
-    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!!isOwner}&iter=${iter}&page=${page}&countPerPage=${isSidebar ? 6 : 20}`, fetcher);
+    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!isHome && !!isOwner}&iter=${iter}&page=${page}&countPerPage=${isSidebar ? 6 : 20}`, fetcher);
 
     const router = useRouter();
     const {refresh} = router.query;
@@ -44,7 +45,9 @@ export default function NodeFeed({type, ...props}: ProjectPageProps & {type: Nod
                     ))}
                 </div>
             )}
-            {(type !== "evergreen" || isSidebar) && data && data.nodes.map(node => type === "post" ? (
+            {(type !== "evergreen" || isSidebar) && data && data.nodes.map(node => type === "post" ? isHome ? (
+                <HomePostItem {...props} pageNode={node} className="mb-12 block" key={`project-post-${node._id}`}/>
+            ) : (
                 <PostItem
                     {...props}
                     pageNode={node}

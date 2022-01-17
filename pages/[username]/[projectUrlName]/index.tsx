@@ -3,11 +3,25 @@ import {GetServerSideProps} from "next";
 import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
 import MainShell from "../../../components/project/MainShell";
 import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
+import UiH3 from "../../../components/style/UiH3";
+import NodeFeed from "../../../components/project/NodeFeed";
+import {ProjectPageProps} from "../../../utils/getPublicNodeSSRFunction";
 
-export default function ProjectPage({pageProject, pageUser, thisUser}: { pageProject: DatedObj<ProjectObj>, pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+export default function ProjectPage(props: ProjectPageProps) {
     return (
-        <MainShell thisUser={thisUser} pageProject={pageProject} pageUser={pageUser}>
-            <p>home</p>
+        <MainShell {...props}>
+            <div className="md:flex mb-32">
+                <div className="flex-grow">
+                    <NodeFeed {...props} type="post" isHome={true}/>
+                </div>
+                <div className="md:w-64 md:ml-12 flex-shrink-0">
+                    <UiH3 className="mb-8 text-sm">Latest evergreens</UiH3>
+                    <NodeFeed {...props} type="evergreen" isSidebar={true}/>
+                    <hr className="my-12"/>
+                    <UiH3 className="mb-8 text-sm">Latest sources</UiH3>
+                    <NodeFeed {...props} type="source" isSidebar={true}/>
+                </div>
+            </div>
         </MainShell>
     );
 }

@@ -1,5 +1,5 @@
 import {Editable, ReactEditor, Slate, withReact} from "slate-react";
-import {createEditor, Node} from "slate";
+import {createEditor, Node, Text, Element as SlateElement} from "slate";
 import {withHistory} from "slate-history";
 import {Dispatch, SetStateAction, useCallback, useMemo} from "react";
 import {SlateLinkBalloon, withLinks} from "./link";
@@ -86,6 +86,14 @@ export function SlateReadOnly({value, fontSize, className}: {value: Node[], font
             </Slate>
         </div>
     );
+}
+
+export const getPlainTextFromSlateValue = (value: Node[]) => value.map(node => getPlainTextFromSlateNode(node)).join("\n");
+
+const getPlainTextFromSlateNode = (node: Node) => {
+    if (Text.isText(node)) return node.text;
+    if (SlateElement.isElement(node)) return getPlainTextFromSlateValue(node.children);
+    return "";
 }
 
 const Element = ({attributes, children, element}) => {
