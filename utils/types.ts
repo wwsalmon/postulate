@@ -1,6 +1,4 @@
-import {SessionBase} from "next-auth/_utils";
 import {Node} from "slate";
-import {ReactNode} from "react";
 
 export interface WaitlistAPIRes {
     data: {
@@ -43,16 +41,6 @@ export interface UserObjGraph extends UserObjWithProjects {
     linkedSnippetsArr: {count: number}[],
 }
 
-export interface ProjectObjWithOwnerWithProjects extends ProjectObj {
-    ownerArr: DatedObj<UserObjWithProjects>[],
-}
-
-export interface ProjectObjWithPageStats extends ProjectObj {
-    postsArr: {createdAt: string}[],
-    snippetsArr: {createdAt: string}[],
-    linkedSnippetsArr: {count: number}[],
-}
-
 export interface ProjectObjWithStats extends ProjectObj {
     postsArr: {
         _id: number,
@@ -90,10 +78,6 @@ export interface PostObj {
     privacy: privacyTypes,
 }
 
-export interface PostObjWithAuthor extends PostObj {
-    authorArr: DatedObj<UserObj>[],
-}
-
 export interface ImageObj {
     key: string, // key of S3 object
     userId: string, // ID of user who uploaded the object
@@ -102,48 +86,6 @@ export interface ImageObj {
     attachedType: "post" | "snippet",
     size: number, // size of image in bytes
 }
-export interface ReactionObj {
-    userId: string,
-    targetId: string,
-}
-
-export interface CommentObj {
-    userId: string,
-    targetId: string,
-    parentCommentId: string,
-    body: string,
-}
-
-export interface NotificationObj {
-    userId: string,
-    type: "postReaction" | "postComment" | "postCommentReply",
-    targetId: string, // ID of relevant object, i.e. a reaction or comment
-    read: boolean,
-}
-
-export interface NotificationWithAuthorAndTarget extends NotificationObj {
-    comment: (DatedObj<CommentObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
-    reaction: (DatedObj<ReactionObj> & {post: DatedObj<PostObjWithAuthor>[], authorArr: DatedObj<UserObj>[]})[],
-}
-
-interface LinkObjBase {
-    nodeType: "post" | "snippet",
-    nodeId: string,
-}
-
-interface LinkObjTargetUrl extends LinkObjBase {
-    targetType: "url",
-    targetUrl: string,
-    targetId?: never,
-}
-
-interface LinkObjTargetItem extends LinkObjBase {
-    targetType: "post" | "snippet",
-    targetId: string,
-    targetUrl?: never,
-}
-
-export type LinkObj = LinkObjTargetUrl | LinkObjTargetItem;
 
 export type NodeTypes = "snippet" | "post" | "evergreen" | "source";
 
@@ -167,10 +109,4 @@ export type DatedObj<T extends {}> = T & {
     _id: string,
     createdAt: string, // ISO date
     updatedAt: string, // ISO date
-}
-
-export interface SessionObj extends SessionBase {
-    userId: string,
-    username: string,
-    featuredProjects: string[],
 }
