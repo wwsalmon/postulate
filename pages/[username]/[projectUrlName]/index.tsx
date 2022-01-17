@@ -1,6 +1,5 @@
 import React from "react";
 import {GetServerSideProps} from "next";
-import {DatedObj, ProjectObj, UserObj} from "../../../utils/types";
 import MainShell from "../../../components/project/MainShell";
 import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
 import UiH3 from "../../../components/style/UiH3";

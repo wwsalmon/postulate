@@ -9,7 +9,7 @@ import LinesEllipsis from "react-lines-ellipsis";
 import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
 import {ExternalBadge} from "./NodeCard";
 
-export default function HomePostItem({pageNode, pageProject, pageUser, thisUser, ...props}: PublicNodePageProps & HTMLProps<HTMLAnchorElement>) {
+function HomePostItem({pageNode, pageProject, pageUser, thisUser, ...props}: PublicNodePageProps & HTMLProps<HTMLAnchorElement>) {
     const {publishedTitle: title, publishedBody: body, publishedDate, urlName} = pageNode.body;
 
     const isExternal = !!pageNode.shortcutArr;
@@ -43,3 +43,5 @@ export default function HomePostItem({pageNode, pageProject, pageUser, thisUser,
         </Link>
     );
 }
+
+export default React.memo(HomePostItem);
