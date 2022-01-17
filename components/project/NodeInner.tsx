@@ -4,7 +4,7 @@ import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {SlateReadOnly} from "../../slate/SlateEditor";
 import Badge from "../style/Badge";
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import {getIsNodeUpdated} from "../../pages/[username]/[projectUrlName]/[id]";
 import UiH3 from "../style/UiH3";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
@@ -98,6 +98,9 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !d.every(x => isNodeEmpty(x)));
 
     const [isDeleteShortcutOpen, setIsDeleteShortcutOpen] = useState<boolean>(false);
+    const [isMobile, setIsMobile] = useState<boolean>(false);
+
+    useEffect(() => {setIsMobile(window.matchMedia("(max-width: 600px)").matches)}, []);
 
     return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
         <>
@@ -188,7 +191,10 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                                         <React.Fragment key={field}>
                                             {i !== 0 && (<hr className="my-6 -mx-6"/>)}
                                             <UiH3 className="mb-2">{field.charAt(0).toUpperCase() + field.substr(1)}</UiH3>
-                                            <SlateReadOnly value={eval(field)} fontSize={isModal ? 18 : 20}/>
+                                            <SlateReadOnly
+                                                value={eval(field)}
+                                                fontSize={isModal ? (isMobile ? 16 : 18) : (isMobile ? 18 : 20)}
+                                            />
                                         </React.Fragment>
                                     ))
                             }
@@ -202,7 +208,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                     )}
                 </>
             ) : (
-                <SlateReadOnly value={body} fontSize={isModal ? 18 : 20}/>
+                <SlateReadOnly value={body} fontSize={isModal ? (isMobile ? 16 : 18) : (isMobile ? 18 : 20)}/>
             )}
         </>
     ) : (
