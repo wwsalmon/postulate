@@ -10,6 +10,7 @@ import Container from "../../components/style/Container";
 import {ssr404} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
 import getThisUser from "../../utils/getThisUser";
+import ProjectCard from "../../components/profile/ProjectCard";
 
 export default function Projects({pageUser, thisUser, projects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, projects: DatedObj<ProjectObj>[] }) {
     return (
@@ -23,9 +24,7 @@ export default function Projects({pageUser, thisUser, projects}: { pageUser: Dat
             <H1>All projects</H1>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">
                 {projects.map(project => (
-                    <div key={project._id} className="border">
-                        <p>{project.name}</p>
-                    </div>
+                    <ProjectCard pageUser={pageUser} pageProject={project} thisUser={thisUser} key={project._id}/>
                 ))}
             </div>
         </Container>
