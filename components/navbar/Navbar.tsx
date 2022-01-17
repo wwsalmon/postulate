@@ -1,9 +1,10 @@
 import Link from "next/link";
-import {useSession} from "next-auth/client";
-import {FiGrid, FiSearch} from "react-icons/fi";
+import {signOut, useSession} from "next-auth/client";
+import {FiChevronDown, FiGrid, FiSearch} from "react-icons/fi";
 import {useEffect} from "react";
 import InlineButton from "../style/InlineButton";
 import {useRouter} from "next/router";
+import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 
 export default function Navbar() {
     const router = useRouter();
@@ -44,7 +45,15 @@ export default function Navbar() {
                 </Link>
                 <div className="ml-auto flex items-center h-full">
                     {session ? (
-                        <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
+                        <MoreMenu button={(
+                            <button className="flex items-center p-1 rounded-md -mr-1 hover:bg-gray-100 transition">
+                                <FiChevronDown/>
+                                <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full ml-2"/>
+                            </button>
+                        )}>
+                            <MoreMenuItem href="/profile">Profile</MoreMenuItem>
+                            <MoreMenuItem onClick={() => signOut()}>Sign out</MoreMenuItem>
+                        </MoreMenu>
                     ) : loading ? (
                         <p>Loading...</p>
                     ) : (
