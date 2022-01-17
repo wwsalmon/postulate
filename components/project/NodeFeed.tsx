@@ -8,16 +8,19 @@ import {useRouter} from "next/router";
 import NodeCard from "./NodeCard";
 import PostItem from "./PostItem";
 import PaginationBar from "../standard/PaginationBar";
+import Link from "next/link";
+import getProjectUrl from "../../utils/getProjectUrl";
+import InlineButton from "../style/InlineButton";
 
-export default function NodeFeed({type, isSidebar, ...props}: ProjectPageProps & {type: NodeTypes, isSidebar?: boolean}) {
-    const {pageProject, pageUser, thisUser} = props;
+export default function NodeFeed({type, ...props}: ProjectPageProps & {type: NodeTypes, isSidebar?: boolean}) {
+    const {pageProject, pageUser, thisUser, isSidebar} = props;
 
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
     const [iter, setIter] = useState<number>(0);
     const [page, setPage] = useState<number>(0);
 
-    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!!isOwner}&iter=${iter}&page=${page}`, fetcher);
+    const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!!isOwner}&iter=${iter}&page=${page}&countPerPage=${isSidebar ? 6 : 20}`, fetcher);
 
     const router = useRouter();
     const {refresh} = router.query;
@@ -55,7 +58,13 @@ export default function NodeFeed({type, isSidebar, ...props}: ProjectPageProps &
                     key={`project-post-${node._id}`}
                 />
             ))}
-            <PaginationBar page={page} count={data ? data.count : 0} label={`${type}s`} setPage={setPage} countPerPage={20} className="mt-16 mb-32"/>
+            {isSidebar ? (
+                <InlineButton href={`${getProjectUrl(pageUser, pageProject)}/${type}s`} className="text-xs">
+                    All {type}s &gt;
+                </InlineButton>
+            ) : (
+                <PaginationBar page={page} count={data ? data.count : 0} label={`${type}s`} setPage={setPage} countPerPage={20} className="mt-16 mb-32"/>
+            )}
         </>
     );
 }

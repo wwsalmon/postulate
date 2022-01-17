@@ -18,7 +18,7 @@ const getPublishedFields = (type: NodeTypes) => [...(type === "source" ? sourceB
 
 const handler: NextApiHandler = nextApiEndpoint({
     getFunction: async function getFunction(req, res, session, thisUser) {
-        const {id, projectId, type, isOwner: queryIsOwner, page} = req.query;
+        const {id, projectId, type, isOwner: queryIsOwner, page, countPerPage: queryCountPerPage} = req.query;
         const isOwner = queryIsOwner === "true";
 
         if (id) {
@@ -46,6 +46,8 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             let sort = {}
             sort[isOwner ? "createdAt" : "body.publishedDate"] = -1;
+
+            const countPerPage = queryCountPerPage ? +queryCountPerPage : 20;
 
             const graph = (await NodeModel.aggregate([
                 {$match: match},
@@ -88,8 +90,8 @@ const handler: NextApiHandler = nextApiEndpoint({
                         count: [{$count: "count"}],
                         sample: [
                             {$sort: sort},
-                            {$skip: page ? (+page * 20) : 0},
-                            {$limit: 20},
+                            {$skip: page ? (+page * countPerPage) : 0},
+                            {$limit: countPerPage},
                         ],
                     }
                 },
