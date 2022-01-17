@@ -5,6 +5,7 @@ import {useEffect} from "react";
 import InlineButton from "../style/InlineButton";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
+import UiButton from "../style/UiButton";
 
 export default function Navbar() {
     const router = useRouter();
@@ -58,9 +59,9 @@ export default function Navbar() {
                         <p>Loading...</p>
                     ) : (
                         <>
-                            <InlineButton href="/auth/signin">
+                            <UiButton href="/auth/signin">
                                 Sign in
-                            </InlineButton>
+                            </UiButton>
                             {/*<SignInButton/>*/}
                         </>
                     )}
