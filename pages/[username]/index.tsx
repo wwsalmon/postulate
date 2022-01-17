@@ -20,6 +20,7 @@ import useSWR from "swr";
 import UiH3 from "../../components/style/UiH3";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
+import {ProjectModel} from "../../models/project";
 
 function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,7 +57,7 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
 
     return (
         <UiModal isOpen={isOpen} setIsOpen={setIsOpen} wide={true}>
-            <UiH3>Feature new project</UiH3>
+            <UiH3 className="mb-2">Feature new project</UiH3>
             <input
                 type="text"
                 className="focus:outline-none py-1 px-2 border border-gray-300 rounded-md flex-grow-1 w-full"
@@ -86,7 +87,7 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
     )
 }
 
-export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+export default function UserProfile({pageUser, thisUser, numProjects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
     const [iter, setIter] = useState<number>(0);
 
     const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
@@ -107,6 +108,9 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                     <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
                 )}
             </div>
+            {numProjects === 0 && (
+                <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
+            )}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
                     <ProjectCardFeatured
@@ -126,8 +130,9 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                             style={{minHeight: 160}}
                             onClick={() => setIsAddFeaturedOpen(true)}
                         >
-                            <div className="flex items-center justify-center rounded-full h-8 w-8 border">
+                            <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
                                 <FiPlus/>
+                                <span className="ml-2">Add featured project</span>
                             </div>
                         </button>
                         <FeaturedProjectModal
@@ -144,7 +149,7 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                         className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
                         style={{minHeight: 160, transition: "all 0.3s ease"}}
                     >
-                        <span className="mr-2">All projects</span>
+                        <span className="mr-2">All projects ({numProjects})</span>
                         <FiArrowRight/>
                     </a>
                 </Link>
@@ -172,9 +177,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!pageUser) return ssr404;
 
+        const numProjects = await ProjectModel.find({userId: pageUser._id}).countDocuments();
+
         const thisUser = await getThisUser(context);
 
-        return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), key: username }};
+        return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), numProjects, key: username }};
     } catch (e) {
         console.log(e);
         return ssr404;
