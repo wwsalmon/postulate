@@ -7,69 +7,70 @@ import {ImageModel} from "../../models/image";
 import {ImageObj} from "../../utils/types";
 import * as fs from "fs";
 import dbConnect from "../../utils/dbConnect";
+import {res200, res400, res403, res500} from "next-response-helpers";
+import {UserModel} from "../../models/user";
+import {ProjectModel} from "../../models/project";
+import {getErrorIfNotExistsAndAuthed} from "../../utils/apiUtils";
 
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
-    // check auth
-    const session = await getSession({req});
-    if (!session || !session.userId) return res.status(403).json({message: "You must be logged in to upload images."});
+    if (req.method !== "POST") return res400(res);
 
-    // check query params
-    if (Array.isArray(req.query.attachedUrlName) || !req.query.attachedUrlName) return res.status(406).json({message: "Missing attachedUrlName query param"});
-    if (Array.isArray(req.query.projectId) || !req.query.projectId) return res.status(406).json({message: "Missing projectId query param"});
-    if (Array.isArray(req.query.attachedType) || (req.query.attachedType !== "snippet" && req.query.attachedType !== "post")) return res.status(406).json({message: "Missing attachedType query param"});
+    try {
+        await dbConnect();
 
-    const attachedType = req.query.attachedType;
-    const attachedUrlName = encodeURIComponent(req.query.attachedUrlName);
-    const projectId = req.query.projectId;
+        // check auth
+        const session = await getSession({req});
+        if (!session) return res403(res);
 
-    const form = new multiparty.Form();
+        const thisUser = await UserModel.findOne({email: session.user.email});
 
-    form.parse(req, async (e, _, files) => {
-        const thisFile = files.image[0];
+        if (!thisUser) return res403(res);
 
-        // if image bigger than 2MB
-        if (thisFile.size / 1024 / 1024 > 2) {
-            return res.status(500).json({message: "Maximum allowed filesize is 2MB"});
-        }
+        const form = new multiparty.Form();
 
-        const newFilename = short.generate() + "-" + thisFile.originalFilename;
-        const fileKey = `${session.userId}/${projectId}/${newFilename}`;
+        form.parse(req, async (e, _, files) => {
+            const thisFile = files.image[0];
 
-        const s3Client = new S3Client({region: "us-west-1", credentials: {
-            accessKeyId: process.env.AWS_ACCESS,
-            secretAccessKey: process.env.AWS_SECRET,
-        }});
+            // if image bigger than 2MB
+            if (thisFile.size / 1024 / 1024 > 2) {
+                return res500(res, new Error("Maximum allowed filesize is 2MB"));
+            }
 
-        const putCommand = new PutObjectCommand({
-            Bucket: "postulate",
-            Key: fileKey,
-            Body: fs.createReadStream(thisFile.path),
-        });
+            const newFilename = short.generate() + "-" + thisFile.originalFilename;
+            const fileKey = `${thisUser._id}/${newFilename}`;
 
-        try {
+            const s3Client = new S3Client({
+                region: "us-west-1",
+                credentials: {
+                    accessKeyId: process.env.AWS_ACCESS,
+                    secretAccessKey: process.env.AWS_SECRET,
+                }
+            });
+
+            const putCommand = new PutObjectCommand({
+                Bucket: "postulate",
+                Key: fileKey,
+                Body: fs.createReadStream(thisFile.path),
+            });
+
             await s3Client.send(putCommand);
 
             fs.unlink(thisFile.path, () => null);
 
-            await dbConnect();
-
             const imageObj: ImageObj = {
                 key: fileKey,
                 userId: session.userId,
-                projectId: projectId,
-                attachedUrlName: attachedUrlName,
-                attachedType: attachedType,
                 size: thisFile.size,
             }
 
             await ImageModel.create(imageObj);
 
-            return res.status(200).json({data: {filePath: process.env.CLOUDFRONT_URL + fileKey}});
-        } catch (e) {
-            console.log(e);
-            return res.status(500).json({message: e});
-        }
-    });
+            return res200(res, {filePath: process.env.CLOUDFRONT_URL + fileKey});
+        });
+    } catch (e) {
+        console.log(e);
+        return res500(res, e);
+    }
 }
 
 export const config = {

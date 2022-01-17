@@ -2,7 +2,8 @@ import {CustomEditor, CustomElement} from "./slate-types";
 import {insertNodesAndClearEmpty} from "./withDeserializeMD";
 import {ReactNode} from "react";
 import {useFocused, useSelected} from "slate-react";
-import {Node, Element, Text} from "slate";
+import {Element, Node} from "slate";
+import axios from "axios";
 
 const withImages = (editor: CustomEditor) => {
     const {insertData, isVoid} = editor;
@@ -14,22 +15,26 @@ const withImages = (editor: CustomEditor) => {
         const {files} = data;
 
         if (files && files.length) {
-            for (const file of Array.from(files)) {
-                const reader = new FileReader();
-                const [mime] = file.type.split("/");
+            const file = files[0];
+            const [mime] = file.type.split("/");
 
-                if (mime === "image") {
-                    reader.addEventListener("load", () => {
-                        const url = reader.result.toString();
-                        insertImage(editor, url);
-                    });
-
-                    reader.readAsDataURL(file);
+            if (mime === "image") {
+                // if greater than 2 MB
+                if ((file.size / 1024 / 1024) > 2) {
+                    return window.alert("Maximum allowed filesize is 2MB");
                 }
+
+                const form = new FormData();
+                form.append("image", file);
+
+                axios.post("/api/upload", form).then(res => {
+                    const url = res.data.filePath;
+                    insertImage(editor, url);
+                });
             }
-        } else {
-            insertData(data);
-        };
+        }
+
+        insertData(data);
     };
 
     return editor;

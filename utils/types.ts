@@ -50,9 +50,6 @@ export interface PostObj {
 export interface ImageObj {
     key: string, // key of S3 object
     userId: string, // ID of user who uploaded the object
-    projectId: string, // ID of project that the image belongs to
-    attachedUrlName: string, // urlName of associated snippet or post
-    attachedType: "post" | "snippet",
     size: number, // size of image in bytes
 }
 
