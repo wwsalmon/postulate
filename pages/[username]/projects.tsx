@@ -11,17 +11,24 @@ import {ssr404} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
 import getThisUser from "../../utils/getThisUser";
 import ProjectCard from "../../components/profile/ProjectCard";
+import UiButton from "../../components/style/UiButton";
+import UserButton from "../../components/standard/UserButton";
 
 export default function Projects({pageUser, thisUser, projects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, projects: DatedObj<ProjectObj>[] }) {
+    const isOwner = thisUser && pageUser._id === thisUser._id;
+
     return (
         <Container>
             <div className="flex items-center mb-8">
-                <InlineButton href={`/@${pageUser.username}`} light={true}>
-                    {pageUser.name}
-                </InlineButton>
+                <UserButton user={pageUser}/>
                 <span className="mx-2 text-gray-300">/</span>
             </div>
-            <H1>All projects</H1>
+            <div className="flex items-center">
+                <H1>All projects</H1>
+                {isOwner && (
+                    <UiButton className="ml-auto">+ New</UiButton>
+                )}
+            </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">
                 {projects.map(project => (
                     <ProjectCard pageUser={pageUser} pageProject={project} thisUser={thisUser} key={project._id}/>
@@ -50,7 +57,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!pageUser) return ssr404;
 
-        const projects = await ProjectModel.find({userId: pageUser._id});
+        const projects = await ProjectModel.find({userId: pageUser._id}).sort({updatedAt: -1});
 
         const thisUser = await getThisUser(context);
 
