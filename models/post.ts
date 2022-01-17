@@ -1,7 +1,7 @@
-import mongoose, {Document, Model} from "mongoose";
-import {PostObj, SnippetObj} from "../utils/types";
+import mongoose, {Model} from "mongoose";
+import {PostObj} from "../utils/types";
 
-const PostSchema = new mongoose.Schema({
+const PostSchema = new mongoose.Schema<PostObj>({
     projectId: mongoose.Schema.Types.ObjectId,
     projectIds: [mongoose.Schema.Types.ObjectId],
     userId: mongoose.Schema.Types.ObjectId,
@@ -15,4 +15,4 @@ const PostSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const PostModel: Model<Document<PostObj>> = mongoose.models.post || mongoose.model("post", PostSchema);
+export const PostModel = mongoose.models.post as Model<PostObj> || mongoose.model<PostObj>("post", PostSchema);

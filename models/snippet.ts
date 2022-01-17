@@ -1,20 +1,12 @@
-import mongoose, {Document, Model} from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {SnippetObj} from "../utils/types";
 
-const SnippetSchema = new mongoose.Schema({
+const SnippetSchema = new mongoose.Schema<SnippetObj>({
     projectId: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
-    urlName: {type: String, required: true},
-    type: {type: String, required: true},
-    body: {type: String, required: false},
-    slateBody: {type: Object, required: false},
-    date: {type: String, required: true},
-    url: {type: String, required: false},
-    tags: [{type: String, required: true}],
-    linkedPosts: [mongoose.Schema.Types.ObjectId],
-    privacy: {type: String, required: true},
+    slateBody: {type: Object, required: true},
 }, {
     timestamps: true,
 });
 
-export const SnippetModel: Model<Document<SnippetObj>> = mongoose.models.snippet || mongoose.model("snippet", SnippetSchema);
+export const SnippetModel = mongoose.models.snippet as Model<SnippetObj> || mongoose.model<SnippetObj>("snippet", SnippetSchema);

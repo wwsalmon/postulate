@@ -1,100 +1,103 @@
-import type {NextApiRequest, NextApiResponse} from "next";
-import {getSession} from "next-auth/client";
+import {NextApiHandler} from "next";
+import nextApiEndpoint from "../../utils/nextApiEndpoint";
+import {res400, res403, res500, res404, res200} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
-import {SnippetModel} from "../../models/snippet";
 import {UserModel} from "../../models/user";
-import dbConnect from "../../utils/dbConnect";
+import {NodeModel} from "../../models/node";
+import {ShortcutModel} from "../../models/shortcut";
 import * as mongoose from "mongoose";
-import {aggregatePipeline} from "../../utils/utils";
-import {PostModel} from "../../models/post";
+import getLookup from "../../utils/getLookup";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const session = await getSession({ req });
+const handler: NextApiHandler = nextApiEndpoint({
+    getFunction: async function getFunction(req, res, session, thisUser) {
+        const {id, userId, featured: queryFeatured} = req.query;
 
-    switch (req.method) {
-        case "GET":
-            try {
-                await dbConnect();
+        const featured = queryFeatured === "true";
 
-                if (req.query.shared || req.query.userId) {
-                    let projects;
+        if (id) {
+            const project = await ProjectModel.findById(id);
 
-                    if (req.query.userId) {
-                        const thisUser = await UserModel.findById(req.query.userId);
-                        projects = await ProjectModel.aggregate([
-                            {
-                                $match: {
-                                    _id: {$in: thisUser.featuredProjects},
-                                },
-                            },
-                            ...aggregatePipeline,
-                        ]);
-                    } else {
-                        projects = await ProjectModel.aggregate([
-                            {
-                                $match: { collaborators: new mongoose.Types.ObjectId(session.userId) },
-                            },
-                            ...aggregatePipeline,
-                        ]);
-                    }
-                    const projectOwners = projects.map(d => d.userId.toString());
-                    const uniqueProjectOwners = projectOwners.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                    const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
-                    res.status(200).json({projects: projects, owners: owners});
-                } else {
-                    let matchConditions = { userId: new mongoose.Types.ObjectId(session.userId) };
-                    if (req.query.search) matchConditions["$text"] = {$search: req.query.search};
+            if (!project) return res404(res);
 
-                    let paginationConditions = req.query.page ? [
-                        {$skip: (+req.query.page - 1) * 10},
-                        {$limit: 10},
-                    ] : [];
+            return res200(res, {project});
+        }
 
-                    const projects = await ProjectModel.aggregate([
-                        {
-                            $match: matchConditions,
-                        },
-                        ...aggregatePipeline,
-                        ...paginationConditions,
-                    ]);
+        if (userId) {
+            const thisUser = await UserModel.findById(userId);
 
-                    const count = await ProjectModel.find(matchConditions).count();
+            if (!thisUser) return res404(res);
 
-                    res.status(200).json({projects: projects, count: count});
-                }
+            let projectQuery = {userId: userId.toString()};
 
-                return;
-            } catch (e) {
-                return res.status(500).json({message: e});
-            }
-        case "DELETE":
-            if (!session || !session.userId) {
-                return res.status(403).json({message: "You must be logged in to access this endpoint."});
-            }
+            if (featured) projectQuery["_id"] = {$in: thisUser.featuredProjects};
 
-            // ensure necessary post params are present
-            if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
+            const projects = await ProjectModel.find(projectQuery);
 
-            try {
-                await dbConnect();
+            return res200(res, {projects});
+        }
 
-                const thisProject = await ProjectModel.findOne({ _id: req.body.id });
+        return res400(res);
+    },
+    postFunction: async function postFunction(req, res, session, thisUser) {
+        const {name, description, urlName, id} = req.body;
 
-                if (!thisProject) return res.status(406).json({message: "No project found with given ID."});
+        if (!(name && description && urlName)) return res400(res);
 
-                if (thisProject.userId.toString() !== session.userId) return res.status(403).json({message: "You do not have permission to delete this snippet."});
+        let existingProjectQuery = {userId: thisUser._id, urlName: urlName};
 
-                await SnippetModel.deleteMany({ projectId: req.body.id });
-                await PostModel.deleteMany({ projectId: req.body.id });
-                await ProjectModel.deleteOne({ _id: req.body.id });
+        if (id) existingProjectQuery["_id"] = {$ne: id};
 
-                res.status(200).json({message: "Project successfully deleted."});
+        const existingProject = await ProjectModel.findOne(existingProjectQuery);
 
-                return;
-            } catch (e) {
-                return res.status(500).json({message: e});
-            }
-        default:
-            return res.status(405);
+        if (existingProject) return res200(res, {error: "urlNameError"});
+
+        const project = id ? (await ProjectModel.findOneAndUpdate({_id: id}, {
+            $set: {name, description, urlName},
+        }, {returnOriginal: false})) : (await ProjectModel.create({
+            userId: thisUser._id,
+            name: name,
+            description: description,
+            urlName: urlName,
+        }));
+
+        return res200(res, {project});
+    },
+    deleteFunction: async function deleteFunction(req, res, session, thisUser) {
+        const {id} = req.body;
+
+        const thisProject = await ProjectModel.findById(id);
+
+        if (!thisProject) return res404(res);
+
+        const shortcutsToDelete = await ProjectModel.aggregate([
+            {$match: {_id: mongoose.Types.ObjectId(id)}},
+            {
+                $lookup: {
+                    from: "nodes",
+                    let: {"projectId": "$_id"},
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$projectId", "$$projectId"]}}},
+                        getLookup("shortcuts", "targetId", "_id", "shortcutsArr"),
+                        {$match: {shortcutsArr: {$ne: []}}},
+                    ],
+                    as: "nodesArr",
+                },
+            },
+            {$unwind: "$nodesArr"},
+            {$unwind: "$nodesArr.shortcutsArr"},
+            {$project: {_id: "$nodesArr.shortcutsArr._id"}},
+        ]);
+
+        const shortcutIdsToDelete = shortcutsToDelete.map(d => d._id);
+
+        await ShortcutModel.deleteMany({$or: [{targetId: {$in: shortcutIdsToDelete}}, {projectId: id}]});
+
+        await NodeModel.deleteMany({projectId: id});
+
+        await ProjectModel.deleteOne({_id: id});
+
+        return res200(res);
     }
-}
+});
+
+export default handler;

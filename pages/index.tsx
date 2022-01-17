@@ -1,10 +1,10 @@
 import axios from "axios";
 import {useState} from "react";
 import {WaitlistAPIRes} from "../utils/types";
-import UpSEO from "../components/up-seo";
+import SEO from "../components/standard/SEO";
 import Link from "next/link";
-import UpInlineButton from "../components/style/UpInlineButton";
-// import Head from "next/head"
+import UiButton from "../components/style/UiButton";
+import {FiArrowDown} from "react-icons/fi";
 
 export default function Home() {
     const [email, setEmail] = useState<string>("");
@@ -23,11 +23,9 @@ export default function Home() {
         });
     }
 
-    const badgeClasses = "rounded-full up-bg-gray-100 w-10 h-10 mr-4 flex items-center justify-center";
-
     return (
         <>
-            <UpSEO/>
+            <SEO/>
             {/*<Head>*/}
             {/*    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PN2PEJYJES"/>*/}
             {/*    <script dangerouslySetInnerHTML={{__html: `*/}
@@ -114,13 +112,17 @@ export default function Home() {
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                 />
-                                <button className="up-button small primary ml-auto mt-2 sm:ml-4 sm:mt-0" onClick={onWaitlistSubmit}>Sign up for waitlist</button>
+                                <UiButton className="ml-auto mt-2 sm:ml-4 sm:mt-0" onClick={onWaitlistSubmit}>Sign up for waitlist</UiButton>
                             </div>
                         )}
                     </div>
+                    <div className="flex items-center mt-24 -mb-12 text-white text-lg font-manrope">
+                        <p>Click to see Laura's profile</p>
+                        <FiArrowDown/>
+                    </div>
                     <Link href="/@laura">
                         <a>
-                            <img src="/landing/hero-laura.png" alt="Laura Gao's Postulate profile" className="w-full border up-border-gray-200 rounded-lg relative -mt-12 top-32"/>
+                            <img src="/landing/hero-laura.png" alt="Laura Gao's Postulate profile" className="w-full border up-border-gray-200 rounded-lg relative -mt-12 top-24"/>
                         </a>
                     </Link>
                 </div>
@@ -150,7 +152,7 @@ export default function Home() {
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                 />
-                                <button className="up-button small primary ml-4" onClick={onWaitlistSubmit}>Sign up</button>
+                                <UiButton className="ml-4" onClick={onWaitlistSubmit}>Sign up</UiButton>
                             </div>
                         )}
                     </div>

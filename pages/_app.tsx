@@ -1,10 +1,10 @@
 import {AppProps} from "next/app";
 import "../styles/globals.css";
-import Navbar from "../components/navbar";
-import {Provider} from "next-auth/client";
+import Navbar from "../components/navbar/Navbar";
+import {SessionProvider} from "next-auth/react";
 import Router, {useRouter} from "next/router";
 import Modal from "react-modal";
-import Footer from "../components/footer";
+import Footer from "../components/navbar/Footer";
 import NProgress from "nprogress";
 import "../styles/nprogress.css";
 import {createContext, useState} from "react";
@@ -28,7 +28,7 @@ export default function App({Component, pageProps}: AppProps) {
 
     return (
         <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
-            <Provider session={pageProps.session}>
+            <SessionProvider session={pageProps.session}>
                 {!["/", "/old", "/writers"].includes(router.route) && (
                     <ToastProvider>
                         <Navbar/>
@@ -40,7 +40,7 @@ export default function App({Component, pageProps}: AppProps) {
                 {/*{router.route !== "/" && (*/}
                 {/*    <Footer/>*/}
                 {/*)}*/}
-            </Provider>
+            </SessionProvider>
         </NotifsContext.Provider>
     )
 }

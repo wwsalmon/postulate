@@ -1,7 +1,7 @@
 import {addDays, format, subDays} from "date-fns";
 import ResizeObserver from "react-resize-observer";
 import React, {useState} from "react";
-import ReactFrappeChart from "./frappe-chart";
+import ReactFrappeChart from "./standard/ReactFrappeChart";
 
 function makeGraphArr(arr: {createdAt: string}[], numDays: number) {
     const firstDayOnGraph = subDays(new Date(), numDays);

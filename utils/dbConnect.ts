@@ -14,8 +14,6 @@ async function dbConnect() {
         useUnifiedTopology: true,
         useFindAndModify: false,
         useCreateIndex: true,
-        maxIdleTimeMS: 10000,
-        socketTimeoutMS: 20000,
     });
 }
 

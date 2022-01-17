@@ -1,34 +1,40 @@
-import {NextApiRequest, NextApiResponse} from "next";
-import {getSession} from "next-auth/client";
-import dbConnect from "../../../utils/dbConnect";
+import {NextApiHandler} from "next";
+import nextApiEndpoint from "../../../utils/nextApiEndpoint";
+import {res400, res403, res404, res200} from "next-response-helpers";
 import {ProjectModel} from "../../../models/project";
 import {UserModel} from "../../../models/user";
+import {getErrorIfNotExistsAndAuthed} from "../../../utils/apiUtils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST" && req.method !== "DELETE") return res.status(405);
-    const session = await getSession({req});
+const handler: NextApiHandler = nextApiEndpoint({
+    postFunction: async function postFunction(req, res, session, thisUser) {
+        const {id} = req.body;
 
-    if (!session || !session.userId) return res.status(403).json({message: "Unauthed"});
+        const thisProject = await ProjectModel.findById(id);
 
-    if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
+        const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+        if (projectError) return projectError;
 
-    try {
-        await dbConnect();
+        if (thisUser.featuredProjects.some(d => d.toString() === thisProject._id.toString())) return res200(res, {message: "Already featured"});
 
-        const thisProject = await ProjectModel.findOne({_id: req.body.id});
+        // @ts-ignore todo: find out why it's unhappy and fix
+        await UserModel.updateOne({_id: thisUser._id}, {$push: {featuredProjects: thisProject._id}});
 
-        if (!thisProject) return res.status(404).json({message: "No project found for given ID"});
+        return res200(res);
+    },
+    deleteFunction: async function deleteFunction(req, res, session, thisUser) {
+        const {id} = req.body;
 
-        if ((thisProject.userId.toString() !== session.userId) && !thisProject.collaborators.includes(session.userId)) return res.status(403).json({message: "Unauthed"});
+        const thisProject = await ProjectModel.findById(id);
+        const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
+        if (projectError) return projectError;
 
-        const modificationObj = (req.method === "DELETE") ? { $pull: { featuredProjects: thisProject._id }} : { $push: { featuredProjects: thisProject._id }};
+        if (!thisUser.featuredProjects.some(d => d.toString() === thisProject._id.toString())) return res200(res, {message: "Already not featured"});
 
-        await UserModel.updateOne({ _id: session.userId }, modificationObj);
+        // @ts-ignore todo: find out why it's unhappy and fix
+        await UserModel.updateOne({_id: thisUser._id}, {$pull: {featuredProjects: thisProject._id}});
 
-        res.status(200).json({message: "Project successfully saved."});
-
-        return;
-    } catch (e) {
-        return res.status(500).json({message: e});
+        return res200(res);
     }
-}
+});
+
+export default handler;

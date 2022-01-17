@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             headers: { "api-key": process.env.SENDINBLUE_API_KEY },
         });
 
-        const waitlistApiRes = await axios.post("https://getwaitlist.com/waitlist", {
+        const waitlistApiRes = await axios.post("https://getwaitlist.com/api/v1/waitlists/submit", {
             email: req.body.email,
             api_key: process.env.WAITLIST_API_KEY,
             referral_link: req.body.url,
