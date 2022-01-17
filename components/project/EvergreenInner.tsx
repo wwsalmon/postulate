@@ -3,9 +3,9 @@ import {format} from "date-fns";
 import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {SlateReadOnly} from "../../slate/SlateEditor";
-import {PublicNodePageProps} from "../../pages/[username]/[projectUrlName]/p/[urlName]";
 import Badge from "../style/Badge";
 import React from "react";
+import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 
 export default function EvergreenInner({pageUser, pageNode, pageProject, thisUser, modal}: PublicNodePageProps & {modal?: boolean}) {
     const {body: {title: privateTitle, body: privateBody, publishedTitle, publishedBody, publishedDate, lastPublishedDate}, createdAt, updatedAt} = pageNode;

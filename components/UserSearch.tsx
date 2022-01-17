@@ -1,12 +1,12 @@
-import React, {Dispatch, SetStateAction, useState} from 'react';
+import React, {useState} from "react";
 import {DatedObj, UserObj} from "../utils/types";
-import useSWR, {responseInterface} from "swr";
+import useSWR from "swr";
 import {fetcher} from "../utils/utils";
 import Link from "next/link";
 
 export default function UserSearch() {
     const [query, setQuery] = useState<string>("");
-    const {data, error}: responseInterface<{results: DatedObj<UserObj>[]}, any> = useSWR(`/api/search/user?query=${query}`, query.length ? fetcher : () => []);
+    const {data} = useSWR<{results: DatedObj<UserObj>[]}>(`/api/search/user?query=${query}`, query.length ? fetcher : async () => []);
 
     return (
         <>
