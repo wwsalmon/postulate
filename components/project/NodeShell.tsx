@@ -19,14 +19,14 @@ export default function NodeShell(props: PublicNodePageProps) {
         <>
             <SEO title={pageNode.body.publishedTitle || `Untitled ${nodeType}`}/>
             <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
-            <div className="px-4 flex justify-center">
+            <div className="px-4 lg:flex justify-center">
                 <div
-                    className={`order-1 ${isPost ? "pb-32" : isSource ? "" : "p-8 border border-gray-300 rounded-md"}`}
+                    className={`order-1 mx-auto lg:mx-0 ${isPost ? "pb-32" : isSource ? "" : "p-8 border border-gray-300 rounded-md"}`}
                     style={{maxWidth: "78ch"}} // 78ch bc font size is 16 here but we want 65ch for font size 20
                 >
                     <NodeInner {...props}/>
                 </div>
-                <div className="w-64 flex-shrink-0 order-0 mr-12">
+                <div className="lg:w-64 flex-shrink-0 order-0 lg:mr-12 border-t border-gray-300 lg:border-none pt-8 lg:pt-0">
                     {/*<UserButton user={pageUser}/>*/}
                     <Link href={getProjectUrl(pageUser, pageProject)}>
                         <a>
