@@ -7,21 +7,22 @@ import {res403, res405, res500} from "next-response-helpers";
 
 export type MethodFunction = (req: NextApiRequest, res: NextApiResponse, session: Session, thisUser?: DatedObj<UserObj>) => any;
 
-export default function nextApiEndpoint({getFunction, postFunction, deleteFunction}: {
+export default function nextApiEndpoint({getFunction, postFunction, deleteFunction, allowUnAuthed}: {
                                             getFunction?: MethodFunction,
                                             postFunction?: MethodFunction,
                                             deleteFunction?: MethodFunction,
+                                            allowUnAuthed?: boolean,
                                         }): NextApiHandler {
     const handler: NextApiHandler = async (req, res) => {
         const session = await getSession({req});
 
-        if (!(req.method === "GET" || session)) return res403(res);
+        if (!(req.method === "GET" || session || allowUnAuthed)) return res403(res);
 
         try {
             await dbConnect();
 
             const thisUser = session ? (await UserModel.findOne({email: session.user.email})) : null;
-            if (!(req.method === "GET" || thisUser)) return res403(res);
+            if (!(req.method === "GET" || thisUser || allowUnAuthed)) return res403(res);
 
             switch (req.method) {
                 case "GET": {

@@ -18,7 +18,6 @@ export interface UserObj {
     image: string,
     bio: string,
     featuredProjects: string[], // array of IDs
-    featuredPosts: string[], // array of IDs
 }
 
 export interface ProjectObj {

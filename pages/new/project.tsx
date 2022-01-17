@@ -14,7 +14,7 @@ import getProjectUrl from "../../utils/getProjectUrl";
 import {useRouter} from "next/router";
 import SEO from "../../components/standard/SEO";
 
-function Field({value, setValue, placeholder}: {value: string, setValue: Dispatch<SetStateAction<string>>, placeholder: string}) {
+export function Field({value, setValue, placeholder}: {value: string, setValue: Dispatch<SetStateAction<string>>, placeholder: string}) {
     return (
         <input
             type="text"

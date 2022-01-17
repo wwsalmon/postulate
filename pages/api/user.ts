@@ -1,21 +1,42 @@
-import {NextApiRequest, NextApiResponse} from "next";
-import dbConnect from "../../utils/dbConnect";
+import {NextApiHandler} from "next";
+import nextApiEndpoint from "../../utils/nextApiEndpoint";
+import {res400, res403, res404, res200} from "next-response-helpers";
 import {UserModel} from "../../models/user";
-import * as mongoose from "mongoose";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "GET") return res.status(405);
-    if (!req.query.id || Array.isArray(req.query.id)) return res.status(406).json({message: "No ID found in request"});
+const handler: NextApiHandler = nextApiEndpoint({
+    getFunction: async function getFunction(req, res, session, thisUser) {
+        const {id} = req.query;
 
-    try {
-        await dbConnect();
-        
-        const user = await UserModel.findById(req.query.id);
+        if (!id) return res400(res);
 
-        if (!user) return res.status(404).json({message: "No user found"});
+        const user = await UserModel.findById(id);
 
-        return res.status(200).json({data: user});
-    } catch (e) {
-        return res.status(500).json({message: e});
-    }
-}
+        if (!user) return res404(res);
+
+        return res200(res, {user});
+    },
+    postFunction: async function postFunction(req, res, session, thisUser) {
+        const {id, name, username, email, image, bio} = req.body;
+
+        if (id) {
+            // todo: implement account updating
+            return res400(res);
+        }
+
+        if (!(name && username && email && image)) return res400(res);
+
+        const existingUser = await UserModel.findOne({username: username});
+
+        if (existingUser) return res200(res, {error: "usernameError"});
+
+        await UserModel.create({name, username, email, image, bio: "New Postulate user", featuredProjects: []});
+
+        return res200(res);
+    },
+    deleteFunction: async function deleteFunction(req, res, session, thisUser) {
+
+    },
+    allowUnAuthed: true
+});
+
+export default handler;
