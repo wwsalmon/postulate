@@ -1,5 +1,4 @@
 import SEO from "../standard/SEO";
-import InlineButton from "../style/InlineButton";
 import H1 from "../style/H1";
 import H2 from "../style/H2";
 import {FiChevronDown, FiSearch} from "react-icons/fi";
@@ -20,6 +19,7 @@ import {getInputStateProps, getSelectStateProps} from "react-controlled-componen
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
 import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
+import UserButton from "../standard/UserButton";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -184,9 +184,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
         <Container>
             <SEO title={pageProject.name}/>
             <div className="items-center mb-8 flex">
-                <InlineButton href={`/@${pageUser.username}`} light={true}>
-                    {pageUser.name}
-                </InlineButton>
+                <UserButton user={pageUser}/>
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <div className="mb-12">
