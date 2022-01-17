@@ -7,7 +7,7 @@ import UiButton from "../style/UiButton";
 import Button from "../headless/Button";
 import Container from "../style/Container";
 import {useRouter} from "next/router";
-import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
+import {MoreMenu, MoreMenuButton, MoreMenuItem} from "../headless/MoreMenu";
 import getProjectUrl from "../../utils/getProjectUrl";
 import SnippetsBar from "./SnippetsBar";
 import UiModal from "../style/UiModal";
@@ -20,6 +20,7 @@ import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
 import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
 import UserButton from "../standard/UserButton";
+import ConfirmModal from "../standard/ConfirmModal";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -136,10 +137,25 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
 
 export default function MainShell({pageProject, pageUser, thisUser, children}: ProjectPageProps & {children: ReactNode}) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
-    const {pathname} = useRouter();
-    const pageTab = pathname.split("/")[pathname.split("/").length - 1];
+    const router = useRouter();
+    const pageTab = router.pathname.split("/")[router.pathname.split("/").length - 1];
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+    const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+
+    function onDelete() {
+        if (!isOwner) return;
+
+        setIsDeleteLoading(true);
+
+        axios.delete("/api/project", {data: {id: pageProject._id}}).then(() => {
+            router.push(`/@${thisUser.username}/projects`);
+        }).catch(e => {
+            console.log(e);
+            setIsDeleteLoading(false);
+        });
+    }
 
     const Tabs = () => (
         <div className="overflow-x-auto">
@@ -188,7 +204,29 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
                 <span className="mx-2 up-gray-300">/</span>
             </div>
             <div className="mb-12">
-                <H1>{pageProject.name}</H1>
+                <div className="flex items-center">
+                    <H1>{pageProject.name}</H1>
+                    {isOwner && (
+                        <>
+                            <ConfirmModal
+                                isOpen={isDeleteOpen}
+                                setIsOpen={setIsDeleteOpen}
+                                isLoading={isDeleteLoading}
+                                setIsLoading={setIsDeleteLoading}
+                                onConfirm={onDelete}
+                                confirmText="Delete"
+                                colorClass="bg-red-500 hover:bg-red-700"
+                            >
+                                <p className="my-2">Are you sure you want to delete the project <b>{pageProject.name}</b>?</p>
+                                <p className="my-2 font-bold">This will delete all posts, evergreens, sources, and snippets attached to the project as well.</p>
+                            </ConfirmModal>
+                            <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/settings`}>Settings</MoreMenuItem>
+                                <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
+                            </MoreMenu>
+                        </>
+                    )}
+                </div>
                 {pageProject.description && (
                     <H2 className="mt-2">{pageProject.description}</H2>
                 )}
