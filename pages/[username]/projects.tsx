@@ -13,12 +13,14 @@ import getThisUser from "../../utils/getThisUser";
 import ProjectCard from "../../components/profile/ProjectCard";
 import UiButton from "../../components/style/UiButton";
 import UserButton from "../../components/standard/UserButton";
+import SEO from "../../components/standard/SEO";
 
 export default function Projects({pageUser, thisUser, projects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, projects: DatedObj<ProjectObj>[] }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
     return (
         <Container>
+            <SEO title={`${pageUser.name}'s projects`}/>
             <div className="flex items-center mb-8">
                 <UserButton user={pageUser}/>
                 <span className="mx-2 text-gray-300">/</span>
@@ -29,11 +31,16 @@ export default function Projects({pageUser, thisUser, projects}: { pageUser: Dat
                     <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
                 )}
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">
-                {projects.map(project => (
-                    <ProjectCard pageUser={pageUser} pageProject={project} thisUser={thisUser} key={project._id}/>
-                ))}
-            </div>
+            {projects.length ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 my-12">
+                    {projects.map(project => (
+                        <ProjectCard pageUser={pageUser} pageProject={project} thisUser={thisUser} key={project._id}/>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-gray-400 mt-8">No projects yet. Create one by clicking the button above!</p>
+            )}
+
         </Container>
     );
 }
