@@ -16,6 +16,7 @@ import Banner from "../style/Banner";
 import {useRouter} from "next/router";
 import axios from "axios";
 import ConfirmModal from "../standard/ConfirmModal";
+import slateWordCount from "../../slate/slateWordCount";
 
 function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
@@ -173,6 +174,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                     <span className="mr-4">{format(new Date(publishedDate || createdAt), "MMM d, yyyy")}</span>
                     {isPublished && publishedDate !== lastPublishedDate && (<span className="mr-4">Last updated {format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
+                    {isPost && (<span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>)}
                 </div>
             </div>
             {isSource ? (
