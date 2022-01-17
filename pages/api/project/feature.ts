@@ -22,7 +22,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res200(res);
     },
     deleteFunction: async function deleteFunction(req, res, session, thisUser) {
-        const {id} = req.query;
+        const {id} = req.body;
 
         const thisProject = await ProjectModel.findById(id);
         const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);

@@ -19,7 +19,7 @@ import UiButton from "../../components/style/UiButton";
 import useSWR from "swr";
 import UiH3 from "../../components/style/UiH3";
 import {getInputStateProps} from "react-controlled-component-helpers";
-import ProjectCard from "../../components/profile/ProjectCard";
+import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 
 function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -108,7 +108,15 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                 )}
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => (
+                {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
+                    <ProjectCardFeatured
+                        pageUser={pageUser}
+                        pageProject={project}
+                        thisUser={thisUser}
+                        iter={iter}
+                        setIter={setIter}
+                    />
+                ) : (
                     <ProjectCard pageProject={project} pageUser={pageUser} thisUser={thisUser} key={project._id}/>
                 ))}
                 {isOwner && (
