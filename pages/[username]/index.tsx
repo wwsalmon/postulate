@@ -104,7 +104,7 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
             <div className="flex items-center mt-12 mb-8">
                 <H3>Pinned repositories</H3>
                 {isOwner && (
-                    <UiButton className="ml-auto">+ New</UiButton>
+                    <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
                 )}
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

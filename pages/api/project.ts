@@ -1,6 +1,6 @@
 import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
-import {res400, res403, res404, res200} from "next-response-helpers";
+import {res400, res403, res500, res404, res200} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
 import {UserModel} from "../../models/user";
 
@@ -35,9 +35,22 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res400(res);
     },
     postFunction: async function postFunction(req, res, session, thisUser) {
-        // to implement
+        const {name, description, urlName} = req.body;
 
-        return res200(res);
+        if (!(name && description && urlName)) return res400(res);
+
+        const existingProject = await ProjectModel.findOne({userId: thisUser._id, urlName: urlName});
+
+        if (existingProject) return res200(res, {error: "urlNameError"});
+
+        const project = await ProjectModel.create({
+            userId: thisUser._id,
+            name: name,
+            description: description,
+            urlName: urlName,
+        });
+
+        return res200(res, {project});
     },
     deleteFunction: async function deleteFunction(req, res, session, thisUser) {
         // to implement
