@@ -21,6 +21,7 @@ import {fetcher} from "../../utils/utils";
 import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
 import UserButton from "../standard/UserButton";
 import ConfirmModal from "../standard/ConfirmModal";
+import {Field} from "../../pages/new/project";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -100,17 +101,12 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
                 />
             </div>
             <div className="flex items-center my-4">
-                <select {...getSelectStateProps(type, setType)} className="focus:outline-none py-1 px-2 border border-gray-300 rounded-md mr-2">
+                <select {...getSelectStateProps(type, setType)} className="focus:outline-none p-2 border border-gray-300 rounded-md mr-2">
                     {["Post", "Evergreen", "Source"].map(type => (
                         <option key={type} value={type.toLowerCase()}>{type}</option>
                     ))}
                 </select>
-                <input
-                    type="text"
-                    className="focus:outline-none py-1 px-2 border border-gray-300 rounded-md flex-grow-1 w-full"
-                    placeholder={`Search for ${type} by title`}
-                    {...getInputStateProps(query, setQuery)}
-                />
+                <Field value={query} setValue={setQuery} placeholder={`Search for ${type} by title`}/>
             </div>
             <div className="my-4">
                 {data && data.nodes.map((node, i) => (

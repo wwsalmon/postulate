@@ -21,6 +21,7 @@ import UiH3 from "../../components/style/UiH3";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 import {ProjectModel} from "../../models/project";
+import {Field} from "../new/project";
 
 function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,12 +59,7 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
     return (
         <UiModal isOpen={isOpen} setIsOpen={setIsOpen} wide={true}>
             <UiH3 className="mb-2">Feature new project</UiH3>
-            <input
-                type="text"
-                className="focus:outline-none py-1 px-2 border border-gray-300 rounded-md flex-grow-1 w-full"
-                placeholder={`Search for project by name`}
-                {...getInputStateProps(query, setQuery)}
-            />
+            <Field value={query} setValue={setQuery} placeholder="Search for project by name"/>
             <div className="my-4">
                 {data && data.projects.map((node, i) => (
                     <label htmlFor={`radio-${node._id}`} key={node._id} className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer">
