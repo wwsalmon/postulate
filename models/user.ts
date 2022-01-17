@@ -1,7 +1,7 @@
-import mongoose, {Model, Document} from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {UserObj} from "../utils/types";
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema<UserObj>({
     email: {type: String, required: true},
     name: {type: String, required: true},
     username: {type: String, required: true, unique: true},
@@ -12,4 +12,4 @@ const UserSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const UserModel: Model<Document<UserObj>> = (!!mongoose.models && mongoose.models.user) || mongoose.model("user", UserSchema);
+export const UserModel = (!!mongoose.models && mongoose.models.user as Model<UserObj>) || mongoose.model<UserObj>("user", UserSchema);

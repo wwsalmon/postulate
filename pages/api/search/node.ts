@@ -32,7 +32,7 @@ const handler: NextApiHandler = async (req, res) => {
         if (userId) {
             const pageUser = await UserModel.findById(userId);
             if (!pageUser) return res404(res);
-            includePrivate =  isUserIdMatch(pageUser, thisUser);
+            includePrivate =  pageUser._id.toString() === thisUser._id.toString();
         }
 
         let mongoQuery = {};

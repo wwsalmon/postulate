@@ -1,7 +1,7 @@
-import mongoose, {Document, Model} from "mongoose";
-import {ShortcutObj} from "../utils/types";
+import mongoose, {Model} from "mongoose";
+import {PostObj} from "../utils/types";
 
-const ShortcutSchema = new mongoose.Schema({
+const ShortcutSchema = new mongoose.Schema<PostObj>({
     projectId: mongoose.Schema.Types.ObjectId,
     userId: mongoose.Schema.Types.ObjectId,
     targetId: mongoose.Schema.Types.ObjectId,
@@ -11,4 +11,4 @@ const ShortcutSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const ShortcutModel: Model<Document<ShortcutObj>> = (!!mongoose.models && mongoose.models.shortcut) || mongoose.model("shortcut", ShortcutSchema);
+export const ShortcutModel = (!!mongoose.models && mongoose.models.shortcut as Model<PostObj>) || mongoose.model<PostObj>("shortcut", ShortcutSchema);

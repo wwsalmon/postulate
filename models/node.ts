@@ -1,4 +1,4 @@
-import mongoose, {Document, Model} from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {NodeObj} from "../utils/types";
 
 const NodeSchema = new mongoose.Schema({
@@ -10,4 +10,4 @@ const NodeSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const NodeModel: Model<Document<NodeObj>> = (!!mongoose.models && mongoose.models.node) || mongoose.model("node", NodeSchema);
+export const NodeModel = (!!mongoose.models && mongoose.models.node as Model<NodeObj>) || mongoose.model<NodeObj>("node", NodeSchema);

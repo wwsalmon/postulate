@@ -1,7 +1,7 @@
-import mongoose, {Document, Model} from "mongoose";
+import mongoose, {Model} from "mongoose";
 import {ProjectObj} from "../utils/types";
 
-const ProjectSchema = new mongoose.Schema({
+const ProjectSchema = new mongoose.Schema<ProjectObj>({
     userId: mongoose.Schema.Types.ObjectId,
     urlName: {type: String, required: true},
     name: {type: String, required: true},
@@ -10,4 +10,4 @@ const ProjectSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-export const ProjectModel: Model<Document<ProjectObj>> = (!!mongoose.models && mongoose.models.project) || mongoose.model("project", ProjectSchema);
+export const ProjectModel = (!!mongoose.models && mongoose.models.project as Model<ProjectObj>) || mongoose.model<ProjectObj>("project", ProjectSchema);
