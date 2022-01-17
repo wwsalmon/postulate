@@ -51,10 +51,22 @@ export default function NodeShell(props: PublicNodePageProps) {
                                 />
                             </Tab.Panel>
                             <Tab.Panel>
-
+                                <NodeFeed
+                                    pageUser={pageUser}
+                                    pageProject={pageProject}
+                                    thisUser={thisUser}
+                                    type="evergreen"
+                                    isSidebar={true}
+                                />
                             </Tab.Panel>
                             <Tab.Panel>
-
+                                <NodeFeed
+                                    pageUser={pageUser}
+                                    pageProject={pageProject}
+                                    thisUser={thisUser}
+                                    type="source"
+                                    isSidebar={true}
+                                />
                             </Tab.Panel>
                         </Tab.Panels>
                     </Tab.Group>

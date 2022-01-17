@@ -33,7 +33,7 @@ export default function NodeFeed({type, ...props}: ProjectPageProps & {type: Nod
 
     return (
         <>
-            {type === "evergreen" && (
+            {type === "evergreen" && !isSidebar && (
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {data && data.nodes.map(node => (
                         <NodeCard
@@ -44,18 +44,18 @@ export default function NodeFeed({type, ...props}: ProjectPageProps & {type: Nod
                     ))}
                 </div>
             )}
-            {type !== "evergreen" && data && data.nodes.map(node => type === "source" ? (
+            {(type !== "evergreen" || isSidebar) && data && data.nodes.map(node => type === "post" ? (
+                <PostItem
+                    {...props}
+                    pageNode={node}
+                    key={`project-post-${node._id}`}
+                />
+            ) : (
                 <NodeCard
                     {...props}
                     pageNode={node}
                     key={`project-evergreen-${node._id}`}
                     className="mb-4"
-                />
-            ) : (
-                <PostItem
-                    {...props}
-                    pageNode={node}
-                    key={`project-post-${node._id}`}
                 />
             ))}
             {isSidebar ? (

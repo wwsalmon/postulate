@@ -22,7 +22,7 @@ export const ExternalBadge = ({className}: {className?: string}) => (
     </div>
 );
 
-export default function NodeCard(props: PublicNodePageProps & {className?: string}) {
+export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {className?: string, isSidebar?: boolean}) {
     const router = useRouter();
     const {id} = router.query;
     const {pageNode, pageUser, thisUser} = props;
@@ -69,21 +69,37 @@ export default function NodeCard(props: PublicNodePageProps & {className?: strin
         </div>
     );
 
+    const StatusParagraph = (props: HTMLProps<HTMLParagraphElement>) => (
+        <p {...props}>
+            {!isPublished && "Unpublished draft"}
+            {hasChanges && "Unpublished changes"}
+        </p>
+    );
+
     return (
         <>
             <button
-                className={`p-4 border border-gray-300 rounded-md ${pageNode.type === "evergreen" ? "flex flex-col" : "w-full"} text-left ${props.className || ""}`}
+                className={`${isSidebar ? "p-3 w-full" : "p-4"} border border-gray-300 rounded-md ${pageNode.type === "evergreen" ? "flex flex-col" : "w-full"} text-left ${props.className || ""}`}
                 onClick={() => setIsModalOpen(true)}
             >
-                {pageNode.type === "evergreen" ? (
+                {(pageNode.type === "evergreen" || isSidebar) ? (
                     <>
                         <div>
-                            <h3 className="font-manrope font-semibold mb-1">{title}</h3>
-                            <StatusBadge/>
-                            <TruncatedText value={body}/>
+                            <h3 className={`font-manrope font-semibold ${isSidebar ? "text-sm" : "mb-1"}`}>{title}</h3>
+                            {!isSidebar && (
+                                <StatusBadge/>
+                            )}
+                            {pageNode.type === "evergreen" ? (
+                                <TruncatedText value={body} isSmall={true}/>
+                            ) : (
+                                <p className="text-gray-500 text-xs mt-2 font-medium truncate">{link}</p>
+                            )}
                         </div>
-                        <div className="flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto pt-4">
-                            <p className="mr-4">{dateString}</p>
+                        <div className={`flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto ${isSidebar ? "pt-2" : "pt-4"}`}>
+                            <p className={isSidebar ? "mr-3" : "mr-4"}>{dateString}</p>
+                            {isSidebar && (
+                                <StatusParagraph/>
+                            )}
                             {isExternal && (
                                 <ExternalBadge/>
                             )}
