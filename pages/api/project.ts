@@ -1,100 +1,49 @@
-import type {NextApiRequest, NextApiResponse} from "next";
-import {getSession} from "next-auth/client";
+import {NextApiHandler} from "next";
+import nextApiEndpoint from "../../utils/nextApiEndpoint";
+import {res400, res403, res404, res200} from "next-response-helpers";
 import {ProjectModel} from "../../models/project";
-import {SnippetModel} from "../../models/snippet";
 import {UserModel} from "../../models/user";
-import dbConnect from "../../utils/dbConnect";
-import * as mongoose from "mongoose";
-import {aggregatePipeline} from "../../utils/utils";
-import {PostModel} from "../../models/post";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const session = await getSession({ req });
+const handler: NextApiHandler = nextApiEndpoint({
+    getFunction: async function getFunction(req, res, session, thisUser) {
+        const {id, userId, featured: queryFeatured} = req.query;
 
-    switch (req.method) {
-        case "GET":
-            try {
-                await dbConnect();
+        const featured = queryFeatured === "true";
 
-                if (req.query.shared || req.query.userId) {
-                    let projects;
+        if (id) {
+            const project = await ProjectModel.findById(id);
 
-                    if (req.query.userId) {
-                        const thisUser = await UserModel.findById(req.query.userId);
-                        projects = await ProjectModel.aggregate([
-                            {
-                                $match: {
-                                    _id: {$in: thisUser.featuredProjects},
-                                },
-                            },
-                            ...aggregatePipeline,
-                        ]);
-                    } else {
-                        projects = await ProjectModel.aggregate([
-                            {
-                                $match: { collaborators: new mongoose.Types.ObjectId(session.userId) },
-                            },
-                            ...aggregatePipeline,
-                        ]);
-                    }
-                    const projectOwners = projects.map(d => d.userId.toString());
-                    const uniqueProjectOwners = projectOwners.filter((d, i, a) => a.findIndex(x => x === d) === i);
-                    const owners = await UserModel.find({ _id: {$in: uniqueProjectOwners }});
-                    res.status(200).json({projects: projects, owners: owners});
-                } else {
-                    let matchConditions = { userId: new mongoose.Types.ObjectId(session.userId) };
-                    if (req.query.search) matchConditions["$text"] = {$search: req.query.search};
+            if (!project) return res404(res);
 
-                    let paginationConditions = req.query.page ? [
-                        {$skip: (+req.query.page - 1) * 10},
-                        {$limit: 10},
-                    ] : [];
+            return res200(res, {project});
+        }
 
-                    const projects = await ProjectModel.aggregate([
-                        {
-                            $match: matchConditions,
-                        },
-                        ...aggregatePipeline,
-                        ...paginationConditions,
-                    ]);
+        if (userId) {
+            const thisUser = await UserModel.findById(userId);
 
-                    const count = await ProjectModel.find(matchConditions).count();
+            if (!thisUser) return res404(res);
 
-                    res.status(200).json({projects: projects, count: count});
-                }
+            let projectQuery = {userId: userId};
 
-                return;
-            } catch (e) {
-                return res.status(500).json({message: e});
-            }
-        case "DELETE":
-            if (!session || !session.userId) {
-                return res.status(403).json({message: "You must be logged in to access this endpoint."});
-            }
+            if (featured) projectQuery["_id"] = {$in: thisUser.featuredProjects};
 
-            // ensure necessary post params are present
-            if (!req.body.id) return res.status(406).json({message: "No project ID found in request."});
+            const projects = await ProjectModel.find(projectQuery);
 
-            try {
-                await dbConnect();
+            return res200(res, {projects});
+        }
 
-                const thisProject = await ProjectModel.findOne({ _id: req.body.id });
+        return res400(res);
+    },
+    postFunction: async function postFunction(req, res, session, thisUser) {
+        // to implement
 
-                if (!thisProject) return res.status(406).json({message: "No project found with given ID."});
+        return res200(res);
+    },
+    deleteFunction: async function deleteFunction(req, res, session, thisUser) {
+        // to implement
 
-                if (thisProject.userId.toString() !== session.userId) return res.status(403).json({message: "You do not have permission to delete this snippet."});
-
-                await SnippetModel.deleteMany({ projectId: req.body.id });
-                await PostModel.deleteMany({ projectId: req.body.id });
-                await ProjectModel.deleteOne({ _id: req.body.id });
-
-                res.status(200).json({message: "Project successfully deleted."});
-
-                return;
-            } catch (e) {
-                return res.status(500).json({message: e});
-            }
-        default:
-            return res.status(405);
+        return res200(res);
     }
-}
+});
+
+export default handler;

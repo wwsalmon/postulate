@@ -34,10 +34,10 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const isDisabled = !nodes.length;
+    const isDisabled = !nodes.length || selectedIndex === null;
 
     function onSubmit() {
-        if (!nodes.length || selectedIndex === null) return;
+        if (isDisabled) return;
 
         const currType = type;
 

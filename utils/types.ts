@@ -31,16 +31,6 @@ export interface ProjectObj {
     availableTags: string[],
 }
 
-export interface UserObjWithProjects extends UserObj {
-    projectsArr: DatedObj<ProjectObjWithStats>[],
-}
-
-export interface UserObjGraph extends UserObjWithProjects {
-    postsArr: {createdAt: string}[],
-    snippetsArr: {createdAt: string}[],
-    linkedSnippetsArr: {count: number}[],
-}
-
 export interface ProjectObjWithStats extends ProjectObj {
     postsArr: {
         _id: number,

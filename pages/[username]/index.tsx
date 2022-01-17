@@ -1,48 +1,98 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
-import {cleanForJSON, UserObjWithGraphAggregationPipeline} from "../../utils/utils";
-import {DatedObj, ProjectObjWithStats, UserObj, UserObjGraph} from "../../utils/types";
+import {cleanForJSON, fetcher} from "../../utils/utils";
+import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
 import H3 from "../../components/style/H3";
 import SEO from "../../components/standard/SEO";
-import ProfileProjectItem from "../../components/profile/ProfileProjectItem";
 import {FiArrowRight, FiPlus} from "react-icons/fi";
 import UiModal from "../../components/style/UiModal";
 import axios from "axios";
-import ProjectBrowser from "../../components/profile/ProjectBrowser";
 import Link from "next/link";
 import {ssr404} from "next-response-helpers";
 import getThisUser from "../../utils/getThisUser";
 import Container from "../../components/style/Container";
 import UiButton from "../../components/style/UiButton";
+import useSWR from "swr";
+import UiH3 from "../../components/style/UiH3";
+import {getInputStateProps} from "react-controlled-component-helpers";
 
-export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<UserObjGraph>, thisUser: DatedObj<UserObj> }) {
-    const [addFeaturedOpen, setAddFeaturedOpen] = useState<boolean>(false);
-    const [featuredIter, setFeaturedIter] = useState<number>(0);
-    const [featuredProjects, setFeaturedProjects] = useState<DatedObj<ProjectObjWithStats>[]>(pageUser.projectsArr.filter(d => pageUser.featuredProjects.includes(d._id)));
-    const isOwner = thisUser && thisUser._id === pageUser._id;
+function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [query, setQuery] = useState<string>("");
+    const [projects, setProjects] = useState<DatedObj<ProjectObj>[]>([]);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-    useEffect(() => {
-        axios.get(`/api/project?userId=${pageUser._id}&featured=true`).then(res => {
-            setFeaturedProjects(res.data.projects);
-        }).catch(e => console.log(e));
-    }, [featuredIter]);
+    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, fetcher);
 
-    function onSubmitFeaturedProject(selectedProjectId: string, setIsLoading: Dispatch<SetStateAction<boolean>>){
+    const isDisabled = !projects.length || selectedIndex === null;
+
+    function onSubmit(){
+        if (isDisabled) return;
+
         setIsLoading(true);
 
-        axios.post(`/api/project/feature`, {id: selectedProjectId}).then(() => {
+        axios.post(`/api/project/feature`, {id: projects[selectedIndex]._id}).then(() => {
             setIsLoading(false);
-            setFeaturedIter(featuredIter + 1);
-            setAddFeaturedOpen(false);
+            setQuery("");
+            setIter(iter + 1);
+            setIsOpen(false);
         }).catch(e => {
-            setIsLoading(false);
             console.log(e);
+            setIsLoading(false);
         });
     }
+
+    useEffect(() => {
+        if (data && data.projects) {
+            setSelectedIndex(null);
+            setProjects(data.projects);
+        }
+    }, [data]);
+
+    return (
+        <UiModal isOpen={isOpen} setIsOpen={setIsOpen} wide={true}>
+            <UiH3>Feature new project</UiH3>
+            <input
+                type="text"
+                className="focus:outline-none py-1 px-2 border border-gray-300 rounded-md flex-grow-1 w-full"
+                placeholder={`Search for project by name`}
+                {...getInputStateProps(query, setQuery)}
+            />
+            <div className="my-4">
+                {data && data.projects.map((node, i) => (
+                    <label htmlFor={`radio-${node._id}`} key={node._id} className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            checked={i === selectedIndex}
+                            onClick={() => setSelectedIndex(i)}
+                            id={`radio-${node._id}`}
+                        />
+                        <span className="ml-2">{node.name}</span>
+                    </label>
+                ))}
+            </div>
+            <UiButton onClick={onSubmit} disabled={isDisabled} isLoading={isLoading}>
+                Add
+            </UiButton>
+            <UiButton noBg={true} onClick={() => setIsOpen(false)} disabled={isLoading} className="ml-2">
+                Cancel
+            </UiButton>
+        </UiModal>
+    )
+}
+
+export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+    const [iter, setIter] = useState<number>(0);
+
+    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
+
+    const isOwner = thisUser && thisUser._id === pageUser._id;
+
+    const [isAddFeaturedOpen, setIsAddFeaturedOpen] = useState<boolean>(false);
 
     return (
         <Container>
@@ -57,34 +107,29 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                 )}
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {featuredProjects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => (
-                    <ProfileProjectItem
-                        project={project}
-                        thisUser={pageUser}
-                        iter={featuredIter}
-                        setIter={setFeaturedIter}
-                    />
+                {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => (
+                    <div key={project._id} className="border">
+                        <p>{project.name}</p>
+                    </div>
                 ))}
                 {isOwner && (
                     <>
                         <button
                             className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
                             style={{minHeight: 160}}
-                            onClick={() => setAddFeaturedOpen(true)}
+                            onClick={() => setIsAddFeaturedOpen(true)}
                         >
                             <div className="flex items-center justify-center rounded-full h-8 w-8 border">
                                 <FiPlus/>
                             </div>
                         </button>
-                        <UiModal isOpen={addFeaturedOpen} setIsOpen={setAddFeaturedOpen} wide={true}>
-                            <h3 className="up-ui-title mb-4">Select a project to feature</h3>
-                            <ProjectBrowser
-                                setOpen={setAddFeaturedOpen}
-                                featuredProjectIds={featuredProjects.map(d => d._id)}
-                                buttonText="Add"
-                                onSubmit={onSubmitFeaturedProject}
-                            />
-                        </UiModal>
+                        <FeaturedProjectModal
+                            pageUser={pageUser}
+                            iter={iter}
+                            setIter={setIter}
+                            isOpen={isAddFeaturedOpen}
+                            setIsOpen={setIsAddFeaturedOpen}
+                        />
                     </>
                 )}
                 <Link href={`/@${pageUser.username}/projects`}>
@@ -92,7 +137,7 @@ export default function UserProfile({pageUser, thisUser}: { pageUser: DatedObj<U
                         className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
                         style={{minHeight: 160, transition: "all 0.3s ease"}}
                     >
-                        <span className="mr-2">All projects ({pageUser.projectsArr.length})</span>
+                        <span className="mr-2">All projects</span>
                         <FiArrowRight/>
                     </a>
                 </Link>
@@ -116,16 +161,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         await dbConnect();
 
-        const userObj = await UserModel.aggregate([
-            {$match: {username: username}},
-            ...UserObjWithGraphAggregationPipeline,
-        ]);
+        const pageUser = await UserModel.findOne({username: username});
 
-        if (!userObj.length) return ssr404;
+        if (!pageUser) return ssr404;
 
         const thisUser = await getThisUser(context);
 
-        return { props: { pageUser: cleanForJSON(userObj[0]), thisUser: cleanForJSON(thisUser), key: username }};
+        return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), key: username }};
     } catch (e) {
         console.log(e);
         return ssr404;
