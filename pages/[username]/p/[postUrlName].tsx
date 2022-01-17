@@ -18,7 +18,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         await dbConnect();
 
         const pagePost = (await NodeModel.aggregate([
-            {$match: {type: "post", "body.urlName": postUrlName}},
+            {$match: {type: "post", "body.urlName": encodeURIComponent(postUrlName)}},
             {
                 $lookup: {
                     from: "projects",
