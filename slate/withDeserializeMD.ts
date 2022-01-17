@@ -43,7 +43,7 @@ const withDeserializeMD = (editor: CustomEditor) => {
                 .processSync(content)
                 .result as Descendant[];
 
-            if (fragment.length) insertNodesAndClearEmpty(editor, fragment);
+            if (fragment.length) return insertNodesAndClearEmpty(editor, fragment);
         }
 
         insertData(data);
@@ -63,7 +63,7 @@ export const insertNodesAndClearEmpty = (editor: CustomEditor, nodes: Node | Nod
 
     Transforms.insertNodes(editor, nodes);
 
-    if (isNodeEmpty(block[0])) {
+    if (block && isNodeEmpty(block[0])) {
         Transforms.removeNodes(editor, {at: block[1]});
     }
 }
