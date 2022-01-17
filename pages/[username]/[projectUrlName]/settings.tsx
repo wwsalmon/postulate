@@ -15,4 +15,4 @@ export default function ProjectSettings(props: ProjectPageProps) {
     );
 }
 
-export const getServerSideProps = getProjectSSRFunction();
+export const getServerSideProps = getProjectSSRFunction(undefined, true);
