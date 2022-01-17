@@ -1,32 +1,15 @@
 import Link from "next/link";
 import {useSession} from "next-auth/client";
 import {FiGrid, FiSearch} from "react-icons/fi";
-import {useEffect, useState} from "react";
-import UiModal from "../style/UiModal";
-import Mousetrap from "mousetrap";
-import NavbarSwitcher from "./NavbarSwitcher";
+import {useEffect} from "react";
 import InlineButton from "../style/InlineButton";
 import {useRouter} from "next/router";
 
 export default function Navbar() {
     const router = useRouter();
     const [session, loading] = useSession();
-    const [switcherOpen, setSwitcherOpen] = useState<boolean>(false);
 
     const isPublicPage = ["/[username]/[projectUrlName]/p/[urlName]"].includes(router.route);
-
-    useEffect(() => {
-        function onSwitcherShortcut(e) {
-            e.preventDefault();
-            setSwitcherOpen(true);
-        }
-
-        Mousetrap.bind("g", onSwitcherShortcut);
-
-        return () => {
-            Mousetrap.unbind("g", onSwitcherShortcut);
-        };
-    }, []);
 
     useEffect(() => {
         // @ts-ignore window.analytics undefined below
@@ -60,11 +43,6 @@ export default function Navbar() {
                     </a>
                 </Link>
                 <div className="ml-auto flex items-center h-full">
-                    {session && (
-                        <UiModal isOpen={switcherOpen} setIsOpen={setSwitcherOpen}>
-                            <NavbarSwitcher setOpen={setSwitcherOpen}/>
-                        </UiModal>
-                    )}
                     {session ? (
                         <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full"/>
                     ) : loading ? (
