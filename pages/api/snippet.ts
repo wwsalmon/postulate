@@ -17,9 +17,9 @@ const handler: NextApiHandler = nextApiEndpoint({
             const projectError = getErrorIfNotExistsAndAuthed(thisProject, thisUser, res);
             if (projectError) return projectError;
 
-            const snippets = await SnippetModel.find({projectId: projectId}).sort({createdAt: -1}).limit(10).skip(10 * +(page || 0));
+            const snippets = await SnippetModel.find({projectId: projectId.toString()}).sort({createdAt: -1}).limit(10).skip(10 * +(page || 0));
 
-            const count = await SnippetModel.find({projectId: projectId}).countDocuments();
+            const count = await SnippetModel.find({projectId: projectId.toString()}).countDocuments();
 
             return res200(res, {snippets, count});
         }

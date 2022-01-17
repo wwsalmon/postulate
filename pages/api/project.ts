@@ -27,7 +27,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 
             if (!thisUser) return res404(res);
 
-            let projectQuery = {userId: userId};
+            let projectQuery = {userId: userId.toString()};
 
             if (featured) projectQuery["_id"] = {$in: thisUser.featuredProjects};
 

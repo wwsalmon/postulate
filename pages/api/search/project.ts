@@ -20,8 +20,8 @@ const handler: NextApiHandler = async (req, res) => {
         if (!pageUser) return res404(res);
 
         let projectQuery = {
-            userId: userId,
-            name: {$regex: `.*${query}.*`, $options: "i"},
+            userId: userId.toString(),
+            name: {$regex: `.*${query.toString()}.*`, $options: "i"},
         };
 
         if (excludeFeatured) projectQuery["_id"] = {$not: {$in: pageUser.featuredProjects}};

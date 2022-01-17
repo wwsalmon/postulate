@@ -21,7 +21,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             const thisProject = await ProjectModel.findById(projectId);
             if (!thisProject) return res404(res);
 
-            const shortcuts = await ShortcutModel.find({projectId});
+            const shortcuts = await ShortcutModel.find({projectId: projectId.toString()});
 
             return res200(res, {shortcuts});
         }
