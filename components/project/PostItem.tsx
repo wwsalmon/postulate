@@ -18,9 +18,9 @@ export default function PostItem({pageNode, pageProject, pageUser, thisUser, cla
 
     return (
         <Link
-            href={`${getProjectUrl(pageUser, pageProject)}/${(isOwner && !isExternal && !isPublished) ? pageNode._id : `/p/${pageNode.body.urlName}`}`}
+            href={`${getProjectUrl(pageUser, pageProject)}/${(isOwner && !isExternal && !isPublished) ? pageNode._id : `p/${pageNode.body.urlName}`}`}
         >
-            <a className={`block mb-8 flex items-center ${className || ""}`}>
+            <a className={`mb-8 flex items-center ${className || ""}`}>
                 <div className="flex-grow">
                     <h3
                         className={`font-manrope font-semibold mb-2 md:mb-0 ${isSidebar ? "text-sm" : ""}`}
