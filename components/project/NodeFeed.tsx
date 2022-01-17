@@ -23,6 +23,8 @@ export default function NodeFeed({type, isHome, ...props}: ProjectPageProps & {t
 
     const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!isHome && !!isOwner}&iter=${iter}&page=${page}&countPerPage=${isSidebar ? 6 : 20}`, fetcher);
 
+    const isLoading = !data;
+
     const router = useRouter();
     const {refresh} = router.query;
 
@@ -32,7 +34,9 @@ export default function NodeFeed({type, isHome, ...props}: ProjectPageProps & {t
         }
     }, [refresh]);
 
-    return (
+    return isLoading ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+    ) : (
         <>
             {type === "evergreen" && !isSidebar && (
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
