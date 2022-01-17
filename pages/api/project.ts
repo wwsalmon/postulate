@@ -39,20 +39,26 @@ const handler: NextApiHandler = nextApiEndpoint({
         return res400(res);
     },
     postFunction: async function postFunction(req, res, session, thisUser) {
-        const {name, description, urlName} = req.body;
+        const {name, description, urlName, id} = req.body;
 
         if (!(name && description && urlName)) return res400(res);
 
-        const existingProject = await ProjectModel.findOne({userId: thisUser._id, urlName: urlName});
+        let existingProjectQuery = {userId: thisUser._id, urlName: urlName};
+
+        if (id) existingProjectQuery["_id"] = {$ne: id};
+
+        const existingProject = await ProjectModel.findOne(existingProjectQuery);
 
         if (existingProject) return res200(res, {error: "urlNameError"});
 
-        const project = await ProjectModel.create({
+        const project = id ? (await ProjectModel.findOneAndUpdate({_id: id}, {
+            $set: {name, description, urlName},
+        }, {returnOriginal: false})) : (await ProjectModel.create({
             userId: thisUser._id,
             name: name,
             description: description,
             urlName: urlName,
-        });
+        }));
 
         return res200(res, {project});
     },

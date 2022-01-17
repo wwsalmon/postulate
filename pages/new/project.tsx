@@ -2,7 +2,7 @@ import {GetServerSideProps} from "next";
 import {ssr404, ssrRedirect} from "next-response-helpers";
 import getThisUser from "../../utils/getThisUser";
 import {cleanForJSON} from "../../utils/utils";
-import {DatedObj, UserObj} from "../../utils/types";
+import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
 import Container from "../../components/style/Container";
 import H1 from "../../components/style/H1";
 import {Dispatch, SetStateAction, useState} from "react";
@@ -12,6 +12,7 @@ import UiH3 from "../../components/style/UiH3";
 import axios from "axios";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {useRouter} from "next/router";
+import SEO from "../../components/standard/SEO";
 
 function Field({value, setValue, placeholder}: {value: string, setValue: Dispatch<SetStateAction<string>>, placeholder: string}) {
     return (
@@ -24,13 +25,13 @@ function Field({value, setValue, placeholder}: {value: string, setValue: Dispatc
     )
 }
 
-export default function NewProject({thisUser}: {thisUser: DatedObj<UserObj>}) {
+export function ProjectFields({thisUser, pageProject}: {thisUser: DatedObj<UserObj>, pageProject?: DatedObj<ProjectObj>}) {
     const router = useRouter();
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [name, setName] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
-    const [urlName, setUrlName] = useState<string>("");
+    const [name, setName] = useState<string>(pageProject ? pageProject.name : "");
+    const [description, setDescription] = useState<string>(pageProject ? pageProject.description : "");
+    const [urlName, setUrlName] = useState<string>(pageProject ? pageProject.urlName : "");
     const [urlNameError, setUrlNameError] = useState<boolean>(false);
 
     const isDisabled = urlNameError || !(urlName && name);
@@ -40,7 +41,11 @@ export default function NewProject({thisUser}: {thisUser: DatedObj<UserObj>}) {
 
         setIsLoading(true);
 
-        axios.post("/api/project", {name, description, urlName}).then((res) => {
+        let data = {name, description, urlName};
+
+        if (pageProject) data["id"] = pageProject._id;
+
+        axios.post("/api/project", data).then((res) => {
             if (res.data.error) {
                 setUrlNameError(true);
                 setIsLoading(false);
@@ -55,8 +60,7 @@ export default function NewProject({thisUser}: {thisUser: DatedObj<UserObj>}) {
     }
 
     return (
-        <Container className="max-w-2xl">
-            <H1>New project</H1>
+        <>
             <UiH3 className="mt-8">Project name</UiH3>
             <Field value={name} setValue={setName} placeholder="Project name"/>
             <UiH3 className="mt-8">Description</UiH3>
@@ -74,7 +78,20 @@ export default function NewProject({thisUser}: {thisUser: DatedObj<UserObj>}) {
             {urlNameError && (
                 <p className="my-2 text-red-500">You have another project with this URL name already.</p>
             )}
-            <UiButton className="mt-8" onClick={onSubmit} isLoading={isLoading} disabled={isDisabled}>Create</UiButton>
+            {pageProject && urlName !== pageProject.urlName && (
+                <p className="my-2 text-yellow-500">Warning: changing the urlName will break existing post, evergreen, and source links</p>
+            )}
+            <UiButton className="mt-8" onClick={onSubmit} isLoading={isLoading} disabled={isDisabled}>{pageProject ? "Save" : "Create"}</UiButton>
+        </>
+    );
+}
+
+export default function NewProject(props: {thisUser: DatedObj<UserObj>}) {
+    return (
+        <Container className="max-w-2xl">
+            <SEO title="New project"/>
+            <H1>New project</H1>
+            <ProjectFields {...props}/>
         </Container>
     );
 }
