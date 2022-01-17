@@ -6,7 +6,7 @@ export interface WaitlistAPIRes {
         referral_link: string,
         registered_email: string,
         total_referrals: number,
-        total_waiters_currently: number,
+        total_users: number,
         user_id: string,
     }
 }
