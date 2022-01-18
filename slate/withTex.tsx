@@ -35,6 +35,8 @@ const withTex = (editor: CustomEditor) => {
             if (text === "$") {
                 const block = Editor.above(editor, {mode: "lowest"});
 
+                if (Element.isElement(block[0]) && (block[0].type === "blockTex" || block[0].type === "codeblock")) return insertText(text);
+
                 if (Element.isElement(block[0]) && block[0].type === "inlineTex") {
                     insertText(" ");
                     Transforms.splitNodes(editor);
@@ -74,7 +76,7 @@ const withTex = (editor: CustomEditor) => {
                         mode: "lowest",
                     });
 
-                    if (Element.isElement(block[0]) && block[0].type !== "inlineTex") {
+                    if (Element.isElement(block[0]) && block[0].type !== "inlineTex" && block[0].type !== "blockTex" && block[0].type !== "codeblock") {
                         Transforms.select(editor, {anchor, focus: {path: path, offset: offset - 1}});
                         Transforms.delete(editor);
                         Transforms.insertNodes(editor, [{type: "inlineTex", children: [{text: "  "}]}]);
