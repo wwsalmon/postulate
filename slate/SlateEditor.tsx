@@ -2,7 +2,7 @@ import {Editable, ReactEditor, Slate, withReact} from "slate-react";
 import {createEditor, Node, Text, Element as SlateElement} from "slate";
 import {withHistory} from "slate-history";
 import {Dispatch, SetStateAction, useCallback, useMemo} from "react";
-import {SlateLinkBalloon, withLinks} from "./link";
+import withLinks, {SlateLinkBalloon} from "./withLinks";
 import {withShortcuts} from "./shortcuts";
 import {onHotkey} from "./hotkeys";
 import {withCodeblocks} from "./codeblock";

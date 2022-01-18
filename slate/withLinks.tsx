@@ -9,7 +9,7 @@ import {FiEdit2} from "react-icons/fi";
 import {BiUnlink} from "react-icons/bi";
 import normalizeUrl from "normalize-url";
 
-export const withLinks = editor => {
+export default function withLinks(editor) {
     const {insertData, insertText, isInline} = editor;
 
     editor.isInline = element => {
