@@ -1,10 +1,10 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "./dbConnect";
-import {getProjectPageInfo} from "../pages/[username]/[projectUrlName]/new/[type]";
 import getThisUser from "./getThisUser";
 import {cleanForJSON} from "./utils";
 import {ssr404} from "next-response-helpers";
 import {NodeTypes} from "./types";
+import {getProjectPageInfo} from "./getProjectPageInfo";
 
 const getProjectSSRFunction: (type?: NodeTypes, secured?: boolean) => GetServerSideProps = (type, secured) => async (context) => {
     // fetch project info from MongoDB

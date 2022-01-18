@@ -1,19 +1,16 @@
-import {GetServerSideProps, GetServerSidePropsContext} from "next";
+import {GetServerSideProps} from "next";
 import dbConnect from "../../../../utils/dbConnect";
-import {UserModel} from "../../../../models/user";
-import {ProjectModel} from "../../../../models/project";
 import getThisUser from "../../../../utils/getThisUser";
 import {ssr403, ssr404, ssrRedirect} from "next-response-helpers";
 import {NodeModel} from "../../../../models/node";
+import {getProjectPageInfo} from "../../../../utils/getProjectPageInfo";
 
 export default function NewNodeRedirect() {
-    return <></>;
+    return <p>testing</p>;
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const {username, projectUrlName, type} = context.params;
-
-    console.log(username, projectUrlName, type);
 
     if (!["post", "evergreen", "source"].includes(type.toString())) return ssr404;
 
@@ -58,28 +55,3 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         return ssr404;
     }
 };
-
-export async function getProjectPageInfo(context: GetServerSidePropsContext) {
-    // 404 if not correct url format
-    if (
-        Array.isArray(context.params.username) ||
-        Array.isArray(context.params.projectUrlName) ||
-        context.params.username.substr(0, 1) !== "@"
-    ) {
-        return false;
-    }
-
-    // parse URL params
-    const username: string = context.params.username.substr(1);
-    const projectUrlName: string = context.params.projectUrlName;
-
-    const pageUser = await UserModel.findOne({username: username});
-
-    if (!pageUser) return false;
-
-    const pageProject = await ProjectModel.findOne({urlName: projectUrlName, userId: pageUser._id});
-
-    if (!pageProject) return false;
-
-    return {pageUser, pageProject};
-}
