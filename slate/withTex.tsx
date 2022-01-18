@@ -31,26 +31,58 @@ const withTex = (editor: CustomEditor) => {
         const {anchor} = selection;
         const {path, offset} = anchor;
 
-        if (offset > 0 && text === " " && selection && Range.isCollapsed(selection)) {
-            const beforeText = Editor.string(editor, {anchor, focus: {path: path, offset: offset - 1}});
-            const twoBeforeText = offset > 1 ? Editor.string(editor, {
-                anchor: {path: path, offset: offset - 1},
-                focus: {path: path, offset: offset - 2}
-            }) : null;
+        if (offset > 0 && selection && Range.isCollapsed(selection)) {
+            if (text === "$") {
+                const block = Editor.above(editor, {mode: "lowest"});
 
-            if (beforeText === "$" && twoBeforeText !== "$") {
-                const block = Editor.above(editor, {
-                    match: n => Editor.isBlock(editor, n),
-                });
-
-                if (Element.isElement(block[0]) && block[0].type !== "inlineTex") {
-                    Transforms.select(editor, {anchor, focus: {path: path, offset: offset - 1}});
-                    Transforms.delete(editor);
-                    Transforms.insertNodes(editor, [{type: "inlineTex", children: [{text: "  "}]}]);
-                    const thisPoint = {path: editor.selection.anchor.path, offset: 1};
-                    Transforms.select(editor, {anchor: thisPoint, focus: thisPoint});
-
+                if (Element.isElement(block[0]) && block[0].type === "inlineTex") {
+                    insertText(" ");
+                    Transforms.splitNodes(editor);
+                    Editor.deleteBackward(editor);
+                    Editor.deleteForward(editor);
                     return;
+                }
+
+                const beforeText = Editor.string(editor, {anchor, focus: {path: path, offset: 0}});
+
+                if (beforeText.includes("$")) {
+                    const markerIndex = beforeText.lastIndexOf("$");
+                    const latexString = beforeText.substring(markerIndex + 1);
+
+                    if (latexString) {
+                        Transforms.select(editor, {anchor, focus: {path: path, offset: markerIndex}});
+                        Editor.deleteBackward(editor);
+                        Transforms.insertNodes(editor, [{type: "inlineTex", children: [{text: latexString}]}]);
+                        const {anchor: newAnchor} = editor.selection;
+                        const {path: newPath, offset: newOffset} = newAnchor;
+                        Transforms.select(editor, {path: newPath, offset: newOffset + 1});
+                        return;
+                    }
+                }
+            }
+
+            else if (text === " ") {
+                const beforeText = Editor.string(editor, {anchor, focus: {path: path, offset: offset - 1}});
+                const twoBeforeText = offset > 1 ? Editor.string(editor, {
+                    anchor: {path: path, offset: offset - 1},
+                    focus: {path: path, offset: offset - 2}
+                }) : null;
+
+                if (beforeText === "$" && twoBeforeText !== "$") {
+                    const block = Editor.above(editor, {
+                        match: n => Editor.isBlock(editor, n),
+                        mode: "lowest",
+                    });
+
+                    if (Element.isElement(block[0]) && block[0].type !== "inlineTex") {
+                        Transforms.select(editor, {anchor, focus: {path: path, offset: offset - 1}});
+                        Transforms.delete(editor);
+                        Transforms.insertNodes(editor, [{type: "inlineTex", children: [{text: "  "}]}]);
+                        const thisPoint = {path: editor.selection.anchor.path, offset: 1};
+                        Transforms.select(editor, {anchor: thisPoint, focus: thisPoint});
+
+                        return;
+                    }
                 }
             }
         }
