@@ -93,7 +93,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const summary = publishedSummary || privateSummary;
     const takeaways = publishedTakeaways || privateTakeaways;
     const link = publishedLink || privateLink;
-    const isUpdated = isOwner && getIsNodeUpdated(pageNode);
+    const isUpdated = !isOwner || getIsNodeUpdated(pageNode);
 
     const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !d.every(x => isNodeEmpty(x)));
 
@@ -138,7 +138,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                             <span>Unpublished draft</span>
                         </Badge>
                     )}
-                    {isUpdated && (
+                    {!isUpdated && (
                         <Badge>
                             <span>Unpublished changes</span>
                         </Badge>

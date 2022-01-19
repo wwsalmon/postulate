@@ -28,7 +28,7 @@ export const getIsNodeUpdated = (node: NodeObj): boolean => {
 
     const areFieldsUpdated = fields.every(d =>
         JSON.stringify(node.body[d])
-        === JSON.stringify(node.body[`published${d.charAt(0).toUpperCase()}${d.substr(1)}`])
+        === JSON.stringify(node.body[`published${d.charAt(0).toUpperCase()}${d.substring(1)}`])
     );
 
     return areFieldsUpdated;
