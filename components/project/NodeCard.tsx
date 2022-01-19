@@ -84,7 +84,7 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
             >
                 {(pageNode.type === "evergreen" || isSidebar) ? (
                     <>
-                        <div>
+                        <div className="w-full">
                             <h3 className={`font-manrope font-semibold ${isSidebar ? "text-sm" : "mb-1"}`}>{title}</h3>
                             {!isSidebar && (
                                 <StatusBadge/>
