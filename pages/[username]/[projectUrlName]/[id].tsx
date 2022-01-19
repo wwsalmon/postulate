@@ -24,7 +24,7 @@ import AutosavingField from "../../../components/standard/AutosavingField";
 
 export const getIsNodeUpdated = (node: NodeObj): boolean => {
     if (!("publishedTitle" in node.body)) return false;
-    const fields = node.type === "source" ? ["title", "link", "notes", "summary", "takeaways"] : ["title", "body"];
+    const fields = node.type === "source" ? ["title", "sourceInfo", "notes", "summary", "takeaways"] : ["title", "body"];
 
     const areFieldsUpdated = fields.every(d =>
         JSON.stringify(node.body[d])
@@ -90,7 +90,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
 
         data = (thisNode.type === "source") ? {
             ...data,
-            publishedLink: thisNode.body.link,
+            publishedSourceInfo: thisNode.body.sourceInfo,
             publishedNotes: thisNode.body.notes,
             publishedSummary: thisNode.body.summary,
             publishedTakeaways: thisNode.body.takeaways,
@@ -166,13 +166,12 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
                             setStatus={setSaveStatus}
                             className="text-2xl font-bold font-manrope focus:outline-none w-full"
                         />
-                        <UiH3 className="mt-12 mb-2">Source link</UiH3>
-                        <AutosavingField
-                            prevValue={thisNode.body.link}
-                            onSubmitEdit={(link) => submitAndUpdate({link})}
+                        <UiH3 className="mt-12 mb-2">Source info</UiH3>
+                        <AutosavingEditor
+                            prevValue={thisNode.body.sourceInfo}
+                            onSubmitEdit={(sourceInfo) => submitAndUpdate({sourceInfo})}
                             setStatus={setSaveStatus}
-                            placeholder="ex. https://www.goodreads.com/book/show/125441.An_Autobiography"
-                            className="w-full focus:outline-none text-gray-500"
+                            fontSize={18}
                         />
                         <UiH3 className="mt-12 mb-2">Summary</UiH3>
                         <AutosavingEditor

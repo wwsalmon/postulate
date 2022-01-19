@@ -70,7 +70,7 @@ interface PublicBody {
 
 interface SourceBody {
     title: string,
-    link: string,
+    sourceInfo: Node[],
     notes: Node[],
     summary: Node[],
     takeaways: Node[],
@@ -78,7 +78,7 @@ interface SourceBody {
 
 interface SourceBodyPublic extends SourceBody, PublicBody {
     publishedTitle: string,
-    publishedLink: string,
+    publishedSourceInfo: Node[],
     publishedNotes: Node[],
     publishedSummary: Node[],
     publishedTakeaways: Node[],

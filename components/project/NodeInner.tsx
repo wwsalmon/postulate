@@ -76,9 +76,9 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             notes: privateNotes,
             summary: privateSummary,
             takeaways: privateTakeaways,
-            link: privateLink,
+            sourceInfo: privateSourceInfo,
         },
-    } = pageNode.type === "source" ? pageNode : {body: {notes: false, summary: false, takeaways: false, link: false}};
+    } = pageNode.type === "source" ? pageNode : {body: {notes: false, summary: false, takeaways: false, sourceInfo: false}};
 
     const {
         body: {
@@ -86,9 +86,9 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             publishedNotes,
             publishedSummary,
             publishedTakeaways,
-            publishedLink,
+            publishedSourceInfo,
         },
-    } = (pageNode.type === "source" && "urlName" in pageNode.body) ? pageNode as NodeObjSourcePublic : {body: {publishedTitle: false, publishedNotes: false, publishedSummary: false, publishedTakeaways: false, publishedLink: false}};
+    } = (pageNode.type === "source" && "urlName" in pageNode.body) ? pageNode as NodeObjSourcePublic : {body: {publishedTitle: false, publishedNotes: false, publishedSummary: false, publishedTakeaways: false, publishedSourceInfo: false}};
 
     const {
         body: {
@@ -120,7 +120,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const notes = publishedNotes || privateNotes;
     const summary = publishedSummary || privateSummary;
     const takeaways = publishedTakeaways || privateTakeaways;
-    const link = publishedLink || privateLink;
+    const sourceInfo = publishedSourceInfo || privateSourceInfo;
     const isUpdated = !isOwner || getIsNodeUpdated(pageNode);
 
     const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !(d as unknown as Node[]).every(x => isNodeEmpty(x)));
@@ -130,7 +130,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
 
     useEffect(() => {setIsMobile(window.matchMedia("(max-width: 600px)").matches)}, []);
 
-    return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
+    return (title && (body || (notes && summary && takeaways && sourceInfo))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
             {isExternal && isPost && "urlName" in pageNode.body && (
@@ -145,7 +145,9 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             {!isModal && (
                 <UserButton user={pageUser} className="mt-8"/>                
             )}
-            {isSource && link && (<a className="text-gray-400 my-4 truncate underline block" href={link as string}>{link}</a>)}
+            {pageNode.type === "source" && !(sourceInfo as unknown as Node[]).every(d => isNodeEmpty(d)) && (
+                <SlateReadOnly value={sourceInfo as unknown as Node[]} className="text-gray-400" fontSize={16}/>
+            )}
             {isExternal && !isPost && "urlName" in pageNode.body && (
                 <Banner className="my-6">
                     <FiExternalLink/>

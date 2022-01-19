@@ -8,6 +8,8 @@ import NodeInner from "./NodeInner";
 import TruncatedText from "../standard/TruncatedText";
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 import {FiExternalLink} from "react-icons/fi";
+import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
+import LinesEllipsis from "react-lines-ellipsis";
 
 const ThirdColumn = ({children}: {children: ReactNode}) => (
     <div className="md:w-1/3 md:px-4 my-4 md:my-0">
@@ -48,7 +50,7 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
 
     const title = (("urlName" in pageNode.body && !isOwner) ? pageNode.body.publishedTitle : pageNode.body.title) || `Untitled ${pageNode.type}`;
     const body = pageNode.type !== "source" && ("urlName" in pageNode.body ? pageNode.body.publishedBody : pageNode.body.body);
-    const link = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedLink : pageNode.body.link);
+    const sourceInfo = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedSourceInfo : pageNode.body.sourceInfo);
     const takeaways = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedTakeaways : pageNode.body.takeaways);
     const summary = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedSummary : pageNode.body.summary);
 
@@ -92,7 +94,7 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
                             {pageNode.type === "evergreen" ? (
                                 <TruncatedText value={body} isSmall={true}/>
                             ) : (
-                                <p className="text-gray-500 text-xs mt-2 font-medium truncate">{link}</p>
+                                <LinesEllipsis className="text-gray-500 text-xs mt-2 font-medium" text={getPlainTextFromSlateValue(sourceInfo)} maxLine={1}/>
                             )}
                         </div>
                         <div className={`flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto ${isSidebar ? "pt-2" : "pt-4"}`}>
@@ -110,7 +112,11 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
                         <ThirdColumn>
                             <h3 className="font-manrope font-semibold mb-2">{title}</h3>
                             <StatusBadge className="mb-2"/>
-                            <p className="text-gray-500 text-sm mb-2 truncate">{link}</p>
+                            <LinesEllipsis
+                                className="text-gray-500 text-xs mb-2"
+                                text={getPlainTextFromSlateValue(sourceInfo)}
+                                maxLine={1}
+                            />
                             <p className="text-gray-400 text-sm">{dateString}</p>
                             {isExternal && (
                                 <ExternalBadge className="mt-2"/>
