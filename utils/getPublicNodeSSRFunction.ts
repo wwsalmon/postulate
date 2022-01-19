@@ -30,6 +30,7 @@ const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (n
 
         const {pageUser, pageProject} = pageInfo;
 
+        // @ts-ignore
         let pageNode: any = await NodeModel.findOne({
             type: nodeType,
             "body.urlName": encodeURIComponent(urlName.toString()),

@@ -17,6 +17,8 @@ import {useRouter} from "next/router";
 import axios from "axios";
 import ConfirmModal from "../standard/ConfirmModal";
 import slateWordCount from "../../slate/slateWordCount";
+import {NodeObjPostOrEvergreenPublic, NodeObjPublic, NodeObjSourcePublic} from "../../utils/types";
+import {Node} from "slate";
 
 function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
@@ -64,23 +66,49 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const {
         body: {
             title: privateTitle,
-            body: privateBody,
-            notes: privateNotes,
-            summary: privateSummary,
-            takeaways: privateTakeaways,
-            link: privateLink,
-            publishedTitle,
-            publishedBody,
-            publishedNotes,
-            publishedSummary,
-            publishedTakeaways,
-            publishedLink,
-            publishedDate,
-            lastPublishedDate
         },
         createdAt,
         updatedAt
     } = pageNode;
+
+    const {
+        body: {
+            notes: privateNotes,
+            summary: privateSummary,
+            takeaways: privateTakeaways,
+            link: privateLink,
+        },
+    } = pageNode.type === "source" ? pageNode : {body: {notes: false, summary: false, takeaways: false, link: false}};
+
+    const {
+        body: {
+            publishedTitle,
+            publishedNotes,
+            publishedSummary,
+            publishedTakeaways,
+            publishedLink,
+        },
+    } = (pageNode.type === "source" && "urlName" in pageNode.body) ? pageNode as NodeObjSourcePublic : {body: {publishedTitle: false, publishedNotes: false, publishedSummary: false, publishedTakeaways: false, publishedLink: false}};
+
+    const {
+        body: {
+            publishedDate,
+            lastPublishedDate
+        }
+    } = "urlName" in pageNode.body ? pageNode as NodeObjPublic : {body: {publishedDate: false, lastPublishedDate: false}};
+
+    const {
+        body: {
+            body: privateBody,
+        },
+    } = pageNode.type !== "source" ? pageNode : {body: {body: false}};
+
+    const {
+        body: {
+            publishedBody,
+        },
+    } = (pageNode.type !== "source" && "urlName" in pageNode.body) ? pageNode as NodeObjPostOrEvergreenPublic : {body: {publishedBody: false}};
+
     const isPost = pageNode.type === "post";
     const isSource = pageNode.type === "source";
     const isOwner = thisUser && pageNode.userId === thisUser._id;
@@ -95,7 +123,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const link = publishedLink || privateLink;
     const isUpdated = !isOwner || getIsNodeUpdated(pageNode);
 
-    const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !d.every(x => isNodeEmpty(x)));
+    const hasSummaryOrTakeaways = isSource && [summary, takeaways].some(d => !(d as unknown as Node[]).every(x => isNodeEmpty(x)));
 
     const [isDeleteShortcutOpen, setIsDeleteShortcutOpen] = useState<boolean>(false);
     const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -105,7 +133,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     return (title && (body || (notes && summary && takeaways && link !== undefined))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
-            {isExternal && isPost && (
+            {isExternal && isPost && "urlName" in pageNode.body && (
                 <div className="flex items-center mb-8">
                     <FiExternalLink/>
                     <InlineButton href={`${getProjectUrl(pageUser, originalProject)}/p/${pageNode.body.urlName}`} className="ml-2">Originally published</InlineButton>
@@ -117,8 +145,8 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             {!isModal && (
                 <UserButton user={pageUser} className="mt-8"/>                
             )}
-            {isSource && link && (<a className="text-gray-400 my-4 truncate underline block" href={link}>{link}</a>)}
-            {isExternal && !isPost && (
+            {isSource && link && (<a className="text-gray-400 my-4 truncate underline block" href={link as string}>{link}</a>)}
+            {isExternal && !isPost && "urlName" in pageNode.body && (
                 <Banner className="my-6">
                     <FiExternalLink/>
                     <div className="ml-4">
@@ -148,12 +176,12 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                             <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
                                 {`Edit${isExternal ? " in original project" : ""}`}
                             </MoreMenuItem>
-                            {isModal && isPublished && (
+                            {isModal && "urlName" in pageNode.body && (
                                 <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
                                     View as page
                                 </MoreMenuItem>
                             )}
-                            {isExternal && (
+                            {isExternal && "urlName" in pageNode.body && (
                                 <>
                                     <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
                                         View in original project
@@ -174,10 +202,10 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                     )}
                 </div>
                 <div className="flex items-center flex-wrap font-manrope text-gray-400 font-semibold">
-                    <span className="mr-4">{format(new Date(publishedDate || createdAt), "MMM d, yyyy")}</span>
-                    {isPublished && publishedDate !== lastPublishedDate && (<span className="mr-4">Last updated {format(new Date(lastPublishedDate), "MMM d, yyyy")}</span>)}
+                    <span className="mr-4">{format(new Date(("urlName" in pageNode.body ? publishedDate : createdAt) as string), "MMM d, yyyy")}</span>
+                    {"urlName" in pageNode.body && publishedDate !== lastPublishedDate && (<span className="mr-4">Last updated {format(new Date(lastPublishedDate as string), "MMM d, yyyy")}</span>)}
                     {!isPublished && createdAt !== updatedAt && (<span className="mr-4">Last updated {format(new Date(updatedAt), "MMM d, yyyy")}</span>)}
-                    {isPost && (<span className="mr-4">{Math.ceil(slateWordCount(body) / 200)} min read</span>)}
+                    {pageNode.type === "post" && (<span className="mr-4">{Math.ceil(slateWordCount(body as unknown as Node[]) / 200)} min read</span>)}
                 </div>
             </div>
             {isSource ? (
@@ -200,15 +228,15 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                             }
                         </div>
                     )}
-                    {!notes.every(node => isNodeEmpty(node)) && (
+                    {!(notes as unknown as Node[]).every(node => isNodeEmpty(node)) && (
                         <>
                             <UiH3 className="mb-2">Notes</UiH3>
-                            <SlateReadOnly value={notes} fontSize={isModal ? 16 : 18} className="mb-8"/>
+                            <SlateReadOnly value={notes as unknown as Node[]} fontSize={isModal ? 16 : 18} className="mb-8"/>
                         </>
                     )}
                 </>
             ) : (
-                <SlateReadOnly value={body} fontSize={isModal ? (isMobile ? 16 : 18) : (isMobile ? 18 : 20)}/>
+                <SlateReadOnly value={body as unknown as Node[]} fontSize={isModal ? (isMobile ? 16 : 18) : (isMobile ? 18 : 20)}/>
             )}
         </>
     ) : (

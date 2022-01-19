@@ -14,7 +14,7 @@ import UiModal from "../style/UiModal";
 import UiH3 from "../style/UiH3";
 import AsyncSelect from "react-select/async";
 import axios from "axios";
-import {DatedObj, NodeObj, NodeTypes, ProjectObj, ShortcutObj} from "../../utils/types";
+import {DatedObj, NodeObj, NodeObjPublic, NodeTypes, ProjectObj, ShortcutObj} from "../../utils/types";
 import {getInputStateProps, getSelectStateProps} from "react-controlled-component-helpers";
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
@@ -63,7 +63,7 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
         });
     }
 
-    const {data} = useSWR<{nodes: DatedObj<NodeObj>[]}>(
+    const {data} = useSWR<{nodes: DatedObj<NodeObjPublic>[]}>(
         `/api/search/shortcutNode?query=${query}&projectId=${project ? project.value : ""}&thisProjectId=${pageProject._id}&type=${type}`,
         project ? fetcher : async () => ({nodes: []})
     );

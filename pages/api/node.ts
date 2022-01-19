@@ -27,7 +27,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             if (!thisNode) return res400(res);
 
             // fix up these permissions later
-            if (!(thisNode.body.publishedTitle || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+            if (!("publishedTitle" in thisNode.body || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
             return res200(res, {node: thisNode});
         }

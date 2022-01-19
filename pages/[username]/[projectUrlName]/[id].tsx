@@ -23,7 +23,7 @@ import getProjectUrl from "../../../utils/getProjectUrl";
 import AutosavingField from "../../../components/standard/AutosavingField";
 
 export const getIsNodeUpdated = (node: NodeObj): boolean => {
-    if (!node.body.publishedTitle) return false;
+    if (!("publishedTitle" in node.body)) return false;
     const fields = node.type === "source" ? ["title", "link", "notes", "summary", "takeaways"] : ["title", "body"];
 
     const areFieldsUpdated = fields.every(d =>
@@ -49,7 +49,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     const [isPublishLoading, setIsPublishLoading] = useState<boolean>(false);
 
     const [saveStatus, setSaveStatus] = useState<string>("");
-    const isNodePublished = !!thisNode.body.publishedTitle;
+    const isNodePublished = "publishedTitle" in thisNode.body;
     const isNodeUpdated = getIsNodeUpdated(thisNode);
 
     async function submitAndUpdate(data: any) {
@@ -88,7 +88,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
             lastPublishedDate: new Date(),
         };
 
-        data = isSource ? {
+        data = (thisNode.type === "source") ? {
             ...data,
             publishedLink: thisNode.body.link,
             publishedNotes: thisNode.body.notes,
@@ -107,7 +107,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
         });
     }
 
-    const wordCountAndTime = `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
+    const wordCountAndTime = (thisNode.type === "post") && `${slateWordCount(thisNode.body.body)} words / ${Math.ceil(slateWordCount(thisNode.body.body) / 200)} min read`;
 
     const ActionBar = () => (
         <div className={`h-16 border-t border-gray-300 px-4 flex items-center ${isEvergreen ? "-mx-8 mt-8" : "fixed left-0 bottom-0 bg-white w-full"}`}>
@@ -118,7 +118,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
             <span className="ml-auto mr-4">{saveStatus === "Saved" ? isNodeUpdated ? "Up to date" :  "Draft saved" : saveStatus}</span>
             <MoreMenu button={<MoreMenuButton/>} className="mr-4">
                 <MoreMenuItem onClick={() => setIsDeleteOpen(true)}>Delete</MoreMenuItem>
-                {isNodePublished && (
+                {("publishedTitle" in thisNode.body) && (
                     <>
                         <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${isSource ? "s" : isEvergreen ? "e" : "p"}/${thisNode.body.urlName}`}>
                             View as public
@@ -156,7 +156,7 @@ export default function NodePage({pageProject, pageNode, pageUser, thisUser}: {p
     return (
         <>
             <SEO title={thisNode.body.title || `Untitled ${thisNode.type}`}/>
-            {isSource ? (
+            {(thisNode.type === "source") ? (
                 <div className="lg:flex max-w-7xl mx-auto pb-32 px-4">
                     <div className="flex-grow lg:border-r border-gray-300 lg:pr-8 mx-auto" style={{maxWidth: "76ch"}}>
                         <UiH3 className="mb-4">Source name</UiH3>

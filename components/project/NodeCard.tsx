@@ -27,10 +27,10 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
     const {id} = router.query;
     const {pageNode, pageUser, thisUser} = props;
 
-    const isPublished = !!pageNode.body.publishedTitle;
+    const isPublished = "publishedTitle" in pageNode.body;
     const isExternal = !!pageNode.shortcutArr;
     const isOwner = thisUser && pageUser._id === thisUser._id;
-    const hasChanges = isOwner && isPublished && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
+    const hasChanges = isOwner && "publishedBody" in pageNode.body && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -46,13 +46,13 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
         else setIsOpen(false);
     }, [id]);
 
-    const title = (isOwner ? pageNode.body.title : pageNode.body.publishedTitle) || `Untitled ${pageNode.type}`;
-    const body = isPublished ? pageNode.body.publishedBody : pageNode.body.body;
-    const link = isPublished ? pageNode.body.publishedLink : pageNode.body.link;
-    const takeaways = isPublished ? pageNode.body.publishedTakeaways : pageNode.body.takeaways;
-    const summary = isPublished ? pageNode.body.publishedSummary : pageNode.body.summary;
+    const title = (("urlName" in pageNode.body && !isOwner) ? pageNode.body.publishedTitle : pageNode.body.title) || `Untitled ${pageNode.type}`;
+    const body = pageNode.type !== "source" && ("urlName" in pageNode.body ? pageNode.body.publishedBody : pageNode.body.body);
+    const link = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedLink : pageNode.body.link);
+    const takeaways = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedTakeaways : pageNode.body.takeaways);
+    const summary = pageNode.type === "source" && ("urlName" in pageNode.body ? pageNode.body.publishedSummary : pageNode.body.summary);
 
-    const dateString = `${format(new Date(isPublished ? pageNode.body.publishedDate : pageNode.createdAt), "MMM d, yyyy")}`;
+    const dateString = `${format(new Date("urlName" in pageNode.body ? pageNode.body.publishedDate : pageNode.createdAt), "MMM d, yyyy")}`;
 
     const StatusBadge = (props: HTMLProps<HTMLDivElement>) => (
         <div {...props}>
