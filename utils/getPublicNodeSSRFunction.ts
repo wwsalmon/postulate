@@ -1,7 +1,6 @@
 import {DatedObj, NodeTypes, ProjectObj, UserObj} from "./types";
 import {GetServerSideProps} from "next";
 import dbConnect from "./dbConnect";
-import {getProjectPageInfo} from "../pages/[username]/[projectUrlName]/new/[type]";
 import {NodeModel} from "../models/node";
 import getThisUser from "./getThisUser";
 import {cleanForJSON} from "./utils";
@@ -9,6 +8,7 @@ import {ssr404} from "next-response-helpers";
 import {NodeWithShortcut} from "../components/project/MainShell";
 import {ShortcutModel} from "../models/shortcut";
 import getLookup from "./getLookup";
+import {getProjectPageInfo} from "./getProjectPageInfo";
 
 export interface ProjectPageProps {
     pageUser: DatedObj<UserObj>,
@@ -30,6 +30,7 @@ const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (n
 
         const {pageUser, pageProject} = pageInfo;
 
+        // @ts-ignore
         let pageNode: any = await NodeModel.findOne({
             type: nodeType,
             "body.urlName": encodeURIComponent(urlName.toString()),

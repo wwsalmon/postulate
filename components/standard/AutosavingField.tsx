@@ -5,11 +5,11 @@ import {getStatus} from "./AutosavingEditor";
 import {getInputStateProps} from "react-controlled-component-helpers";
 
 export default function AutosavingField({prevValue, onSubmitEdit, setStatus, ...domProps}: HTMLProps<HTMLInputElement> & {
-    prevValue: Node[],
-    onSubmitEdit: (value: Node[]) => Promise<any>,
+    prevValue: string,
+    onSubmitEdit: (value: string) => Promise<any>,
     setStatus?: Dispatch<SetStateAction<string>>,
 }) {
-    const [value, setValue] = useState<Node[]>(prevValue);
+    const [value, setValue] = useState<string>(prevValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {

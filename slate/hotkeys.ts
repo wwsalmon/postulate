@@ -2,7 +2,7 @@ import {Editor, Element, Element as SlateElement, Transforms} from "slate";
 import isHotkey from "is-hotkey";
 import {ReactEditor} from "slate-react";
 import {HistoryEditor} from "slate-history";
-import {insertLink} from "./link";
+import {insertLink} from "./withLinks";
 import {isListNode} from "./list";
 
 const markHotkeys = {

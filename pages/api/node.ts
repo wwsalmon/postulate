@@ -11,7 +11,7 @@ import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils"
 import {ShortcutModel} from "../../models/shortcut";
 
 const baseBodyFields = ["title"]
-const sourceBodyFields = [...baseBodyFields, "link", "notes", "summary", "takeaways"];
+const sourceBodyFields = [...baseBodyFields, "sourceInfo", "notes", "summary", "takeaways"];
 const docBodyFields = [...baseBodyFields, "body"];
 const getPrivateFields = (type: NodeTypes) => type === "source" ? sourceBodyFields : docBodyFields;
 const getPublishedFields = (type: NodeTypes) => [...(type === "source" ? sourceBodyFields : docBodyFields).map(d => `published${d.charAt(0).toUpperCase()}${d.substr(1)}`), "lastPublishedDate"];
@@ -27,7 +27,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             if (!thisNode) return res400(res);
 
             // fix up these permissions later
-            if (!(thisNode.body.publishedTitle || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
+            if (!("publishedTitle" in thisNode.body || (isOwner && thisUser && thisNode.userId.toString() === thisUser._id.toString()))) return res403(res);
 
             return res200(res, {node: thisNode});
         }

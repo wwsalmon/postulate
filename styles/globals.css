@@ -62,7 +62,3 @@ body, div.chart-container {
 .slate-read-only-container p, .slate-read-only-container code, .slate-read-only-container pre, .slate-read-only-container blockquote {
     white-space: pre-wrap;
 }
-
-.prose a {
-    word-break: break-all;
-}

@@ -17,7 +17,7 @@ export default function NodeShell(props: PublicNodePageProps) {
 
     return (
         <>
-            <SEO title={pageNode.body.publishedTitle || `Untitled ${nodeType}`}/>
+            <SEO title={"publishedTitle" in pageNode.body ? pageNode.body.publishedTitle : `Untitled ${nodeType}`}/>
             <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
             <div className="px-4 lg:flex justify-center">
                 <div

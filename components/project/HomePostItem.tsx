@@ -10,6 +10,8 @@ import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
 import {ExternalBadge} from "./NodeCard";
 
 function HomePostItem({pageNode, pageProject, pageUser, thisUser, ...props}: PublicNodePageProps & HTMLProps<HTMLAnchorElement>) {
+    if (!(pageNode.type === "post" && "publishedTitle" in pageNode.body)) return <></>;
+
     const {publishedTitle: title, publishedBody: body, publishedDate, urlName} = pageNode.body;
 
     const isExternal = !!pageNode.shortcutArr;

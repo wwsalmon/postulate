@@ -53,14 +53,72 @@ export interface ImageObj {
     size: number, // size of image in bytes
 }
 
-export type NodeTypes = "snippet" | "post" | "evergreen" | "source";
+// NODE TYPES
 
-export interface NodeObj {
+export type NodeTypes = "post" | "evergreen" | "source";
+
+interface NodeObjBase {
     projectId: string,
     userId: string,
-    body: any,
-    type: NodeTypes,
 }
+
+interface PublicBody {
+    urlName: string,
+    publishedDate: string,
+    lastPublishedDate: string,
+}
+
+interface SourceBody {
+    title: string,
+    sourceInfo: Node[],
+    notes: Node[],
+    summary: Node[],
+    takeaways: Node[],
+}
+
+interface SourceBodyPublic extends SourceBody, PublicBody {
+    publishedTitle: string,
+    publishedSourceInfo: Node[],
+    publishedNotes: Node[],
+    publishedSummary: Node[],
+    publishedTakeaways: Node[],
+}
+
+interface NodeObjSource extends NodeObjBase {
+    type: "source",
+    body: SourceBody | SourceBodyPublic,
+}
+
+interface PostOrEvergreenBody {
+    title: string,
+    body: Node[],
+}
+
+interface PostOrEvergreenBodyPublic extends PostOrEvergreenBody, PublicBody {
+    publishedTitle: string,
+    publishedBody: Node[],
+}
+
+interface NodeObjPostOrEvergreen extends NodeObjBase {
+    type: "post" | "evergreen",
+    body: PostOrEvergreenBody | PostOrEvergreenBodyPublic,
+}
+
+export type NodeObj = NodeObjPostOrEvergreen | NodeObjSource;
+
+export interface NodeObjSourcePublic extends NodeObjBase {
+    type: "source",
+    body: SourceBodyPublic,
+}
+
+export interface NodeObjPostOrEvergreenPublic extends NodeObjBase {
+    type: "post" | "evergreen",
+    body: PostOrEvergreenBodyPublic,
+}
+
+export type NodeObjPublic = NodeObjSourcePublic | NodeObjPostOrEvergreenPublic;
+
+// END NODE TYPES
 
 export interface ShortcutObj {
     projectId: string,
