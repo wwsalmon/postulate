@@ -82,20 +82,20 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
 
     const {
         body: {
-            publishedTitle,
             publishedNotes,
             publishedSummary,
             publishedTakeaways,
             publishedSourceInfo,
         },
-    } = (pageNode.type === "source" && "urlName" in pageNode.body) ? pageNode as NodeObjSourcePublic : {body: {publishedTitle: false, publishedNotes: false, publishedSummary: false, publishedTakeaways: false, publishedSourceInfo: false}};
+    } = (pageNode.type === "source" && ("urlName" in pageNode.body)) ? pageNode as NodeObjSourcePublic : {body: {publishedNotes: false, publishedSummary: false, publishedTakeaways: false, publishedSourceInfo: false}};
 
     const {
         body: {
+            publishedTitle,
             publishedDate,
             lastPublishedDate
         }
-    } = "urlName" in pageNode.body ? pageNode as NodeObjPublic : {body: {publishedDate: false, lastPublishedDate: false}};
+    } = "urlName" in pageNode.body ? pageNode as NodeObjPublic : {body: {publishedTitle: false, publishedDate: false, lastPublishedDate: false}};
 
     const {
         body: {
@@ -112,7 +112,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const isPost = pageNode.type === "post";
     const isSource = pageNode.type === "source";
     const isOwner = thisUser && pageNode.userId === thisUser._id;
-    const isPublished = !!publishedTitle;
+    const isPublished = "urlName" in pageNode.body;
     const isExternal = !!pageNode.shortcutArr;
     const originalProject = isExternal && pageNode.orrProjectArr[0];
     const title = publishedTitle || privateTitle;
