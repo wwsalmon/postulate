@@ -9,6 +9,8 @@ import NProgress from "nprogress";
 import "../styles/nprogress.css";
 import {createContext, useState} from "react";
 import {ToastProvider} from "react-toast-notifications";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en.json";
 
 Router.events.on("routeChangeStart", (url, {shallow}) => {
     if (!shallow) NProgress.start();
@@ -46,3 +48,4 @@ export default function App({Component, pageProps}: AppProps) {
 }
 
 Modal.setAppElement("#app-root");
+TimeAgo.addDefaultLocale(en);
