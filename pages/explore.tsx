@@ -75,8 +75,8 @@ export default function OldExplore({}: {  }) {
                 {/*<UserSearch/>*/}
                 <hr className="my-8"/>
                 {groupedData.map((group, i) => (
-                    <div className="flex my-12" key={i}>
-                        <div className="w-24 flex-shrink-0 text-sm text-gray-500">
+                    <div className="sm:flex my-12" key={i}>
+                        <div className="w-24 flex-shrink-0 text-sm text-gray-500 mb-8">
                             <ReactTimeAgo
                                 date={new Date((group.projects[0].items[0] as NodeObjPublic).body.publishedDate)}
                                 timeStyle="twitter"
@@ -85,14 +85,14 @@ export default function OldExplore({}: {  }) {
                         </div>
                         <div className="flex-grow overflow-hidden">
                             {group.projects.length > 1 && (
-                                <div className="flex items-center mb-4 text-sm">
+                                <div className="flex items-center mb-2 text-sm">
                                     <UserButton user={group.user} imageSizeClasses="w-5 h-5"/>
                                     <span className="mx-2"> published {group.projects.reduce((a, b) => a + b.items.length, 0)} note{group.projects.reduce((a, b) => a + b.items.length, 0) > 1 && "s"}</span>
                                 </div>
                             )}
                             {group.projects.map((projectGroup, i) => (
                                 <div key={i}>
-                                    <div className={`flex items-center text-sm ${group.projects.length <= 1 ? "mb-4" : "mt-12 mb-4"}`}>
+                                    <div className={`flex items-center text-sm ${group.projects.length <= 1 ? "mb-4" : "mt-6 mb-2"}`}>
                                         {group.projects.length <= 1 && (
                                             <>
                                                 <UserButton user={group.user} imageSizeClasses="w-5 h-5"/>
@@ -106,7 +106,7 @@ export default function OldExplore({}: {  }) {
                                             pageUser={group.user}
                                             pageNode={item}
                                             pageProject={projectGroup.project}
-                                            className="my-4"
+                                            className="mb-3"
                                         />
                                     ))}
                                 </div>

@@ -23,19 +23,19 @@ export default function ExploreNodeCard({pageUser, pageNode, pageProject, classN
 
     return (
         <Link href={getNodeUrl(pageUser, pageProject, pageNode as NodeObjPublic)}>
-            <a className={`p-4 border rounded-md block bg-white ${className || ""}`}>
+            <a className={`p-4 sm:p-6 border rounded-md block bg-white ${className || ""}`}>
                 <div className="flex items-center">
-                    <span className="mr-2 font-manrope font-semibold truncate">{pageNode.body.publishedTitle}</span>
-                    <Badge className="flex-shrink-0">{pageNode.type.toUpperCase()}</Badge>
+                    <span className="mr-2 font-manrope font-semibold truncate sm:text-xl">{pageNode.body.publishedTitle}</span>
+                    <Badge className="flex-shrink-0 ml-auto">{pageNode.type.toUpperCase()}</Badge>
                 </div>
                 {pageNode.type === "source" && (
                     <LinesEllipsis
-                        className="text-gray-400 mt-1 text-sm"
+                        className="text-gray-400 my-2 text-sm"
                         text={getPlainTextFromSlateValue(pageNode.body.sourceInfo)}
                         maxLine={1}
                     />
                 )}
-                <LinesEllipsis className="text-gray-500 mt-1 text-sm" text={previewText} maxLine={1}/>
+                <LinesEllipsis className="text-gray-500 mt-2 text-sm sm:text-base" text={previewText} maxLine={2}/>
             </a>
         </Link>
     );
