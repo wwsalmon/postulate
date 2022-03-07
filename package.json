@@ -54,6 +54,7 @@
     "react-masonry-component": "^6.2.1",
     "react-modal": "^3.12.1",
     "react-popper": "^2.2.5",
+    "react-portal": "^4.2.1",
     "react-resize-observer": "^1.1.1",
     "react-select": "^4.1.0",
     "react-time-ago": "^7.1.9",

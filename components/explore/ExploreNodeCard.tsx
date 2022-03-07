@@ -8,11 +8,12 @@ import React from "react";
 import LinesEllipsis from "react-lines-ellipsis";
 import {format} from "date-fns";
 
-export default function ExploreNodeCard({pageUser, pageNode, pageProject, className, isSearch}: {
+export default function ExploreNodeCard({pageUser, pageNode, pageProject, className, isSearch, isProjectPage}: {
     pageUser: DatedObj<UserObj>,
     pageNode: DatedObj<NodeObj>,
     pageProject: DatedObj<ProjectObj>,
     isSearch?: boolean,
+    isProjectPage?: boolean,
     className?: string,
 }) {
     let previewText;
@@ -44,7 +45,7 @@ export default function ExploreNodeCard({pageUser, pageNode, pageProject, classN
                     <Badge className="flex-shrink-0 ml-auto">{pageNode.type.toUpperCase()}</Badge>
                 </div>
                 {isSearch ? (
-                    <p className="text-gray-400">{pageProject.name}. {format(new Date(pageNode.createdAt), "MMM d, yyyy")} {!("urlName" in pageNode.body) && "(Unpublished)"}</p>
+                    <p className="text-gray-400">{isProjectPage && `${pageProject.name}. `}{format(new Date(pageNode.createdAt), "MMM d, yyyy")} {!("urlName" in pageNode.body) && "(Unpublished)"}</p>
                 ) : (
                     <>
                         {pageNode.type === "source" && (
