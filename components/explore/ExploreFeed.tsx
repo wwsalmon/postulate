@@ -76,7 +76,7 @@ function ExplorePageFeed({activity}: {activity: Activity[]}) {
                             {group.projects.length > 1 && (
                                 <div className="flex items-center mb-2 text-sm">
                                     <UserButton user={group.user} imageSizeClasses="w-5 h-5"/>
-                                    <span className="mx-2"> published {group.projects.reduce((a, b) => a + b.items.length, 0)} note{group.projects.reduce((a, b) => a + b.items.length, 0) > 1 && "s"}</span>
+                                    <span className="mx-2 flex-shrink-0"> published {group.projects.reduce((a, b) => a + b.items.length, 0)} note{group.projects.reduce((a, b) => a + b.items.length, 0) > 1 && "s"}</span>
                                 </div>
                             )}
                             {group.projects.map((projectGroup, i) => (
@@ -85,10 +85,13 @@ function ExplorePageFeed({activity}: {activity: Activity[]}) {
                                         {group.projects.length <= 1 && (
                                             <>
                                                 <UserButton user={group.user} imageSizeClasses="w-5 h-5"/>
-                                                <span className="mx-2"> published {projectGroup.items.length} note{projectGroup.items.length > 1 && "s"} in</span>
+                                                <span className="mx-2 flex-shrink-0"> published {projectGroup.items.length} note{projectGroup.items.length > 1 && "s"} in</span>
                                             </>
                                         )}
-                                        <InlineButton href={getProjectUrl(group.user, projectGroup.project)}>{projectGroup.project.name}</InlineButton>
+                                        <InlineButton
+                                            href={getProjectUrl(group.user, projectGroup.project)}
+                                            childClassName="truncate"
+                                        >{projectGroup.project.name}</InlineButton>
                                     </div>
                                     {(projectGroup.items as DatedObj<NodeObjPublic>[]).map((item) => (
                                         <ExploreNodeCard
@@ -147,8 +150,11 @@ function UserPageFeed({activity}: {activity: Activity[]}) {
                         </div>
                         <div className="flex-grow overflow-hidden">
                             <div className={`flex items-center text-sm mb-4`}>
-                                <span className="mr-2">published {group.items.length} note{group.items.length > 1 && "s"} in</span>
-                                <InlineButton href={getProjectUrl(group.items[0].userArr[0], group.project)}>{group.project.name}</InlineButton>
+                                <span className="mr-2 flex-shrink-0">published {group.items.length} note{group.items.length > 1 && "s"} in</span>
+                                <InlineButton
+                                    href={getProjectUrl(group.items[0].userArr[0], group.project)}
+                                    childClassName="truncate"
+                                >{group.project.name}</InlineButton>
                             </div>
                             {(group.items as DatedObj<NodeObjPublic>[]).map((item) => (
                                 <ExploreNodeCard
