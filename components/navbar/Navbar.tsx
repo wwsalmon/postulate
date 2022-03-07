@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/react";
-import {FiChevronDown, FiGrid, FiSearch} from "react-icons/fi";
+import {FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
 import {useEffect} from "react";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
@@ -10,7 +10,7 @@ export default function Navbar() {
     const router = useRouter();
     const {data: session, status} = useSession();
 
-    const isPublicPage = ["/[username]/[projectUrlName]/p/[urlName]"].includes(router.route);
+    const isPublicPage = router.route.substring(0, 28) === "/[username]/[projectUrlName]";
 
     useEffect(() => {
         // @ts-ignore window.analytics undefined below
@@ -27,7 +27,7 @@ export default function Navbar() {
                 <Link href={session ? "/projects" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
                 {session && (
                     <Link href={"/projects"}>
-                        <a className={`hidden ${isPublicPage ? "xl" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
+                        <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
                             <div className="mr-3">
                                 <FiGrid/>
                             </div>
@@ -36,7 +36,7 @@ export default function Navbar() {
                     </Link>
                 )}
                 <Link href="/explore">
-                    <a className={`hidden ${isPublicPage ? "xl" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
+                    <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
                         <div className="mr-3">
                             <FiSearch/>
                         </div>
@@ -64,6 +64,36 @@ export default function Navbar() {
                         </>
                     )}
                 </div>
+            </div>
+            <div className="fixed left-0 bottom-0 w-full bg-white h-12 sm:hidden flex items-center">
+                {session && (
+                    <Link href={"/projects"}>
+                        <a className={`flex items-center justify-center opacity-50 hover:opacity-100 px-4 w-1/3`}>
+                            <div className="mr-3">
+                                <FiGrid/>
+                            </div>
+                            Projects
+                        </a>
+                    </Link>
+                )}
+                <Link href="/explore">
+                    <a className={`flex items-center justify-center opacity-50 hover:opacity-100 px-4 ${session ? "w-1/3" : "w-full"}`}>
+                        <div className="mr-3">
+                            <FiSearch/>
+                        </div>
+                        Explore
+                    </a>
+                </Link>
+                {session && (
+                    <Link href={`/profile`}>
+                        <a className={`flex items-center justify-center opacity-50 hover:opacity-100 px-4 w-1/3`}>
+                            <div className="mr-3">
+                                <FiUser/>
+                            </div>
+                            Profile
+                        </a>
+                    </Link>
+                )}
             </div>
         </div>
     );

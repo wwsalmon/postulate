@@ -25,6 +25,7 @@ import {Field} from "../../pages/new/project";
 import {Portal} from "react-portal";
 import ExploreNodeCard from "../explore/ExploreNodeCard";
 import H3 from "../style/H3";
+import PublicNavbar from "./PublicNavbar";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -235,6 +236,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
 
     return (
         <Container>
+            <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
             <SEO title={pageProject.name}/>
             <div className="items-center mb-8 flex">
                 <UserButton user={pageUser}/>
