@@ -38,7 +38,7 @@ export default function ExploreNodeCard({pageUser, pageNode, pageProject, classN
 
     return (
         <Link href={getNodeUrl(pageUser, pageProject, pageNode)}>
-            <a className={`${isSearch ? "" : "sm:p-6"} p-4 border rounded-md block bg-white ${className || ""}`}>
+            <a className={`${isSearch ? "" : "sm:p-6"} p-4 border rounded-md block bg-white hover:bg-gray-50 transition ${className || ""}`}>
                 <div className="flex items-center">
                     <span className={`mr-2 font-manrope font-semibold truncate ${isSearch ? "" : "sm:text-xl"}`}>{title}</span>
                     <Badge className="flex-shrink-0 ml-auto">{pageNode.type.toUpperCase()}</Badge>

@@ -25,17 +25,25 @@ import {Field} from "../new/project";
 import ExploreFeed from "../../components/explore/ExploreFeed";
 import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
 
-function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
+function FeaturedProjectModal({
+                                  pageUser,
+                                  iter,
+                                  setIter,
+                                  isOpen,
+                                  setIsOpen
+                              }: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [query, setQuery] = useState<string>("");
     const [projects, setProjects] = useState<DatedObj<ProjectObj>[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, query ? fetcher : async () => {data: []});
+    const {data} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, query ? fetcher : async () => {
+        data: [];
+    });
 
     const isDisabled = !projects.length || selectedIndex === null;
 
-    function onSubmit(){
+    function onSubmit() {
         if (isDisabled) return;
 
         setIsLoading(true);
@@ -64,7 +72,11 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
             <Field value={query} setValue={setQuery} placeholder="Search for project by name"/>
             <div className="my-4">
                 {data && data.projects.map((node, i) => (
-                    <label htmlFor={`radio-${node._id}`} key={node._id} className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer">
+                    <label
+                        htmlFor={`radio-${node._id}`}
+                        key={node._id}
+                        className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer"
+                    >
                         <input
                             type="radio"
                             checked={i === selectedIndex}
@@ -82,15 +94,18 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
                 Cancel
             </UiButton>
         </UiModal>
-    )
+    );
 }
 
 function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
     const [query, setQuery] = useState<string>("");
 
-    const {data: nodeData} = useSWR<{nodes: (DatedObj<NodeObj> & {projectArr: DatedObj<ProjectObj>[]})[]}>(`/api/search/node?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {data: []});
-
-    console.log(nodeData && nodeData.nodes);
+    const {data: nodeData} = useSWR<{ nodes: (DatedObj<NodeObj> & { projectArr: DatedObj<ProjectObj>[] })[] }>(`/api/search/node?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {
+        data: [];
+    });
+    const {data: projectData} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/search/project?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {
+        data: [];
+    });
 
     return (
         <>
@@ -107,11 +122,21 @@ function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, 
                 </div>
             </div>
             {query && (
-                <div className="py-4 flex -mx-4">
-                    <div className="w-1/2 px-4">
-                        <H2>Projects</H2>
+                <div className="py-4 md:flex md:-mx-4">
+                    <div className="md:w-1/2 md:px-4 mb-8 md:mb-0">
+                        <H2 className="mb-6">Projects</H2>
+                        <div className="grid grid-cols-2 gap-4">
+                            {projectData && projectData.projects.map(project => (
+                                <ProjectCard
+                                    pageUser={pageUser}
+                                    pageProject={project}
+                                    thisUser={thisUser}
+                                    key={project._id}
+                                />
+                            ))}
+                        </div>
                     </div>
-                    <div className="w-1/2 px-4">
+                    <div className="md:w-1/2 md:px-4">
                         <H2 className="mb-6">Notes</H2>
                         {nodeData && nodeData.nodes.map(node => (
                             <ExploreNodeCard
@@ -130,9 +155,13 @@ function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, 
     );
 }
 
-export default function UserProfile({pageUser, thisUser, numProjects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
+export default function UserProfile({
+                                        pageUser,
+                                        thisUser,
+                                        numProjects
+                                    }: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
     const [iter, setIter] = useState<number>(0);
-    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
+    const {data} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
 
     const isOwner = thisUser && thisUser._id === pageUser._id;
 
@@ -142,7 +171,11 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
         <>
             <Container>
                 <SEO title={`${pageUser.name}`}/>
-                <img src={pageUser.image} alt={`Profile picture of ${pageUser.name}`} className="w-24 h-24 rounded-full mb-8"/>
+                <img
+                    src={pageUser.image}
+                    alt={`Profile picture of ${pageUser.name}`}
+                    className="w-24 h-24 rounded-full mb-8"
+                />
                 <H1>Welcome to {pageUser.name.split(" ")[0]}'s Postulate</H1>
                 <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
                 <div className="flex items-center mt-12 mb-8">
@@ -155,7 +188,10 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
                     <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
                 )}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
+                    {data && data.projects && data.projects.sort((
+                        a,
+                        b
+                    ) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
                         <ProjectCardFeatured
                             pageUser={pageUser}
                             pageProject={project}
@@ -205,7 +241,7 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
                 </Container>
             </div>
         </>
-    )
+    );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -231,9 +267,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisUser = await getThisUser(context);
 
-        return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), numProjects, key: username }};
+        return {
+            props: {
+                pageUser: cleanForJSON(pageUser),
+                thisUser: cleanForJSON(thisUser),
+                numProjects,
+                key: username
+            }
+        };
     } catch (e) {
         console.log(e);
         return ssr404;
     }
-}
+};

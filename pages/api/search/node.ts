@@ -4,7 +4,7 @@ import dbConnect from "../../../utils/dbConnect";
 import {UserModel} from "../../../models/user";
 import {ProjectModel} from "../../../models/project";
 import {getSession} from "next-auth/react";
-import {isUserIdMatch} from "../../../utils/apiUtils";
+import {getIncludePrivate, isUserIdMatch} from "../../../utils/apiUtils";
 import {NodeModel} from "../../../models/node";
 import getLookup from "../../../utils/getLookup";
 import * as mongoose from "mongoose";
@@ -19,23 +19,7 @@ const handler: NextApiHandler = async (req, res) => {
     try {
         await dbConnect();
 
-        const session = await getSession({req});
-
-        const thisUser = session ? (await UserModel.findOne({email: session.user.email})) : null;
-
-        let includePrivate;
-
-        if (projectId) {
-            const thisProject = await ProjectModel.findById(projectId);
-            if (!thisProject) return res404(res);
-            includePrivate = isUserIdMatch(thisProject, thisUser);
-        }
-
-        if (userId) {
-            const pageUser = await UserModel.findById(userId);
-            if (!pageUser) return res404(res);
-            includePrivate =  pageUser._id.toString() === thisUser._id.toString();
-        }
+        const includePrivate = await getIncludePrivate(req, res, projectId ? projectId.toString() : null, userId ? userId.toString() : null);
 
         let matchObj = {};
 
