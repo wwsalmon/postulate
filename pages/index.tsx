@@ -1,5 +1,4 @@
 import SEO from "../components/standard/SEO";
-import UiButton from "../components/style/UiButton";
 import SignInButton from "../components/standard/SignInButton";
 
 export default function Index({}: {}) {
@@ -11,9 +10,9 @@ export default function Index({}: {}) {
                     The best way to take and share reading notes
                 </h1>
                 <p className="text-xl sm:text-2xl leading-normal sm:leading-normal text-gray-500 max-w-lg mx-auto">
-                    Stop forgetting what you read in classes, research, and personal projects.
+                    Stop forgetting what you learn in classes, research, and personal projects.
                 </p>
-                <SignInButton className="mt-6">Start learning with Postulate</SignInButton>
+                <SignInButton className="mt-6">Learn in public with Postulate</SignInButton>
             </div>
             <img src="/hero.png" alt="Hero banner" className="w-full my-24 hidden sm:block"/>
             <img src="/hero-mobile.png" alt="Hero banner" className="w-full my-24 sm:hidden"/>
