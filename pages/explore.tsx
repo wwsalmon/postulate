@@ -1,21 +1,38 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import SEO from "../components/standard/SEO";
 import H1 from "../components/style/H1";
-import UserSearch from "../components/UserSearch";
-import useSWR from "swr";
-import {fetcher} from "../utils/utils";
 import {DatedObj, NodeObj, NodeObjPublic, ProjectObj, UserObj} from "../utils/types";
 import UserButton from "../components/standard/UserButton";
-import PostItem from "../components/project/PostItem";
-import NodeCard from "../components/project/NodeCard";
 import InlineButton from "../components/style/InlineButton";
 import getProjectUrl from "../utils/getProjectUrl";
 import ReactTimeAgo from "react-time-ago";
-import Link from "next/link";
 import ExploreNodeCard from "../components/explore/ExploreNodeCard";
+import Skeleton from "react-loading-skeleton";
+import axios from "axios";
+import UiButton from "../components/style/UiButton";
 
 export default function OldExplore({}: {  }) {
-    const {data, error} = useSWR<{activity: (DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]})[]}>("/api/activity", fetcher);
+    const [activity, setActivity] = useState<(DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]})[]>([]);
+    const [page, setPage] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        loadActivity();
+    }, []);
+
+    function loadActivity() {
+        setIsLoading(true);
+
+        axios.get(`/api/activity?page=${page}`).then(res => {
+            const {activity: newActivity} = res.data;
+            setActivity([...activity, ...newActivity]);
+            setPage(page + 1);
+        }).catch(e => {
+            console.log(e);
+        }).finally(() => {
+            setIsLoading(false);
+        });
+    }
 
     let groupedData: {
         user: DatedObj<UserObj>,
@@ -24,57 +41,56 @@ export default function OldExplore({}: {  }) {
             items: DatedObj<NodeObj>[],
         }[],
     }[] = [];
-    if (data) {
-        for (const i in data.activity) {
-            const item = data.activity[i];
-            const prevItem = (+i > 0) && data.activity[+i - 1];
-            const isSameUser = prevItem && prevItem.userId === item.userId;
 
-            if (isSameUser) {
-                const currentGroupedUser = groupedData[groupedData.length - 1];
-                const currentGroupedUserSameProjectIndex = currentGroupedUser.projects.findIndex(d => d.project._id === item.projectId);
+    for (const i in activity) {
+        const item = activity[i];
+        const prevItem = (+i > 0) && activity[+i - 1];
+        const isSameUser = prevItem && prevItem.userId === item.userId;
 
-                if (currentGroupedUserSameProjectIndex > -1) {
-                    groupedData[groupedData.length - 1].projects[currentGroupedUserSameProjectIndex].items = [
-                        ...currentGroupedUser.projects[currentGroupedUserSameProjectIndex].items,
-                        item,
-                    ];
-                } else {
-                    groupedData[groupedData.length - 1] = {
-                        user: currentGroupedUser.user,
-                        projects: [
-                            ...currentGroupedUser.projects,
-                            {
-                                project: item.projectArr[0],
-                                items: [item],
-                            }
-                        ],
-                    }
-                }
+        if (isSameUser) {
+            const currentGroupedUser = groupedData[groupedData.length - 1];
+            const currentGroupedUserSameProjectIndex = currentGroupedUser.projects.findIndex(d => d.project._id === item.projectId);
 
+            if (currentGroupedUserSameProjectIndex > -1) {
+                groupedData[groupedData.length - 1].projects[currentGroupedUserSameProjectIndex].items = [
+                    ...currentGroupedUser.projects[currentGroupedUserSameProjectIndex].items,
+                    item,
+                ];
             } else {
-                groupedData.push({
-                    user: item.userArr[0],
+                groupedData[groupedData.length - 1] = {
+                    user: currentGroupedUser.user,
                     projects: [
+                        ...currentGroupedUser.projects,
                         {
                             project: item.projectArr[0],
                             items: [item],
                         }
                     ],
-                });
+                }
             }
+
+        } else {
+            groupedData.push({
+                user: item.userArr[0],
+                projects: [
+                    {
+                        project: item.projectArr[0],
+                        items: [item],
+                    }
+                ],
+            });
         }
-    }
+        }
 
     return (
-        <div className="w-full bg-gray-100 -mt-8 pt-16 -mb-12">
+        <div className="w-full bg-gray-100 -mt-16 pt-20 -mb-12 min-h-screen">
             <div className="max-w-3xl mx-auto px-4">
                 <SEO title="Explore"/>
                 <H1 className="mb-4">Explore</H1>
                 {/*<hr className="my-8"/>*/}
                 {/*<UserSearch/>*/}
                 <hr className="my-8"/>
-                {groupedData.map((group, i) => (
+                {groupedData.length ? groupedData.map((group, i) => (
                     <div className="sm:flex my-12" key={i}>
                         <div className="w-24 flex-shrink-0 text-sm text-gray-500 mb-8">
                             <ReactTimeAgo
@@ -113,7 +129,16 @@ export default function OldExplore({}: {  }) {
                             ))}
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div className="pb-32">
+                        <Skeleton height={80} count={3}/>
+                    </div>
+                )}
+                {groupedData.length && (
+                    <div className="flex items-center justify-center py-8">
+                        <UiButton onClick={loadActivity} isLoading={isLoading}>Load more</UiButton>
+                    </div>
+                )}
             </div>
         </div>
     )

@@ -15,6 +15,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                 }
             },
             {$sort: {"createdAt": -1}},
+            {$skip: page ? +page * 30 : 0},
             {$limit: 30},
             getLookup("users", "_id", "userId", "userArr"),
             getLookup("projects", "_id", "projectId", "projectArr"),
