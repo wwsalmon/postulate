@@ -10,7 +10,7 @@ import axios from "axios";
 export default function ProjectCard({pageProject, pageUser, className}: ProjectPageProps & {className?: string}) {
     return (
         <Link href={getProjectUrl(pageUser, pageProject)}>
-            <a className={`p-4 rounded-md border border-300 block hover:bg-gray-100 transition ${className || ""}`}>
+            <a className={`p-4 rounded-md border border-300 block hover:bg-gray-50 transition ${className || ""}`}>
                 <h3 className="font-manrope font-bold leading-snug">{pageProject.name}</h3>
                 <LinesEllipsis
                     text={pageProject.description || ""}

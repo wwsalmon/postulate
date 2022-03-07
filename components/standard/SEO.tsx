@@ -2,16 +2,16 @@ import {NextSeo} from "next-seo";
 import {useRouter} from "next/router";
 
 export default function SEO({
-    title = "Postulate: Supercharge Your Creativity by Learning in public",
-    description = "Postulate is an all-in-one tool for you to collect and publish your knowledge.",
-    projectName = "",
-    imgUrl = null,
-    authorUsername = null,
-    publishedDate = null,
+    title,
+    description = "The best place to publish blog posts and reading notes about what you learn in classes, research, and personal projects.",
+    projectName,
+    imgUrl,
+    authorUsername,
+    publishedDate,
     noindex = false,
 }: { title?: string, description?: string, projectName?: string, imgUrl?: string, authorUsername?: string, publishedDate?: string, noindex?: boolean }) {
     const router = useRouter();
-    const fullTitle = title + (projectName ? ` | ${projectName} on Postulate` : " | Postulate");
+    const fullTitle = title ? (title + (projectName ? ` | ${projectName} on Postulate` : " | Postulate")) : "Postulate: GitHub for Knowledge";
 
     let openGraph = {
         title: fullTitle,

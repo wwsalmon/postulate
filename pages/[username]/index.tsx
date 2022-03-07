@@ -2,13 +2,13 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
+import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
 import H3 from "../../components/style/H3";
 import SEO from "../../components/standard/SEO";
-import {FiArrowRight, FiPlus} from "react-icons/fi";
+import {FiArrowRight, FiPlus, FiSearch} from "react-icons/fi";
 import UiModal from "../../components/style/UiModal";
 import axios from "axios";
 import Link from "next/link";
@@ -22,18 +22,28 @@ import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 import {ProjectModel} from "../../models/project";
 import {Field} from "../new/project";
+import ExploreFeed from "../../components/explore/ExploreFeed";
+import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
 
-function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
+function FeaturedProjectModal({
+                                  pageUser,
+                                  iter,
+                                  setIter,
+                                  isOpen,
+                                  setIsOpen
+                              }: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [query, setQuery] = useState<string>("");
     const [projects, setProjects] = useState<DatedObj<ProjectObj>[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, fetcher);
+    const {data} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, query ? fetcher : async () => {
+        data: [];
+    });
 
     const isDisabled = !projects.length || selectedIndex === null;
 
-    function onSubmit(){
+    function onSubmit() {
         if (isDisabled) return;
 
         setIsLoading(true);
@@ -62,7 +72,11 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
             <Field value={query} setValue={setQuery} placeholder="Search for project by name"/>
             <div className="my-4">
                 {data && data.projects.map((node, i) => (
-                    <label htmlFor={`radio-${node._id}`} key={node._id} className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer">
+                    <label
+                        htmlFor={`radio-${node._id}`}
+                        key={node._id}
+                        className="flex items-center hover:bg-gray-100 transition p-2 cursor-pointer"
+                    >
                         <input
                             type="radio"
                             checked={i === selectedIndex}
@@ -80,78 +94,154 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
                 Cancel
             </UiButton>
         </UiModal>
-    )
+    );
 }
 
-export default function UserProfile({pageUser, thisUser, numProjects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
-    const [iter, setIter] = useState<number>(0);
+function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+    const [query, setQuery] = useState<string>("");
 
-    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
+    const {data: nodeData} = useSWR<{ nodes: (DatedObj<NodeObj> & { projectArr: DatedObj<ProjectObj>[] })[] }>(`/api/search/node?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {
+        data: [];
+    });
+    const {data: projectData} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/search/project?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {
+        data: [];
+    });
+
+    return (
+        <>
+            <div className="flex items-center mt-12 mb-8">
+                <H3>{query ? "Search results" : "Latest activity"}</H3>
+                <div className="flex items-center ml-auto">
+                    <FiSearch className="mr-4 text-gray-400"/>
+                    <input
+                        type="text"
+                        placeholder="Search projects and notes"
+                        className="sm:w-48 focus:outline-none"
+                        {...getInputStateProps(query, setQuery)}
+                    />
+                </div>
+            </div>
+            {query && (
+                <div className="py-4 md:flex md:-mx-4">
+                    <div className="md:w-1/2 md:px-4 mb-8 md:mb-0">
+                        <H2 className="mb-6">Projects</H2>
+                        <div className="grid grid-cols-2 gap-4">
+                            {projectData && projectData.projects.map(project => (
+                                <ProjectCard
+                                    pageUser={pageUser}
+                                    pageProject={project}
+                                    thisUser={thisUser}
+                                    key={project._id}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                    <div className="md:w-1/2 md:px-4">
+                        <H2 className="mb-6">Notes</H2>
+                        {nodeData && nodeData.nodes.map(node => (
+                            <ExploreNodeCard
+                                pageUser={pageUser}
+                                pageNode={node}
+                                pageProject={node.projectArr[0]}
+                                isSearch={true}
+                                key={node._id}
+                                className="mb-3"
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+export default function UserProfile({
+                                        pageUser,
+                                        thisUser,
+                                        numProjects
+                                    }: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
+    const [iter, setIter] = useState<number>(0);
+    const {data} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
 
     const isOwner = thisUser && thisUser._id === pageUser._id;
 
     const [isAddFeaturedOpen, setIsAddFeaturedOpen] = useState<boolean>(false);
 
     return (
-        <Container>
-            <SEO title={`${pageUser.name}`}/>
-            <img src={pageUser.image} alt={`Profile picture of ${pageUser.name}`} className="w-24 h-24 rounded-full mb-8"/>
-            <H1>Welcome to {pageUser.name.split(" ")[0]}'s Postulate</H1>
-            <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
-            <div className="flex items-center mt-12 mb-8">
-                <H3>Pinned repositories</H3>
-                {isOwner && (
-                    <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+        <>
+            <Container>
+                <SEO title={`${pageUser.name}`}/>
+                <img
+                    src={pageUser.image}
+                    alt={`Profile picture of ${pageUser.name}`}
+                    className="w-24 h-24 rounded-full mb-8"
+                />
+                <H1>Welcome to {pageUser.name.split(" ")[0]}'s Postulate</H1>
+                <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
+                <div className="flex items-center mt-12 mb-8">
+                    <H3>Pinned repositories</H3>
+                    {isOwner && (
+                        <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+                    )}
+                </div>
+                {numProjects === 0 && (
+                    <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
                 )}
-            </div>
-            {numProjects === 0 && (
-                <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
-            )}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
-                    <ProjectCardFeatured
-                        pageUser={pageUser}
-                        pageProject={project}
-                        thisUser={thisUser}
-                        iter={iter}
-                        setIter={setIter}
-                    />
-                ) : (
-                    <ProjectCard pageProject={project} pageUser={pageUser} thisUser={thisUser} key={project._id}/>
-                ))}
-                {isOwner && (
-                    <>
-                        <button
-                            className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
-                            style={{minHeight: 160}}
-                            onClick={() => setIsAddFeaturedOpen(true)}
-                        >
-                            <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
-                                <FiPlus/>
-                                <span className="ml-2">Add featured project</span>
-                            </div>
-                        </button>
-                        <FeaturedProjectModal
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {data && data.projects && data.projects.sort((
+                        a,
+                        b
+                    ) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
+                        <ProjectCardFeatured
                             pageUser={pageUser}
+                            pageProject={project}
+                            thisUser={thisUser}
                             iter={iter}
                             setIter={setIter}
-                            isOpen={isAddFeaturedOpen}
-                            setIsOpen={setIsAddFeaturedOpen}
                         />
-                    </>
-                )}
-                <Link href={`/@${pageUser.username}/projects`}>
-                    <a
-                        className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
-                        style={{minHeight: 160, transition: "all 0.3s ease"}}
-                    >
-                        <span className="mr-2">All projects ({numProjects})</span>
-                        <FiArrowRight/>
-                    </a>
-                </Link>
+                    ) : (
+                        <ProjectCard pageProject={project} pageUser={pageUser} thisUser={thisUser} key={project._id}/>
+                    ))}
+                    {isOwner && (
+                        <>
+                            <button
+                                className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
+                                style={{minHeight: 160}}
+                                onClick={() => setIsAddFeaturedOpen(true)}
+                            >
+                                <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
+                                    <FiPlus/>
+                                    <span className="ml-2">Add featured project</span>
+                                </div>
+                            </button>
+                            <FeaturedProjectModal
+                                pageUser={pageUser}
+                                iter={iter}
+                                setIter={setIter}
+                                isOpen={isAddFeaturedOpen}
+                                setIsOpen={setIsAddFeaturedOpen}
+                            />
+                        </>
+                    )}
+                    <Link href={`/@${pageUser.username}/projects`}>
+                        <a
+                            className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
+                            style={{minHeight: 160, transition: "all 0.3s ease"}}
+                        >
+                            <span className="mr-2">All projects ({numProjects})</span>
+                            <FiArrowRight/>
+                        </a>
+                    </Link>
+                </div>
+                <UserProfileSearch pageUser={pageUser} thisUser={thisUser}/>
+            </Container>
+            <div className="w-full bg-gray-100 pt-8 border-t">
+                <Container>
+                    <ExploreFeed userId={pageUser._id}/>
+                </Container>
             </div>
-        </Container>
-    )
+        </>
+    );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -177,9 +267,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisUser = await getThisUser(context);
 
-        return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), numProjects, key: username }};
+        return {
+            props: {
+                pageUser: cleanForJSON(pageUser),
+                thisUser: cleanForJSON(thisUser),
+                numProjects,
+                key: username
+            }
+        };
     } catch (e) {
         console.log(e);
         return ssr404;
     }
-}
+};

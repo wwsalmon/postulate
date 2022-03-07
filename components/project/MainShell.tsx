@@ -22,6 +22,10 @@ import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
 import UserButton from "../standard/UserButton";
 import ConfirmModal from "../standard/ConfirmModal";
 import {Field} from "../../pages/new/project";
+import {Portal} from "react-portal";
+import ExploreNodeCard from "../explore/ExploreNodeCard";
+import H3 from "../style/H3";
+import PublicNavbar from "./PublicNavbar";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -131,6 +135,44 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
     )
 }
 
+function MainShellSearch({pageProject, pageUser, thisUser}: ProjectPageProps) {
+    const [query, setQuery] = useState<string>("");
+
+    const {data: nodeData} = useSWR<{ nodes: (DatedObj<NodeObj> & { projectArr: DatedObj<ProjectObj>[] })[] }>(`/api/search/node?projectId=${pageProject._id}&query=${query}`, query ? fetcher : async () => {
+        data: [];
+    });
+
+    return (
+        <>
+            <div className="flex items-center">
+                <FiSearch className="mr-4 text-gray-400"/>
+                <input
+                    type="text"
+                    placeholder="Search"
+                    className="w-24 focus:outline-none" {...getInputStateProps(query, setQuery)}
+                />
+            </div>
+            {query && (
+                <Portal node={process.browser && document && document.getElementById("mainshell-before-children")}>
+                    <div className="mb-16">
+                        <H3 className="mb-4">Search results for "{query}"</H3>
+                        {nodeData && nodeData.nodes.map(node => (
+                            <ExploreNodeCard
+                                pageUser={pageUser}
+                                pageNode={node}
+                                pageProject={pageProject}
+                                isSearch={true}
+                                key={node._id}
+                                className="my-3"
+                            />
+                        ))}
+                    </div>
+                </Portal>
+            )}
+        </>
+    );
+}
+
 export default function MainShell({pageProject, pageUser, thisUser, children}: ProjectPageProps & {children: ReactNode}) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const router = useRouter();
@@ -194,6 +236,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
 
     return (
         <Container>
+            <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
             <SEO title={pageProject.name}/>
             <div className="items-center mb-8 flex">
                 <UserButton user={pageUser}/>
@@ -229,10 +272,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
             </div>
             <div className="my-12 md:flex items-center">
                 <div className="ml-auto flex items-center order-2 w-full md:w-auto mb-6 md:mb-0">
-                    <div className="flex items-center">
-                        <FiSearch className="mr-4 text-gray-400"/>
-                        <input type="text" placeholder="Search" className="w-24 focus:outline-none"/>
-                    </div>
+                    <MainShellSearch pageUser={pageUser} pageProject={pageProject} thisUser={thisUser}/>
                     {isOwner && (
                         <>
                             <MoreActions/>
@@ -248,6 +288,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
                 </div>
                 <Tabs/>
             </div>
+            <div id="mainshell-before-children"/>
             {children}
             <SnippetsBar pageProject={pageProject} pageUser={pageUser} thisUser={thisUser}/>
         </Container>
