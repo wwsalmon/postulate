@@ -2,13 +2,13 @@ import {GetServerSideProps} from "next";
 import dbConnect from "../../utils/dbConnect";
 import {UserModel} from "../../models/user";
 import {cleanForJSON, fetcher} from "../../utils/utils";
-import {DatedObj, ProjectObj, UserObj} from "../../utils/types";
+import {DatedObj, NodeObj, ProjectObj, UserObj} from "../../utils/types";
 import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import H1 from "../../components/style/H1";
 import H2 from "../../components/style/H2";
 import H3 from "../../components/style/H3";
 import SEO from "../../components/standard/SEO";
-import {FiArrowRight, FiPlus} from "react-icons/fi";
+import {FiArrowRight, FiPlus, FiSearch} from "react-icons/fi";
 import UiModal from "../../components/style/UiModal";
 import axios from "axios";
 import Link from "next/link";
@@ -23,6 +23,7 @@ import ProjectCard, {ProjectCardFeatured} from "../../components/profile/Project
 import {ProjectModel} from "../../models/project";
 import {Field} from "../new/project";
 import ExploreFeed from "../../components/explore/ExploreFeed";
+import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
 
 function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -84,9 +85,53 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
     )
 }
 
+function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj> }) {
+    const [query, setQuery] = useState<string>("");
+
+    const {data: nodeData} = useSWR<{nodes: (DatedObj<NodeObj> & {projectArr: DatedObj<ProjectObj>[]})[]}>(`/api/search/node?userId=${pageUser._id}&query=${query}`, query ? fetcher : async () => {data: []});
+
+    console.log(nodeData && nodeData.nodes);
+
+    return (
+        <>
+            <div className="flex items-center mt-12 mb-8">
+                <H3>{query ? "Search results" : "Latest activity"}</H3>
+                <div className="flex items-center ml-auto">
+                    <FiSearch className="mr-4 text-gray-400"/>
+                    <input
+                        type="text"
+                        placeholder="Search projects and notes"
+                        className="sm:w-48 focus:outline-none"
+                        {...getInputStateProps(query, setQuery)}
+                    />
+                </div>
+            </div>
+            {query && (
+                <div className="py-4 flex -mx-4">
+                    <div className="w-1/2 px-4">
+                        <H2>Projects</H2>
+                    </div>
+                    <div className="w-1/2 px-4">
+                        <H2 className="mb-6">Notes</H2>
+                        {nodeData && nodeData.nodes.map(node => (
+                            <ExploreNodeCard
+                                pageUser={pageUser}
+                                pageNode={node}
+                                pageProject={node.projectArr[0]}
+                                isSearch={true}
+                                key={node._id}
+                                className="mb-3"
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
 export default function UserProfile({pageUser, thisUser, numProjects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
     const [iter, setIter] = useState<number>(0);
-
     const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
 
     const isOwner = thisUser && thisUser._id === pageUser._id;
@@ -152,9 +197,9 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
                         </a>
                     </Link>
                 </div>
-                <H3 className="mt-12 mb-8">Latest activity</H3>
+                <UserProfileSearch pageUser={pageUser} thisUser={thisUser}/>
             </Container>
-            <div className="w-full bg-gray-100 pt-8">
+            <div className="w-full bg-gray-100 pt-8 border-t">
                 <Container>
                     <ExploreFeed userId={pageUser._id}/>
                 </Container>
