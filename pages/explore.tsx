@@ -5,15 +5,18 @@ import ExploreFeed from "../components/explore/ExploreFeed";
 
 export default function OldExplore({}: {  }) {
     return (
-        <div className="w-full bg-gray-100 -mt-16 pt-20 -mb-12 min-h-screen">
-            <div className="max-w-3xl mx-auto px-4">
-                <SEO title="Explore"/>
-                <H1 className="mb-4">Explore</H1>
-                {/*<hr className="my-8"/>*/}
-                {/*<UserSearch/>*/}
-                <hr className="my-8"/>
-                <ExploreFeed/>
+        <>
+            <SEO title="Explore"/>
+            <div className="max-w-3xl mx-auto px-4 pb-8">
+                <H1>Explore</H1>
             </div>
-        </div>
+            <div className="w-full bg-gray-100 py-8 border-t">
+                <div className="max-w-3xl mx-auto px-4">
+                    {/*<hr className="my-8"/>*/}
+                    {/*<UserSearch/>*/}
+                    <ExploreFeed/>
+                </div>
+            </div>
+        </>
     )
 }

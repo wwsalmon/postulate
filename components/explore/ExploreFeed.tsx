@@ -64,7 +64,7 @@ function ExplorePageFeed({activity}: {activity: Activity[]}) {
         <>
             {
                 groupedData.map((group, i) => (
-                    <div className="sm:flex my-12" key={i}>
+                    <div className="sm:flex mb-12" key={i}>
                         <div className="w-24 flex-shrink-0 text-sm text-gray-500 mb-8">
                             <ReactTimeAgo
                                 date={new Date((group.projects[0].items[0] as NodeObjPublic).body.publishedDate)}
@@ -136,7 +136,7 @@ function UserPageFeed({activity}: {activity: Activity[]}) {
         <>
             {
                 groupedData.map((group, i) => (
-                    <div className="sm:flex my-12" key={i}>
+                    <div className="sm:flex mb-12" key={i}>
                         <div className="w-24 flex-shrink-0 text-sm text-gray-500 mb-8">
                             <ReactTimeAgo
                                 date={new Date((group.items[0] as NodeObjPublic).body.publishedDate)}

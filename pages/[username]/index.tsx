@@ -152,10 +152,10 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
                         </a>
                     </Link>
                 </div>
+                <H3 className="mt-12 mb-8">Latest activity</H3>
             </Container>
-            <div className="w-full bg-gray-100 mt-8 pt-4">
+            <div className="w-full bg-gray-100 pt-8">
                 <Container>
-                    <H3 className="mt-12 mb-4">Latest activity</H3>
                     <ExploreFeed userId={pageUser._id}/>
                 </Container>
             </div>
