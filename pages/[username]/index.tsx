@@ -22,6 +22,7 @@ import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 import {ProjectModel} from "../../models/project";
 import {Field} from "../new/project";
+import ExploreFeed from "../../components/explore/ExploreFeed";
 
 function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pageUser: DatedObj<UserObj>, iter: number, setIter: Dispatch<SetStateAction<number>>, isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -93,64 +94,72 @@ export default function UserProfile({pageUser, thisUser, numProjects}: { pageUse
     const [isAddFeaturedOpen, setIsAddFeaturedOpen] = useState<boolean>(false);
 
     return (
-        <Container>
-            <SEO title={`${pageUser.name}`}/>
-            <img src={pageUser.image} alt={`Profile picture of ${pageUser.name}`} className="w-24 h-24 rounded-full mb-8"/>
-            <H1>Welcome to {pageUser.name.split(" ")[0]}'s Postulate</H1>
-            <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
-            <div className="flex items-center mt-12 mb-8">
-                <H3>Pinned repositories</H3>
-                {isOwner && (
-                    <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+        <>
+            <Container>
+                <SEO title={`${pageUser.name}`}/>
+                <img src={pageUser.image} alt={`Profile picture of ${pageUser.name}`} className="w-24 h-24 rounded-full mb-8"/>
+                <H1>Welcome to {pageUser.name.split(" ")[0]}'s Postulate</H1>
+                <H2 className="mt-2">Repositories of open-sourced knowledge</H2>
+                <div className="flex items-center mt-12 mb-8">
+                    <H3>Pinned repositories</H3>
+                    {isOwner && (
+                        <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+                    )}
+                </div>
+                {numProjects === 0 && (
+                    <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
                 )}
-            </div>
-            {numProjects === 0 && (
-                <p className="text-gray-400 my-8">No projects yet. Create one by clicking the button above!</p>
-            )}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
-                    <ProjectCardFeatured
-                        pageUser={pageUser}
-                        pageProject={project}
-                        thisUser={thisUser}
-                        iter={iter}
-                        setIter={setIter}
-                    />
-                ) : (
-                    <ProjectCard pageProject={project} pageUser={pageUser} thisUser={thisUser} key={project._id}/>
-                ))}
-                {isOwner && (
-                    <>
-                        <button
-                            className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
-                            style={{minHeight: 160}}
-                            onClick={() => setIsAddFeaturedOpen(true)}
-                        >
-                            <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
-                                <FiPlus/>
-                                <span className="ml-2">Add featured project</span>
-                            </div>
-                        </button>
-                        <FeaturedProjectModal
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {data && data.projects && data.projects.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).map(project => isOwner ? (
+                        <ProjectCardFeatured
                             pageUser={pageUser}
+                            pageProject={project}
+                            thisUser={thisUser}
                             iter={iter}
                             setIter={setIter}
-                            isOpen={isAddFeaturedOpen}
-                            setIsOpen={setIsAddFeaturedOpen}
                         />
-                    </>
-                )}
-                <Link href={`/@${pageUser.username}/projects`}>
-                    <a
-                        className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
-                        style={{minHeight: 160, transition: "all 0.3s ease"}}
-                    >
-                        <span className="mr-2">All projects ({numProjects})</span>
-                        <FiArrowRight/>
-                    </a>
-                </Link>
+                    ) : (
+                        <ProjectCard pageProject={project} pageUser={pageUser} thisUser={thisUser} key={project._id}/>
+                    ))}
+                    {isOwner && (
+                        <>
+                            <button
+                                className="flex items-center justify-center up-gray-300 rounded-md up-bg-gray-50 hover:bg-white hover:up-gray-700 hover:shadow transition"
+                                style={{minHeight: 160}}
+                                onClick={() => setIsAddFeaturedOpen(true)}
+                            >
+                                <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
+                                    <FiPlus/>
+                                    <span className="ml-2">Add featured project</span>
+                                </div>
+                            </button>
+                            <FeaturedProjectModal
+                                pageUser={pageUser}
+                                iter={iter}
+                                setIter={setIter}
+                                isOpen={isAddFeaturedOpen}
+                                setIsOpen={setIsAddFeaturedOpen}
+                            />
+                        </>
+                    )}
+                    <Link href={`/@${pageUser.username}/projects`}>
+                        <a
+                            className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
+                            style={{minHeight: 160, transition: "all 0.3s ease"}}
+                        >
+                            <span className="mr-2">All projects ({numProjects})</span>
+                            <FiArrowRight/>
+                        </a>
+                    </Link>
+                </div>
+            </Container>
+            <div className="w-full bg-gray-100 mt-8 pt-4">
+                <Container>
+                    <H3 className="mt-12 mb-4">Latest activity</H3>
+                    <ExploreFeed userId={pageUser._id}/>
+                </Container>
             </div>
-        </Container>
+        </>
     )
 }
 
