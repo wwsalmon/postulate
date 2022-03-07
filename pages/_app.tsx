@@ -31,7 +31,7 @@ export default function App({Component, pageProps}: AppProps) {
     return (
         <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
             <SessionProvider session={pageProps.session}>
-                {!["/", "/old", "/writers"].includes(router.route) && (
+                {!["/old-landers/github", "/old", "/writers"].includes(router.route) && (
                     <ToastProvider>
                         <Navbar/>
                     </ToastProvider>
