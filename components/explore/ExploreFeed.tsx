@@ -90,12 +90,13 @@ function ExplorePageFeed({activity}: {activity: Activity[]}) {
                                         )}
                                         <InlineButton href={getProjectUrl(group.user, projectGroup.project)}>{projectGroup.project.name}</InlineButton>
                                     </div>
-                                    {(projectGroup.items as DatedObj<NodeObjPublic>[]).map((item, i) => (
+                                    {(projectGroup.items as DatedObj<NodeObjPublic>[]).map((item) => (
                                         <ExploreNodeCard
                                             pageUser={group.user}
                                             pageNode={item}
                                             pageProject={projectGroup.project}
                                             className="mb-3"
+                                            key={item._id}
                                         />
                                     ))}
                                 </div>
@@ -149,12 +150,13 @@ function UserPageFeed({activity}: {activity: Activity[]}) {
                                 <span className="mr-2">published {group.items.length} note{group.items.length > 1 && "s"} in</span>
                                 <InlineButton href={getProjectUrl(group.items[0].userArr[0], group.project)}>{group.project.name}</InlineButton>
                             </div>
-                            {(group.items as DatedObj<NodeObjPublic>[]).map((item, i) => (
+                            {(group.items as DatedObj<NodeObjPublic>[]).map((item) => (
                                 <ExploreNodeCard
                                     pageUser={group.items[0].userArr[0]}
                                     pageNode={item}
                                     pageProject={group.project}
                                     className="mb-3"
+                                    key={item._id}
                                 />
                             ))}
                         </div>
