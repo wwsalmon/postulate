@@ -30,7 +30,7 @@ function FeaturedProjectModal({pageUser, iter, setIter, isOpen, setIsOpen}: { pa
     const [projects, setProjects] = useState<DatedObj<ProjectObj>[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, fetcher);
+    const {data} = useSWR<{projects: DatedObj<ProjectObj>[]}>(`/api/search/project?userId=${pageUser._id}&query=${query}&excludeFeatured=${true}`, query ? fetcher : async () => {data: []});
 
     const isDisabled = !projects.length || selectedIndex === null;
 
