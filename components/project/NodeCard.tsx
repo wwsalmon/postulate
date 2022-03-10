@@ -94,7 +94,7 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
                             {pageNode.type === "evergreen" ? (
                                 <TruncatedText value={body} isSmall={true}/>
                             ) : (
-                                <LinesEllipsis className="text-gray-500 text-xs mt-2 font-medium" text={getPlainTextFromSlateValue(sourceInfo)} maxLine={1}/>
+                                <LinesEllipsis className="text-gray-500 text-xs mt-2 font-medium truncate" text={getPlainTextFromSlateValue(sourceInfo)} maxLine={1}/>
                             )}
                         </div>
                         <div className={`flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto ${isSidebar ? "pt-2" : "pt-4"}`}>
