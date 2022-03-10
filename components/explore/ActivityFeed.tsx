@@ -173,7 +173,7 @@ function UserPageFeed({activity}: {activity: Activity[]}) {
     );
 }
 
-export default function ExploreFeed({userId}: {userId?: string}) {
+export default function ActivityFeed({userId}: {userId?: string}) {
     const [activity, setActivity] = useState<(DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]})[]>([]);
     const [page, setPage] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);

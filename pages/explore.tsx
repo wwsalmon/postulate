@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import SEO from "../components/standard/SEO";
 import H1 from "../components/style/H1";
-import ExploreFeed from "../components/explore/ExploreFeed";
+import ActivityFeed from "../components/explore/ActivityFeed";
 import useSWR from "swr";
 import {DatedObj, UserObj} from "../utils/types";
 import {fetcher} from "../utils/utils";
@@ -52,7 +52,7 @@ export default function Explore({}: {  }) {
                 <div className="max-w-3xl mx-auto px-4">
                     {/*<hr className="my-8"/>*/}
                     {/*<UserSearch/>*/}
-                    <ExploreFeed/>
+                    <ActivityFeed/>
                 </div>
             </div>
         </>

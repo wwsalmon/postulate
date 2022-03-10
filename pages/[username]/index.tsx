@@ -22,7 +22,7 @@ import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 import {ProjectModel} from "../../models/project";
 import {Field} from "../new/project";
-import ExploreFeed from "../../components/explore/ExploreFeed";
+import ActivityFeed from "../../components/explore/ActivityFeed";
 import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
 
 function FeaturedProjectModal({
@@ -237,7 +237,7 @@ export default function UserProfile({
             </Container>
             <div className="w-full bg-gray-100 pt-8 border-t">
                 <Container>
-                    <ExploreFeed userId={pageUser._id}/>
+                    <ActivityFeed userId={pageUser._id}/>
                 </Container>
             </div>
         </>
