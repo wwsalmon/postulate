@@ -8,8 +8,9 @@ import getProjectUrl from "../../utils/getProjectUrl";
 import ExploreNodeCard from "./ExploreNodeCard";
 import Skeleton from "react-loading-skeleton";
 import UiButton from "../style/UiButton";
+import useLoadMore from "./useLoadMore";
 
-type Activity = DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]};
+export type Activity = DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]};
 
 function ExplorePageFeed({activity}: {activity: Activity[]}) {
     let groupedData: {
@@ -174,49 +175,27 @@ function UserPageFeed({activity}: {activity: Activity[]}) {
 }
 
 export default function ActivityFeed({userId}: {userId?: string}) {
-    const [activity, setActivity] = useState<(DatedObj<NodeObj> & {userArr: DatedObj<UserObj>[], projectArr: DatedObj<ProjectObj>[]})[]>([]);
-    const [page, setPage] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [items, handleLoadMore, isLoading] = useLoadMore<Activity>(
+        async (page: number) => {
+            let url = `/api/activity?page=${page}`;
 
-    const didMount = useRef<boolean>(false);
+            if (userId) url += `&userId=${userId}`;
 
-    useEffect(() => {
-        if (!didMount.current) {
-            loadActivity();
-            didMount.current = true;
+            const res = await axios.get(url);
+            return res.data.activity as Activity[];
         }
-    }, []);
-
-    function loadActivity() {
-        setIsLoading(true);
-
-        let url = `/api/activity?page=${page}`;
-
-        if (userId) url += `&userId=${userId}`;
-
-        console.log(url);
-
-        axios.get(url).then(res => {
-            const {activity: newActivity} = res.data;
-            setActivity([...activity, ...newActivity]);
-            setPage(page + 1);
-        }).catch(e => {
-            console.log(e);
-        }).finally(() => {
-            setIsLoading(false);
-        });
-    }
+    );
 
     return (
         <>
-            {activity.length ? userId ? <UserPageFeed activity={activity}/> : <ExplorePageFeed activity={activity}/> : (
+            {items.length ? userId ? <UserPageFeed activity={items}/> : <ExplorePageFeed activity={items}/> : (
                 <div className="pb-32">
                     <Skeleton height={80} count={3}/>
                 </div>
             )}
-            {!!activity.length && (
+            {!!items.length && (
                 <div className="flex items-center justify-center py-8">
-                    <UiButton onClick={loadActivity} isLoading={isLoading}>Load more</UiButton>
+                    <UiButton onClick={handleLoadMore} isLoading={isLoading}>Load more</UiButton>
                 </div>
             )}
         </>

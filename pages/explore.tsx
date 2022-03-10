@@ -8,6 +8,8 @@ import {fetcher} from "../utils/utils";
 import UserButton from "../components/standard/UserButton";
 import {FiSearch} from "react-icons/fi";
 import {getInputStateProps} from "react-controlled-component-helpers";
+import PostsFeed from "../components/explore/PostsFeed";
+import TabButton from "../components/style/TabButton";
 
 function ExploreUserSearch() {
     const [query, setQuery] = useState<string>("");
@@ -41,20 +43,36 @@ function ExploreUserSearch() {
 }
 
 export default function Explore({}: {  }) {
+    type TabOption = "Posts" | "All Activity";
+
+    const [tab, setTab] = useState<TabOption>("Posts");
+
     return (
         <>
             <SEO title="Explore"/>
-            <div className="max-w-3xl mx-auto px-4 pb-8">
+            <div className="max-w-3xl mx-auto px-4">
                 <H1>Explore</H1>
                 <ExploreUserSearch/>
-            </div>
-            <div className="w-full bg-gray-100 py-8 border-t">
-                <div className="max-w-3xl mx-auto px-4">
-                    {/*<hr className="my-8"/>*/}
-                    {/*<UserSearch/>*/}
-                    <ActivityFeed/>
+                <div className="flex items-center mt-8 mb-4">
+                    {["Posts", "All Activity"].map(option => (
+                        <TabButton isActive={option === tab} onClick={() => setTab(option as TabOption)} key={option}>
+                            {option}
+                        </TabButton>
+                    ))}
                 </div>
+                {tab === "Posts" && (
+                    <PostsFeed className="mt-12"/>
+                )}
             </div>
+            {tab === "All Activity" && (
+                <div className="w-full bg-gray-100 py-8 border-t">
+                    <div className="max-w-3xl mx-auto px-4">
+                        {/*<hr className="my-8"/>*/}
+                        {/*<UserSearch/>*/}
+                        <ActivityFeed/>
+                    </div>
+                </div>
+            )}
         </>
     )
 }

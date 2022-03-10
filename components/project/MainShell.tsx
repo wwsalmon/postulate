@@ -26,6 +26,7 @@ import {Portal} from "react-portal";
 import ExploreNodeCard from "../explore/ExploreNodeCard";
 import H3 from "../style/H3";
 import PublicNavbar from "./PublicNavbar";
+import TabButton from "../style/TabButton";
 
 export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
 
@@ -199,13 +200,13 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
         <div className="overflow-x-auto">
             <div className="flex items-center">
                 {["Home", "Posts", "Evergreens", "Sources"].map(tab => (
-                    <Button
+                    <TabButton
                         key={`project-tab-${tab}`}
-                        className={`uppercase font-semibold text-sm tracking-wider flex-shrink-0 mr-6 ${((tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")) ? "" : "text-gray-400"}`}
                         href={`${getProjectUrl(pageUser, pageProject)}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
+                        isActive={(tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")}
                     >
                         {tab}
-                    </Button>
+                    </TabButton>
                 ))}
             </div>
         </div>
