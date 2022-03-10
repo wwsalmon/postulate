@@ -24,6 +24,8 @@ import {ProjectModel} from "../../models/project";
 import {Field} from "../new/project";
 import ActivityFeed from "../../components/explore/ActivityFeed";
 import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
+import TabButton from "../../components/style/TabButton";
+import PostsFeed from "../../components/explore/PostsFeed";
 
 function FeaturedProjectModal({
                                   pageUser,
@@ -110,7 +112,9 @@ function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, 
     return (
         <>
             <div className="flex items-center mt-12 mb-8">
-                <H3>{query ? "Search results" : "Latest activity"}</H3>
+                {query && (
+                    <H3>Search results</H3>
+                )}
                 <div className="flex items-center ml-auto">
                     <FiSearch className="mr-4 text-gray-400"/>
                     <input
@@ -160,6 +164,9 @@ export default function UserProfile({
                                         thisUser,
                                         numProjects
                                     }: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, numProjects: number }) {
+    type TabOption = "Latest Posts" | "All Activity";
+
+    const [tab, setTab] = useState<TabOption>("Latest Posts");
     const [iter, setIter] = useState<number>(0);
     const {data} = useSWR<{ projects: DatedObj<ProjectObj>[] }>(`/api/project?userId=${pageUser._id}&featured=${true}&iter=${iter}`, fetcher);
 
@@ -234,12 +241,24 @@ export default function UserProfile({
                     </Link>
                 </div>
                 <UserProfileSearch pageUser={pageUser} thisUser={thisUser}/>
+                <div className="flex items-center mt-8 mb-4">
+                    {["Latest Posts", "All Activity"].map(option => (
+                        <TabButton isActive={option === tab} onClick={() => setTab(option as TabOption)} key={option}>
+                            {option}
+                        </TabButton>
+                    ))}
+                </div>
+                {tab === "Latest Posts" && (
+                    <PostsFeed userId={pageUser._id} className="mt-12 mb-8"/>
+                )}
             </Container>
-            <div className="w-full bg-gray-100 pt-8 border-t">
-                <Container>
-                    <ActivityFeed userId={pageUser._id}/>
-                </Container>
-            </div>
+            {tab === "All Activity" && (
+                <div className="w-full bg-gray-100 pt-8 border-t">
+                    <Container>
+                        <ActivityFeed userId={pageUser._id}/>
+                    </Container>
+                </div>
+            )}
         </>
     );
 }

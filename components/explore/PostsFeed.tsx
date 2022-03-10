@@ -28,7 +28,7 @@ export default function PostsFeed({userId, className}: {userId?: string, classNa
                     pageNode={post}
                     key={post._id}
                     className="mb-12 block"
-                    showAuthor={true}
+                    showAuthor={!userId}
                     showProject={true}
                 />
             )) : (
