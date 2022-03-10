@@ -197,15 +197,17 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
 
     const Tabs = () => (
         <div className="overflow-x-auto">
-            {["Home", "Posts", "Evergreens", "Sources"].map(tab => (
-                <Button
-                    key={`project-tab-${tab}`}
-                    className={`uppercase font-semibold text-sm tracking-wider mr-6 ${((tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")) ? "" : "text-gray-400"}`}
-                    href={`${getProjectUrl(pageUser, pageProject)}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
-                >
-                    {tab}
-                </Button>
-            ))}
+            <div className="flex items-center">
+                {["Home", "Posts", "Evergreens", "Sources"].map(tab => (
+                    <Button
+                        key={`project-tab-${tab}`}
+                        className={`uppercase font-semibold text-sm tracking-wider flex-shrink-0 mr-6 ${((tab.toLowerCase() === pageTab) || (tab === "Home" && pageTab === "[projectUrlName]")) ? "" : "text-gray-400"}`}
+                        href={`${getProjectUrl(pageUser, pageProject)}${tab === "Home" ? "" : "/" + tab.toLowerCase()}`}
+                    >
+                        {tab}
+                    </Button>
+                ))}
+            </div>
         </div>
     );
 
