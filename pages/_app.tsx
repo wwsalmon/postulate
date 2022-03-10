@@ -4,13 +4,13 @@ import Navbar from "../components/navbar/Navbar";
 import {SessionProvider} from "next-auth/react";
 import Router, {useRouter} from "next/router";
 import Modal from "react-modal";
-import Footer from "../components/navbar/Footer";
 import NProgress from "nprogress";
 import "../styles/nprogress.css";
 import {createContext, useState} from "react";
 import {ToastProvider} from "react-toast-notifications";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
+import FloatingCta from "../components/navbar/FloatingCTA";
 
 Router.events.on("routeChangeStart", (url, {shallow}) => {
     if (!shallow) NProgress.start();
@@ -28,13 +28,19 @@ export default function App({Component, pageProps}: AppProps) {
     const router = useRouter();
     const [notifsIteration, setNotifsIteration] = useState<number>(0);
 
+    const isOldLander = router.route.substring(0, 13) === "/old-landers/";
+    const isHomepage = router.route === "/";
+
     return (
         <NotifsContext.Provider value={{notifsIteration, setNotifsIteration}}>
             <SessionProvider session={pageProps.session}>
-                {!["/old-landers/github", "/old", "/writers"].includes(router.route) && (
+                {!isOldLander && (
                     <ToastProvider>
                         <Navbar/>
                     </ToastProvider>
+                )}
+                {!(isOldLander || isHomepage) && (
+                    <FloatingCta/>
                 )}
                 <div id="app-root">
                     <Component {...pageProps} />
