@@ -173,11 +173,13 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                             <span>Unpublished changes</span>
                         </Badge>
                     )}
-                    {isOwner && (
+                    {(isOwner || "urlName" in pageNode.body) && (
                         <MoreMenu button={<MoreMenuButton/>} className="ml-auto">
-                            <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
-                                {`Edit${isExternal ? " in original project" : ""}`}
-                            </MoreMenuItem>
+                            {isOwner && (
+                                <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject || pageProject)}/${pageNode._id}`}>
+                                    {`Edit${isExternal ? " in original project" : ""}`}
+                                </MoreMenuItem>
+                            )}
                             {isModal && "urlName" in pageNode.body && (
                                 <MoreMenuItem href={`${getProjectUrl(pageUser, pageProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
                                     View as page
@@ -188,9 +190,11 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                                     <MoreMenuItem href={`${getProjectUrl(pageUser, originalProject)}/${pageNode.type.charAt(0)}/${pageNode.body.urlName}`}>
                                         View in original project
                                     </MoreMenuItem>
-                                    <MoreMenuItem onClick={() => setIsDeleteShortcutOpen(true)}>
-                                        Delete shortcut
-                                    </MoreMenuItem>
+                                    {isOwner && (
+                                        <MoreMenuItem onClick={() => setIsDeleteShortcutOpen(true)}>
+                                            Delete shortcut
+                                        </MoreMenuItem>
+                                    )}
                                 </>
                             )}
                         </MoreMenu>
