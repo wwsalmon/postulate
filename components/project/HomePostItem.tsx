@@ -29,7 +29,7 @@ function HomePostItem({pageNode, pageProject, pageUser, thisUser, showAuthor, sh
 
     const {publishedTitle: title, publishedBody: body, publishedDate, urlName} = pageNode.body;
 
-    const isExternal = !!pageNode.shortcutArr;
+    const isExternal = !!pageNode.shortcut;
     const images = findImages(body);
     const firstImage = images[0];
     const showReadingTime = !showAuthor && !showProject;

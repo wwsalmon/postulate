@@ -13,7 +13,7 @@ export default function PostItem({pageNode, pageProject, pageUser, thisUser, cla
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const isPublished = "publishedTitle" in pageNode.body;
     const hasChanges = isOwner && "publishedTitle" in pageNode.body && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
-    const isExternal = !!pageNode.shortcutArr;
+    const isExternal = !!pageNode.shortcut;
     const images = findImages("publishedTitle" in pageNode.body ? pageNode.body.publishedBody : pageNode.body.body);
     const firstImage = images[0];
 

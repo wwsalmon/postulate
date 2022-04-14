@@ -30,7 +30,7 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
     const {pageNode, pageUser, thisUser} = props;
 
     const isPublished = "publishedTitle" in pageNode.body;
-    const isExternal = !!pageNode.shortcutArr;
+    const isExternal = !!pageNode.shortcut;
     const isOwner = thisUser && pageUser._id === thisUser._id;
     const hasChanges = isOwner && "publishedBody" in pageNode.body && JSON.stringify(pageNode.body.publishedBody) !== JSON.stringify(pageNode.body.body);
 

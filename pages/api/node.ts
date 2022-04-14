@@ -9,6 +9,8 @@ import short from "short-uuid";
 import {NodeTypes} from "../../utils/types";
 import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils";
 import {ShortcutModel} from "../../models/shortcut";
+import getLookup from "../../utils/getLookup";
+import shortcut from "./shortcut";
 
 const baseBodyFields = ["title"]
 const sourceBodyFields = [...baseBodyFields, "sourceInfo", "notes", "summary", "takeaways"];
@@ -41,47 +43,49 @@ const handler: NextApiHandler = nextApiEndpoint({
             if (type) match["type"] = type;
             if (!isOwner) match["body.publishedTitle"] = {$exists: true};
 
-            let shortcutMatch = {userId: thisProject.userId};
-            if (type) shortcutMatch["type"] = type;
-
-            let sort = {}
-            sort[isOwner ? "createdAt" : "body.publishedDate"] = -1;
-
             const countPerPage = queryCountPerPage ? +queryCountPerPage : 20;
 
-            const graph = (await NodeModel.aggregate([
-                {$match: match},
+            let shortcutNodeMatch = [{$expr: {$eq: ["$_id", "$$targetId"]}}];
+            if (type) shortcutNodeMatch.push({$expr: {$eq: ["$type", type.toString()]}});
+
+            const graph = await NodeModel.aggregate([
+                {$match: match}, // change to objectid for projectid
                 {
                     $unionWith: {
-                        coll: "nodes",
+                        coll: "shortcuts",
                         pipeline: [
-                            {$match: shortcutMatch},
+                            {$match: {projectId: mongoose.Types.ObjectId(projectId.toString())}},
                             {
                                 $lookup: {
-                                    from: "shortcuts",
-                                    let: {"targetId": "$_id"},
+                                    from: "nodes",
+                                    let: {targetId: "$targetId"},
                                     pipeline: [
-                                        {
-                                            $match: {
-                                                $and: [
-                                                    {$expr: {$eq: ["$targetId", "$$targetId"]}},
-                                                    {$expr: {$eq: ["$projectId", mongoose.Types.ObjectId(projectId.toString())]}},
-                                                ],
-                                            },
-                                        },
+                                        {$match: {$and: shortcutNodeMatch}},
+                                        getLookup("projects", "_id", "projectId", "project"),
+                                        {$unwind: "$project"},
                                     ],
-                                    as: "shortcutArr",
-                                }
+                                    as: "node"
+                                },
                             },
-                            {$match: {shortcutArr: {$ne: []}}},
+                            {$match: {node: {$ne: []}}},
+                            {$unwind: "$node"},
                             {
-                                $lookup: {
-                                    from: "projects",
-                                    foreignField: "_id",
-                                    localField: "projectId",
-                                    as: "orrProjectArr",
-                                }
+                                $addFields: {
+                                    "shortcut._id": "$_id",
+                                    "shortcut.projectId": "$projectId",
+                                    "shortcut.targetId": "$targetId",
+                                    "shortcut.userId": "$userId",
+                                    "shortcut.urlName": "$urlName",
+                                    "shortcut.type": "$type",
+                                    "project": "$node.project",
+                                    "body": "$node.body",
+                                    "projectId": "$node.projectId",
+                                    "userId": "$node.userId",
+                                    "type": "$node.type",
+                                },
                             },
+                            {$project: {_id: 0}},
+                            {$addFields: {"_id": "$node._id"}},
                         ],
                     },
                 },
@@ -89,22 +93,26 @@ const handler: NextApiHandler = nextApiEndpoint({
                     $facet: {
                         count: [{$count: "count"}],
                         sample: [
-                            {$sort: sort},
+                            {$sort: {createdAt: -1}},
                             {$skip: page ? (+page * countPerPage) : 0},
                             {$limit: countPerPage},
                         ],
                     }
                 },
-            ]))[0];
+            ]);
 
-            const newNodes = isOwner ? graph.sample : graph.sample.map(node => {
+            console.log(graph);
+
+            const newNodes = isOwner ? graph[0].sample : graph[0].sample.map(node => {
                 let newNode = {...node};
                 const fields = getPrivateFields(node.type);
-                for (let field of fields) {delete newNode.body[field]};
+                for (let field of fields) {
+                    delete newNode.body[field];
+                }
                 return newNode;
             });
 
-            return res200(res, {nodes: newNodes, count: graph.count.length ? graph.count[0].count : 0});
+            return res200(res, {nodes: newNodes, count: (graph[0] && graph[0].count[0]) ? graph[0].count[0].count : 0});
         }
 
         return res400(res);
