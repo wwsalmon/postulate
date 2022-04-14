@@ -31,8 +31,10 @@ export default function PostsFeed({userId, className}: {userId?: string, classNa
                     showAuthor={!userId}
                     showProject={true}
                 />
-            )) : (
+            )) : isLoading ? (
                 <Skeleton height={120} count={3}/>
+            ) : (
+                <p className="pb-32">No posts yet</p>
             )}
             {!!items.length && (
                 <div className="flex items-center justify-center py-8">
