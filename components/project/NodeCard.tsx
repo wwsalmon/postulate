@@ -9,7 +9,6 @@ import TruncatedText from "../standard/TruncatedText";
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 import {FiExternalLink} from "react-icons/fi";
 import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
-import LinesEllipsis from "react-lines-ellipsis";
 
 const ThirdColumn = ({children}: {children: ReactNode}) => (
     <div className="md:w-1/3 md:px-4 my-4 md:my-0">
@@ -94,7 +93,9 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
                             {pageNode.type === "evergreen" ? (
                                 <TruncatedText value={body} isSmall={true}/>
                             ) : (
-                                <LinesEllipsis className="text-gray-500 text-xs mt-2 font-medium truncate" text={getPlainTextFromSlateValue(sourceInfo)} maxLine={1}/>
+                                <p className="text-xs mt-2 text-gray-500 line-clamp-1">
+                                    {getPlainTextFromSlateValue(sourceInfo)}
+                                </p>
                             )}
                         </div>
                         <div className={`flex items-center text-gray-400 text-xs font-manrope font-semibold mt-auto ${isSidebar ? "pt-2" : "pt-4"}`}>
@@ -112,11 +113,9 @@ export default function NodeCard({isSidebar, ...props}: PublicNodePageProps & {c
                         <ThirdColumn>
                             <h3 className="font-manrope font-semibold mb-2">{title}</h3>
                             <StatusBadge className="mb-2"/>
-                            <LinesEllipsis
-                                className="text-gray-500 text-xs mb-2"
-                                text={getPlainTextFromSlateValue(sourceInfo)}
-                                maxLine={1}
-                            />
+                            <p className="text-xs mb-2 text-gray-500 line-clamp-1">
+                                {getPlainTextFromSlateValue(sourceInfo)}
+                            </p>
                             <p className="text-gray-400 text-sm">{dateString}</p>
                             {isExternal && (
                                 <ExternalBadge className="mt-2"/>

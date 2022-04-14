@@ -1,11 +1,10 @@
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
-import React, {HTMLProps, useCallback} from "react";
+import React, {HTMLProps} from "react";
 import getProjectUrl from "../../utils/getProjectUrl";
 import Link from "next/link";
 import {findImages} from "../../slate/withImages";
 import {format} from "date-fns";
 import slateWordCount from "../../slate/slateWordCount";
-import LinesEllipsis from "react-lines-ellipsis";
 import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
 import {ExternalBadge} from "./NodeCard";
 import UserButton from "../standard/UserButton";
