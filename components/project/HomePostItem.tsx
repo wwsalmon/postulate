@@ -45,7 +45,7 @@ function HomePostItem({pageNode, pageProject, pageUser, thisUser, showAuthor, sh
                             className="flex-shrink-0 order-2 sm:pl-8 sm:ml-auto w-full sm:w-40 mb-4 sm:mb-0"
                         />
                     )}
-                    <div className="order-1">
+                    <div className="order-1 flex-grow sm:w-2">
                         <h1 className="font-manrope text-xl font-semibold">{title}</h1>
                         <p className="text-gray-400 text-sm leading-relaxed my-2 line-clamp-2">
                             {getPlainTextFromSlateValue(body)}

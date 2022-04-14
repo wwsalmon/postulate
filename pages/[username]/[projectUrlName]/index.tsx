@@ -10,7 +10,7 @@ export default function ProjectPage(props: ProjectPageProps) {
     return (
         <MainShell {...props}>
             <div className="md:flex mb-32">
-                <div className="flex-grow">
+                <div className="flex-grow md:w-2">
                     <NodeFeed {...props} type="post" isHome={true}/>
                 </div>
                 <div className="md:w-64 md:ml-12 flex-shrink-0">
