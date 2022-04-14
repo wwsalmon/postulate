@@ -188,9 +188,13 @@ export default function ActivityFeed({userId}: {userId?: string}) {
 
     return (
         <>
-            {items.length ? userId ? <UserPageFeed activity={items}/> : <ExplorePageFeed activity={items}/> : (
+            {items.length ? userId ? <UserPageFeed activity={items}/> : <ExplorePageFeed activity={items}/> : isLoading ? (
                 <div className="pb-32">
                     <Skeleton height={80} count={3}/>
+                </div>
+            ) : (
+                <div className="pb-32">
+                <p>No activity yet</p>
                 </div>
             )}
             {!!items.length && (

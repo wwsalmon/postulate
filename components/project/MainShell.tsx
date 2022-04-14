@@ -28,7 +28,7 @@ import H3 from "../style/H3";
 import PublicNavbar from "./PublicNavbar";
 import TabButton from "../style/TabButton";
 
-export type NodeWithShortcut = NodeObj & {shortcutArr?: DatedObj<ShortcutObj>[], orrProjectArr?: DatedObj<ProjectObj>[]};
+export type NodeWithShortcut = NodeObj & {shortcut?: DatedObj<ShortcutObj>, project?: DatedObj<ProjectObj>};
 
 function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: ProjectPageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();

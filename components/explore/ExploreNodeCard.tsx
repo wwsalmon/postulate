@@ -5,7 +5,6 @@ import Badge from "../style/Badge";
 import {isNodeEmpty} from "../../slate/withDeserializeMD";
 import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
 import React from "react";
-import LinesEllipsis from "react-lines-ellipsis";
 import {format} from "date-fns";
 
 export default function ExploreNodeCard({pageUser, pageNode, pageProject, className, isSearch, isProjectPage}: {
@@ -49,13 +48,13 @@ export default function ExploreNodeCard({pageUser, pageNode, pageProject, classN
                 ) : (
                     <>
                         {pageNode.type === "source" && (
-                            <LinesEllipsis
-                                className="text-gray-400 my-2 text-sm"
-                                text={getPlainTextFromSlateValue(pageNode.body.sourceInfo)}
-                                maxLine={1}
-                            />
+                            <p className="my-2 text-gray-400 text-sm line-clamp-1">
+                                {getPlainTextFromSlateValue(pageNode.body.sourceInfo)}
+                            </p>
                         )}
-                        <LinesEllipsis className="text-gray-500 mt-2 text-sm sm:text-base" text={previewText} maxLine={2}/>
+                        <p className="mt-2 text-gray-500 text-sm sm:text-base line-clamp-2">
+                            {previewText}
+                        </p>
                     </>
                 )}
             </a>

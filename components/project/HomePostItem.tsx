@@ -1,11 +1,10 @@
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
-import React, {HTMLProps, useCallback} from "react";
+import React, {HTMLProps} from "react";
 import getProjectUrl from "../../utils/getProjectUrl";
 import Link from "next/link";
 import {findImages} from "../../slate/withImages";
 import {format} from "date-fns";
 import slateWordCount from "../../slate/slateWordCount";
-import LinesEllipsis from "react-lines-ellipsis";
 import {getPlainTextFromSlateValue} from "../../slate/SlateEditor";
 import {ExternalBadge} from "./NodeCard";
 import UserButton from "../standard/UserButton";
@@ -29,7 +28,7 @@ function HomePostItem({pageNode, pageProject, pageUser, thisUser, showAuthor, sh
 
     const {publishedTitle: title, publishedBody: body, publishedDate, urlName} = pageNode.body;
 
-    const isExternal = !!pageNode.shortcutArr;
+    const isExternal = !!pageNode.shortcut;
     const images = findImages(body);
     const firstImage = images[0];
     const showReadingTime = !showAuthor && !showProject;
@@ -46,10 +45,10 @@ function HomePostItem({pageNode, pageProject, pageUser, thisUser, showAuthor, sh
                             className="flex-shrink-0 order-2 sm:pl-8 sm:ml-auto w-full sm:w-40 mb-4 sm:mb-0"
                         />
                     )}
-                    <div className="order-1">
+                    <div className="order-1 flex-grow sm:w-2">
                         <h1 className="font-manrope text-xl font-semibold">{title}</h1>
-                        <p className="text-gray-400 text-sm leading-relaxed my-2">
-                            <LinesEllipsis text={getPlainTextFromSlateValue(body)} maxLine={2}/>
+                        <p className="text-gray-400 text-sm leading-relaxed my-2 line-clamp-2">
+                            {getPlainTextFromSlateValue(body)}
                         </p>
                         <div className="flex items-center flex-wrap text-gray-400 font-manrope text-xs font-semibold my-4">
                             {showAuthor && (

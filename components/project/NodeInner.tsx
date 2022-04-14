@@ -23,8 +23,8 @@ import {Node} from "slate";
 function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
 
-    const originalProject = pageNode.orrProjectArr[0];
-    const pageShortcut = pageNode.shortcutArr[0];
+    const originalProject = pageNode.project;
+    const pageShortcut = pageNode.shortcut;
     const nodeType = pageNode.type;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -113,8 +113,8 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const isSource = pageNode.type === "source";
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isPublished = "urlName" in pageNode.body;
-    const isExternal = !!pageNode.shortcutArr;
-    const originalProject = isExternal && pageNode.orrProjectArr[0];
+    const isExternal = !!pageNode.shortcut;
+    const originalProject = isExternal && pageNode.project[0];
     const title = publishedTitle || privateTitle;
     const body = publishedBody || privateBody;
     const notes = publishedNotes || privateNotes;
