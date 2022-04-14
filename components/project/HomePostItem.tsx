@@ -48,8 +48,8 @@ function HomePostItem({pageNode, pageProject, pageUser, thisUser, showAuthor, sh
                     )}
                     <div className="order-1">
                         <h1 className="font-manrope text-xl font-semibold">{title}</h1>
-                        <p className="text-gray-400 text-sm leading-relaxed my-2">
-                            <LinesEllipsis text={getPlainTextFromSlateValue(body)} maxLine={2}/>
+                        <p className="text-gray-400 text-sm leading-relaxed my-2 line-clamp-2">
+                            {getPlainTextFromSlateValue(body)}
                         </p>
                         <div className="flex items-center flex-wrap text-gray-400 font-manrope text-xs font-semibold my-4">
                             {showAuthor && (

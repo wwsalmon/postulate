@@ -23,8 +23,6 @@ export default function NodeFeed({type, isHome, ...props}: ProjectPageProps & {t
 
     const {data} = useSWR<{nodes: DatedObj<NodeWithShortcut>[], count: number}>(`/api/node?projectId=${pageProject._id}&type=${type}&isOwner=${!isHome && !!isOwner}&iter=${iter}&page=${page}&countPerPage=${isSidebar ? 6 : 20}`, fetcher);
 
-    console.log(data);
-
     const isLoading = !data;
 
     const router = useRouter();
