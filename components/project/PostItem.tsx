@@ -19,7 +19,7 @@ export default function PostItem({pageNode, pageProject, pageUser, thisUser, cla
 
     return (
         <Link
-            href={`${getProjectUrl(pageUser, pageProject)}/${("urlName" in pageNode.body && (isExternal || !isOwner)) ? `p/${pageNode.body.urlName}` : pageNode._id}`}
+            href={`${getProjectUrl(pageUser, pageProject)}/${("urlName" in pageNode.body) ? `p/${pageNode.body.urlName}` : pageNode._id}`}
         >
             <a className={`mb-8 flex items-center ${className || ""}`}>
                 <div className="flex-grow">
@@ -43,7 +43,7 @@ export default function PostItem({pageNode, pageProject, pageUser, thisUser, cla
                         {!isSidebar && (
                             <>
                                 <p className="mr-3 mt-2">
-                                    Last {isPublished ? "Last published" : "Last updated"} {format(new Date("urlName" in pageNode.body ? pageNode.body.lastPublishedDate : pageNode.updatedAt), "MMM d, yyyy")}
+                                    Last {isPublished ? "published" : "updated"} {format(new Date("urlName" in pageNode.body ? pageNode.body.lastPublishedDate : pageNode.updatedAt), "MMM d, yyyy")}
                                 </p>
                                 <p className="mr-3 mt-2">
                                     {Math.ceil(slateWordCount(("urlName" in pageNode.body && !isOwner) ? pageNode.body.publishedBody : pageNode.body.body) / 200)} min read
