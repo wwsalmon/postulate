@@ -55,6 +55,7 @@
     "react-popper": "^2.2.5",
     "react-portal": "^4.2.1",
     "react-resize-observer": "^1.1.1",
+    "react-rough-notation": "^1.0.2",
     "react-select": "^4.1.0",
     "react-time-ago": "^7.1.9",
     "react-toast-notifications": "^2.4.4",
