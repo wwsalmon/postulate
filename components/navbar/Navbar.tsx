@@ -23,10 +23,10 @@ export default function Navbar() {
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
-                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
-                <Link href={session ? "/projects" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
                 {session && (
-                    <Link href={"/projects"}>
+                    <Link href={"/repositories"}>
                         <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
                             <div className="mr-3">
                                 <FiGrid/>
@@ -67,7 +67,7 @@ export default function Navbar() {
             </div>
             <div className="fixed left-0 bottom-0 w-full bg-white h-12 sm:hidden flex items-center">
                 {session && (
-                    <Link href={"/projects"}>
+                    <Link href={"/repositories"}>
                         <a className={`flex items-center justify-center opacity-50 hover:opacity-100 px-4 w-1/3`}>
                             <div className="mr-3">
                                 <FiGrid/>

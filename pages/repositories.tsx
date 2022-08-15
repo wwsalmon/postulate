@@ -4,7 +4,7 @@ import {ssr404, ssrRedirect} from "next-response-helpers";
 import dbConnect from "../utils/dbConnect";
 import {UserModel} from "../models/user";
 
-export default function Projects({}: {  }) {
+export default function Repositories({}: {  }) {
     return (
         <></>
     );
@@ -22,7 +22,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!thisUser) return ssrRedirect("/auth/welcome");
 
-        return ssrRedirect(`/@${thisUser.username}/projects`);
+        return ssrRedirect(`/@${thisUser.username}/repositories`);
     } catch (e) {
         console.log(e);
         return ssr404;

@@ -21,7 +21,7 @@ import {fetcher} from "../../utils/utils";
 import {ProjectPageProps} from "../../utils/getPublicNodeSSRFunction";
 import UserButton from "../standard/UserButton";
 import ConfirmModal from "../standard/ConfirmModal";
-import {Field} from "../../pages/new/project";
+import {Field} from "../../pages/new/repository";
 import {Portal} from "react-portal";
 import ExploreNodeCard from "../explore/ExploreNodeCard";
 import H3 from "../style/H3";
@@ -84,7 +84,7 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
         <UiModal isOpen={isOpen} setIsOpen={setIsOpen} wide={true}>
             <UiH3>New shortcut</UiH3>
             <div className="flex items-center my-4">
-                <p className="text-sm text-gray-500 font-manrope font-semibold mr-3">From project</p>
+                <p className="text-sm text-gray-500 font-manrope font-semibold mr-3">From repo</p>
                 <AsyncSelect
                     cacheOtions
                     loadOptions={(input, callback) => {
@@ -98,7 +98,7 @@ function NewShortcutModal({pageProject, pageUser, thisUser, isOpen, setIsOpen}: 
                             callback([]);
                         }
                     }}
-                    placeholder="Search for project in account"
+                    placeholder="Search for repository in account"
                     styles={{dropdownIndicator: () => ({display: "none"})}}
                     onChange={selected => setProject(selected)}
                     value={project}
@@ -189,7 +189,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
         setIsDeleteLoading(true);
 
         axios.delete("/api/project", {data: {id: pageProject._id}}).then(() => {
-            router.push(`/@${thisUser.username}/projects`);
+            router.push(`/@${thisUser.username}/repositories`);
         }).catch(e => {
             console.log(e);
             setIsDeleteLoading(false);

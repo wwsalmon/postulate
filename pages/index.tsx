@@ -7,10 +7,10 @@ export default function Index({}: {}) {
             <SEO/>
             <div className="text-center px-4">
                 <h1 className="font-bold font-manrope text-4xl sm:text-5xl leading-tight sm:leading-tight mt-16 mb-6 max-w-xl mx-auto">
-                    The best way to take and share reading notes
+                    The best way to record and share your learning
                 </h1>
                 <p className="text-xl sm:text-2xl leading-normal sm:leading-normal text-gray-500 max-w-lg mx-auto">
-                    Stop forgetting what you learn in classes, research, and personal projects.
+                    Remember insights from work, research, and classes by saving it in Postulate.
                 </p>
                 <SignInButton className="mt-6">Learn in public with Postulate</SignInButton>
             </div>

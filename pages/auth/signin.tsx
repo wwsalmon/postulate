@@ -31,7 +31,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!thisUser) return ssrRedirect("/auth/welcome");
 
-        return ssrRedirect("/projects");
+        return ssrRedirect("/repositories");
     } catch (e) {
         console.log(e);
         return ssrRedirect("/");

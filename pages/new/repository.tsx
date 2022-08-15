@@ -61,13 +61,13 @@ export function ProjectFields({thisUser, pageProject}: {thisUser: DatedObj<UserO
 
     return (
         <>
-            <UiH3 className="mt-8">Project name</UiH3>
-            <Field value={name} setValue={setName} placeholder="Project name"/>
+            <UiH3 className="mt-8">Repository name</UiH3>
+            <Field value={name} setValue={setName} placeholder="Repository name"/>
             <UiH3 className="mt-8">Description</UiH3>
             <p className="text-gray-400">Publicly visible. You can change this later.</p>
             <Field value={description} setValue={setDescription} placeholder="Description"/>
             <UiH3 className="mt-8">URL name</UiH3>
-            <p className="text-gray-400 my-2">The URL that your project will be publicly accessible at. You can change this later but this will cause post links to break.</p>
+            <p className="text-gray-400 my-2">The URL that your repository will be publicly accessible at. You can change this later but this will cause post links to break.</p>
             <div className="flex items-center">
                 <p className="mr-2 text-gray-500">postulate.us/@{thisUser.username}/</p>
                 <Field value={urlName} setValue={(value: string) => {
@@ -76,7 +76,7 @@ export function ProjectFields({thisUser, pageProject}: {thisUser: DatedObj<UserO
                 }} placeholder="URL name"/>
             </div>
             {urlNameError && (
-                <p className="my-2 text-red-500">You have another project with this URL name already.</p>
+                <p className="my-2 text-red-500">You have another repository with this URL name already.</p>
             )}
             {pageProject && urlName !== pageProject.urlName && (
                 <p className="my-2 text-yellow-500">Warning: changing the urlName will break existing post, evergreen, and source links</p>
@@ -89,8 +89,8 @@ export function ProjectFields({thisUser, pageProject}: {thisUser: DatedObj<UserO
 export default function NewProject(props: {thisUser: DatedObj<UserObj>}) {
     return (
         <Container className="max-w-2xl">
-            <SEO title="New project"/>
-            <H1>New project</H1>
+            <SEO title="New repository"/>
+            <H1>New repository</H1>
             <ProjectFields {...props}/>
         </Container>
     );
