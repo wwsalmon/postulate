@@ -17,7 +17,7 @@ import {useRouter} from "next/router";
 import axios from "axios";
 import ConfirmModal from "../standard/ConfirmModal";
 import slateWordCount from "../../slate/slateWordCount";
-import {DatedObj, NodeObjPostOrEvergreenPublic, NodeObjPublic, NodeObjSourcePublic} from "../../utils/types";
+import {DatedObj, NodeObjPostOrEvergreenPublic, NodeObjPublic, NodeObjSourcePublic, UserObj} from "../../utils/types";
 import {Node} from "slate";
 import UiButton from "../style/UiButton";
 import useSWR from "swr";
@@ -136,7 +136,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
 
     useEffect(() => {setIsMobile(window.matchMedia("(max-width: 600px)").matches)}, []);
 
-    const {data: likesData} = useSWR<DatedObj<LikeObj>[]>(`/api/like?nodeId=${pageNode._id}&iter=${likesIter}`, fetcher);
+    const {data: likesData} = useSWR<(DatedObj<LikeObj> & {user: DatedObj<UserObj>})[]>(`/api/like?nodeId=${pageNode._id}&iter=${likesIter}`, fetcher);
 
     function onLike() {
         if (!thisUser) router.push("/auth/signin");
