@@ -23,22 +23,18 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         const thisLike = await LikeModel.findOne({userId: thisUser._id, nodeId: req.body.nodeId.toString()});
 
-        if (thisLike) return res400(res, "User has already liked this post");
-
-        await LikeModel.create({
-            nodeId: req.body.nodeId,
-            userId: thisUser._id,
-        });
-
-        return res200(res);
-    },
-    async deleteFunction(req, res, session, thisUser) {
-        if (!thisUser) return res403(res);
-        if (!req.body.nodeId) return res400(res);
-
-        await LikeModel.deleteOne({userId: thisUser._id, nodeId: req.body.nodeId.toString()});
+        if (thisLike) {
+            await LikeModel.deleteOne({_id: thisLike._id});
+        } else {
+            await LikeModel.create({
+                nodeId: req.body.nodeId,
+                userId: thisUser._id,
+            });
+        };
 
         return res200(res);
     },
     allowUnAuthed: true,
 });
+
+export default handler;

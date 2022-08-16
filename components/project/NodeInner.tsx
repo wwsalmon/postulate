@@ -11,14 +11,18 @@ import {isNodeEmpty} from "../../slate/withDeserializeMD";
 import UserButton from "../standard/UserButton";
 import {PublicNodePageProps} from "../../utils/getPublicNodeSSRFunction";
 import InlineButton from "../style/InlineButton";
-import {FiExternalLink} from "react-icons/fi";
+import {FiExternalLink, FiHeart} from "react-icons/fi";
 import Banner from "../style/Banner";
 import {useRouter} from "next/router";
 import axios from "axios";
 import ConfirmModal from "../standard/ConfirmModal";
 import slateWordCount from "../../slate/slateWordCount";
-import {NodeObjPostOrEvergreenPublic, NodeObjPublic, NodeObjSourcePublic} from "../../utils/types";
+import {DatedObj, NodeObjPostOrEvergreenPublic, NodeObjPublic, NodeObjSourcePublic} from "../../utils/types";
 import {Node} from "slate";
+import UiButton from "../style/UiButton";
+import useSWR from "swr";
+import {fetcher} from "../../utils/utils";
+import {LikeObj} from "../../models/like";
 
 function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
@@ -62,6 +66,7 @@ function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpe
 
 export default function NodeInner(props: PublicNodePageProps & {isModal?: boolean}) {
     const {pageUser, pageNode, pageProject, thisUser, isModal} = props;
+    const router = useRouter();
 
     const {
         body: {
@@ -127,8 +132,16 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
 
     const [isDeleteShortcutOpen, setIsDeleteShortcutOpen] = useState<boolean>(false);
     const [isMobile, setIsMobile] = useState<boolean>(false);
+    const [likesIter, setLikesIter] = useState<number>(0);
 
     useEffect(() => {setIsMobile(window.matchMedia("(max-width: 600px)").matches)}, []);
+
+    const {data: likesData} = useSWR<DatedObj<LikeObj>[]>(`/api/like?nodeId=${pageNode._id}&iter=${likesIter}`, fetcher);
+
+    function onLike() {
+        if (!thisUser) router.push("/auth/signin");
+        else axios.post("/api/like", {nodeId: pageNode._id}).then(() => setLikesIter(prev => prev + 1));
+    }
 
     return (title && (body || (notes && summary && takeaways && sourceInfo))) ? (
         <>
@@ -214,6 +227,16 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                     {pageNode.type === "post" && (<span className="mr-4">{Math.ceil(slateWordCount(body as unknown as Node[]) / 200)} min read</span>)}
                 </div>
             </div>
+            <div className="flex items-center">
+                <InlineButton className="p-2 mr-4" onClick={onLike} flex={true}>
+                    <FiHeart/>
+                    <span className="ml-2">{likesData ? likesData.length : "loading..."}</span>
+                </InlineButton>
+                {likesData && likesData.map(d => (
+                    <UserButton className="mr-1" user={d.user} hideName={true}/>
+                ))}
+            </div>
+            <hr className="mt-6 mb-12"/>
             {isSource ? (
                 <>
                     {hasSummaryOrTakeaways && (
