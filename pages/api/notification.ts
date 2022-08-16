@@ -1,20 +1,9 @@
-import {NextApiHandler, NextApiResponse} from "next";
+import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {NotificationModel} from "../../models/notification";
-import mongoose, {Document} from "mongoose";
 import getLookup from "../../utils/getLookup";
-import {res200, res400, res403, res404} from "next-response-helpers";
-import {UserObj} from "../../utils/types";
-
-async function checkExistsAndAuthed(id: string, res: NextApiResponse, thisUser: UserObj & Document, model: mongoose.Model<any>) {
-    const thisObj = await model.findById(mongoose.Types.ObjectId(id));
-
-    if (!thisObj) return res404(res);
-
-    if (thisObj.userId.toString() !== thisUser._id.toString()) return res403(res);
-
-    return false;
-}
+import {res200, res400} from "next-response-helpers";
+import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res, session, thisUser) {

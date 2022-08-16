@@ -1,37 +1,31 @@
 import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {res200, res400, res403} from "next-response-helpers";
-import {CommentModel} from "../../models/comment";
 import mongoose from "mongoose";
 import getLookup from "../../utils/getLookup";
+import {LikeModel} from "../../models/like";
 import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res) {
         if (!req.query.nodeId) return res400(res);
 
-        const comments = await CommentModel.aggregate([
+        const likes = await LikeModel.aggregate([
             {$match: {nodeId: mongoose.Types.ObjectId(req.query.nodeId.toString())}},
-            getLookup("comments", "parentId", "_id", "subComments"),
             getLookup("users", "_id", "userId", "user"),
             {$unwind: "$user"},
         ]);
 
-        return res200(res, comments);
+        return res200(res, likes);
     },
     async postFunction(req, res, session, thisUser) {
         if (!thisUser) return res403(res);
-        if (!req.body.body || !req.body.nodeId) return res400(res);
+        if (!req.body.nodeId) return res400(res);
 
-        let commentObj = {
-            body: req.body.body,
+        await LikeModel.create({
             nodeId: req.body.nodeId,
             userId: thisUser._id,
-        };
-
-        if (req.body.parentId) commentObj["parentId"] = req.body.parentId;
-
-        await CommentModel.create(commentObj);
+        });
 
         return res200(res);
     },
@@ -39,10 +33,10 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (!thisUser) return res403(res);
         if (!req.body.id) return res400(res);
 
-        const checkResponse = await checkExistsAndAuthed(req.body.id, res, thisUser, CommentModel);
+        const checkResponse = await checkExistsAndAuthed(req.body.id, res, thisUser, LikeModel);
         if (checkResponse) return checkResponse;
 
-        await CommentModel.deleteOne({_id: req.body.id});
+        await LikeModel.deleteOne({_id: req.body.id});
 
         return res200(res);
     },
