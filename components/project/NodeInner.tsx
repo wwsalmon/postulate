@@ -23,6 +23,7 @@ import UiButton from "../style/UiButton";
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
 import {LikeObj} from "../../models/like";
+import Comments from "./Comments";
 
 function DeleteShortcutModal ({pageUser, pageProject, pageNode, isOpen, setIsOpen}: PublicNodePageProps & {isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>>}) {
     const router = useRouter();
@@ -267,6 +268,8 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             ) : (
                 <SlateReadOnly value={body as unknown as Node[]} fontSize={isModal ? (isMobile ? 16 : 18) : (isMobile ? 18 : 20)}/>
             )}
+            <hr className="mt-20 mb-12"/>
+            <Comments {...props}/>
         </>
     ) : (
         <p>Invalid node</p>

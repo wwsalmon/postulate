@@ -48,3 +48,5 @@ const handler: NextApiHandler = nextApiEndpoint({
     },
     allowUnAuthed: true,
 });
+
+export default handler;
