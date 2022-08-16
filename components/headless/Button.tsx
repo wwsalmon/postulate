@@ -6,7 +6,7 @@ export type ButtonProps = (React.HTMLProps<HTMLButtonElement> | React.HTMLProps<
 export default function Button(props: ButtonProps) {
     const {href, isLoading, children, disabled, block} = props;
     let domProps = {...props};
-    domProps.className += ` relative text-left ${disabled ? "opacity-25 cursor-not-allowed" : ""}`;
+    domProps.className += ` relative text-left ${disabled ? "opacity-25 cursor-not-allowed" : ""} ${block ? "block" : "inline-block"}`;
     delete domProps.childClassName;
     delete domProps.block;
     delete domProps.flex;
@@ -15,7 +15,7 @@ export default function Button(props: ButtonProps) {
         <Link href={href}>
             {/* @ts-ignore */}
             <a {...domProps}>
-                <div className={`${block ? "block" : "inline-block"} ${isLoading ? "invisible" : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
+                <div className={`${isLoading ? "invisible" : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
                     {children}
                 </div>
                 {isLoading && <div className="up-spinner"/>}
