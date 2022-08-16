@@ -12,10 +12,11 @@ import axios from "axios";
 import UserButton from "../standard/UserButton";
 import {format} from "date-fns";
 import InlineButton from "../style/InlineButton";
-import {FiCornerUpRight, FiTrash} from "react-icons/fi";
+import {FiCornerUpRight, FiHeart, FiTrash} from "react-icons/fi";
 import {CommentObj} from "../../models/comment";
 import ConfirmModal from "../standard/ConfirmModal";
 import {useRouter} from "next/router";
+import {LikeObj} from "../../models/like";
 
 function CommentForm({
                          pageNode,
@@ -76,10 +77,13 @@ function CommentItem({
                          thisUser,
                          pageNode,
                          callback
-                     }: { comment: DatedObj<CommentApiResponse | CommentWithUser>, thisUser: DatedObj<UserObj>, pageNode: DatedObj<NodeWithShortcut>, callback: () => any }) {
+                     }: { comment: DatedObj<CommentApiResponse | CommentApiBase>, thisUser: DatedObj<UserObj>, pageNode: DatedObj<NodeWithShortcut>, callback: () => any }) {
     const [isReplyOpen, setIsReplyOpen] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
+    const [likesIter, setLikesIter] = useState<number>(0);
+
+    const {data: likesData} = useSWR<(DatedObj<LikeObj> & {user: DatedObj<UserObj>})[]>(`/api/like?nodeId=${comment._id}&iter=${likesIter}`, fetcher);
 
     const router = useRouter();
 
@@ -93,6 +97,14 @@ function CommentItem({
 
         axios.delete("/api/comment", {data: {id: comment._id}}).then(callback);
     }
+
+    function onLike() {
+        if (thisUser) {
+            axios.post("/api/like", {nodeId: comment._id}).then(() => setLikesIter(prev => prev + 1));
+        } else router.push("/auth/signin");
+    }
+
+    const thisUserLiked = (likesData && thisUser && likesData.some(d => d.user._id === thisUser._id));
 
     return (
         <div className="my-12">
@@ -128,6 +140,15 @@ function CommentItem({
                         </ConfirmModal>
                     </>
                 )}
+                <InlineButton
+                    onClick={onLike}
+                    className={`mr-2 ${thisUserLiked ? "text-red-500" : ""}`}
+                >
+                    <FiHeart/>
+                </InlineButton>
+                {likesData && likesData.map(like => (
+                    <UserButton user={like.user} hideName={true} imageSizeClasses="w-4 h-4" className="mr-0" key={like._id}/>
+                ))}
             </div>
             <div className="pl-8 border-l">
                 {isReplyOpen && (
@@ -147,12 +168,12 @@ function CommentItem({
     );
 }
 
-interface CommentWithUser extends CommentObj {
+interface CommentApiBase extends CommentObj {
     user: DatedObj<UserObj>,
 }
 
-interface CommentApiResponse extends CommentWithUser {
-    subComments: DatedObj<CommentWithUser>[],
+interface CommentApiResponse extends CommentApiBase {
+    subComments: DatedObj<CommentApiBase>[],
 }
 
 export default function Comments({pageNode, thisUser}: PublicNodePageProps) {

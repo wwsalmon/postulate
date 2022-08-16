@@ -10,6 +10,11 @@ const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res) {
         if (!req.query.nodeId) return res400(res);
 
+        const baseStages = [
+            getLookup("users", "_id", "userId", "user"),
+            {$unwind: "$user"},
+        ]
+
         const comments = await CommentModel.aggregate([
             {$match: {nodeId: mongoose.Types.ObjectId(req.query.nodeId.toString())}},
             {$match: {parentId: {$exists: false}}},
@@ -19,14 +24,12 @@ const handler: NextApiHandler = nextApiEndpoint({
                     from: "comments",
                     pipeline: [
                         {$match: {$expr: {$eq: ["$parentId", "$$parentId"]}}},
-                        getLookup("users", "_id", "userId", "user"),
-                        {$unwind: "$user"},
+                        ...baseStages,
                     ],
                     as: "subComments",
                 }
             },
-            getLookup("users", "_id", "userId", "user"),
-            {$unwind: "$user"},
+            ...baseStages,
         ]);
 
         return res200(res, comments);

@@ -144,6 +144,8 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
         else axios.post("/api/like", {nodeId: pageNode._id}).then(() => setLikesIter(prev => prev + 1));
     }
 
+    const thisUserLiked = thisUser && likesData && likesData.some(d => d.user._id === thisUser._id);
+
     return (title && (body || (notes && summary && takeaways && sourceInfo))) ? (
         <>
             {isSource && (<UiH3 className="mb-2">Source notes</UiH3>)}
@@ -229,12 +231,12 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
                 </div>
             </div>
             <div className="flex items-center">
-                <InlineButton className="p-2 mr-4" onClick={onLike} flex={true}>
+                <InlineButton className={`p-2 mr-4 ${thisUserLiked ? "text-red-500" : ""}`} onClick={onLike} flex={true}>
                     <FiHeart/>
                     <span className="ml-2">{likesData ? likesData.length : "loading..."}</span>
                 </InlineButton>
                 {likesData && likesData.map(d => (
-                    <UserButton className="mr-1" user={d.user} hideName={true}/>
+                    <UserButton className="mr-1" user={d.user} hideName={true} key={d._id}/>
                 ))}
             </div>
             <hr className="mt-6 mb-12"/>
