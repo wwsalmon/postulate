@@ -15,6 +15,7 @@ import InlineButton from "../style/InlineButton";
 import {FiCornerUpRight, FiTrash} from "react-icons/fi";
 import {CommentObj} from "../../models/comment";
 import ConfirmModal from "../standard/ConfirmModal";
+import {useRouter} from "next/router";
 
 function CommentForm({
                          pageNode,
@@ -80,8 +81,11 @@ function CommentItem({
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
 
+    const router = useRouter();
+
     function onReplyButton() {
         if (thisUser) setIsReplyOpen(true);
+        else router.push("/auth/signin");
     }
 
     function onDelete() {
@@ -104,7 +108,7 @@ function CommentItem({
                     className="mr-4"
                     disabled={isReplyOpen}
                 ><FiCornerUpRight/><span className="ml-2">Reply</span></InlineButton>
-                {comment.userId === thisUser._id && (
+                {thisUser && comment.userId === thisUser._id && (
                     <>
                         <InlineButton
                             flex={true}
