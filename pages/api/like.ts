@@ -4,7 +4,6 @@ import {res200, res400, res403} from "next-response-helpers";
 import mongoose from "mongoose";
 import getLookup from "../../utils/getLookup";
 import {LikeModel} from "../../models/like";
-import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res) {
@@ -22,6 +21,10 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (!thisUser) return res403(res);
         if (!req.body.nodeId) return res400(res);
 
+        const thisLike = await LikeModel.findOne({userId: thisUser._id, nodeId: req.body.nodeId.toString()});
+
+        if (thisLike) return res400(res, "User has already liked this post");
+
         await LikeModel.create({
             nodeId: req.body.nodeId,
             userId: thisUser._id,
@@ -31,12 +34,9 @@ const handler: NextApiHandler = nextApiEndpoint({
     },
     async deleteFunction(req, res, session, thisUser) {
         if (!thisUser) return res403(res);
-        if (!req.body.id) return res400(res);
+        if (!req.body.nodeId) return res400(res);
 
-        const checkResponse = await checkExistsAndAuthed(req.body.id, res, thisUser, LikeModel);
-        if (checkResponse) return checkResponse;
-
-        await LikeModel.deleteOne({_id: req.body.id});
+        await LikeModel.deleteOne({userId: thisUser._id, nodeId: req.body.nodeId.toString()});
 
         return res200(res);
     },
