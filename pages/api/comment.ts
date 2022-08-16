@@ -55,6 +55,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         if (checkResponse) return checkResponse;
 
         await CommentModel.deleteOne({_id: req.body.id});
+        await CommentModel.deleteMany({parentId: req.body.id});
 
         return res200(res);
     },
