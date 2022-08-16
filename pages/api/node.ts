@@ -101,8 +101,6 @@ const handler: NextApiHandler = nextApiEndpoint({
                 },
             ]);
 
-            console.log(graph);
-
             const newNodes = isOwner ? graph[0].sample : graph[0].sample.map(node => {
                 let newNode = {...node};
                 const fields = getPrivateFields(node.type);
