@@ -12,7 +12,19 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         const comments = await CommentModel.aggregate([
             {$match: {nodeId: mongoose.Types.ObjectId(req.query.nodeId.toString())}},
-            getLookup("comments", "parentId", "_id", "subComments"),
+            {$match: {parentId: {$exists: false}}},
+            {
+                $lookup: {
+                    let: {parentId: "$_id"},
+                    from: "comments",
+                    pipeline: [
+                        {$match: {$expr: {$eq: ["$parentId", "$$parentId"]}}},
+                        getLookup("users", "_id", "userId", "user"),
+                        {$unwind: "$user"},
+                    ],
+                    as: "subComments",
+                }
+            },
             getLookup("users", "_id", "userId", "user"),
             {$unwind: "$user"},
         ]);

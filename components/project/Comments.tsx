@@ -75,7 +75,7 @@ function CommentItem({
                          thisUser,
                          pageNode,
                          callback
-                     }: { comment: DatedObj<CommentObj> & { user: DatedObj<UserObj> }, thisUser: DatedObj<UserObj>, pageNode: DatedObj<NodeWithShortcut>, callback: () => any }) {
+                     }: { comment: DatedObj<CommentApiResponse | CommentWithUser>, thisUser: DatedObj<UserObj>, pageNode: DatedObj<NodeWithShortcut>, callback: () => any }) {
     const [isReplyOpen, setIsReplyOpen] = useState<boolean>(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
     const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
@@ -135,14 +135,25 @@ function CommentItem({
                         parentId={comment.parentId || comment._id}
                     />
                 )}
+                {"subComments" in comment && comment.subComments.map(subComment => (
+                    <CommentItem comment={subComment} thisUser={thisUser} pageNode={pageNode} callback={callback} key={subComment._id}/>
+                ))}
             </div>
         </div>
     );
 }
 
+interface CommentWithUser extends CommentObj {
+    user: DatedObj<UserObj>,
+}
+
+interface CommentApiResponse extends CommentWithUser {
+    subComments: DatedObj<CommentWithUser>[],
+}
+
 export default function Comments({pageNode, thisUser}: PublicNodePageProps) {
     const [commentsIter, setCommentsIter] = useState<number>(0);
-    const {data: commentsData} = useSWR(`/api/comment?nodeId=${pageNode._id}&iter=${commentsIter}`, fetcher);
+    const {data: commentsData} = useSWR<DatedObj<CommentApiResponse>[]>(`/api/comment?nodeId=${pageNode._id}&iter=${commentsIter}`, fetcher);
 
     return (
         <>
