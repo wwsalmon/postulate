@@ -1,10 +1,7 @@
-import axios from "axios";
-import React, {useState} from "react";
-import {WaitlistAPIRes} from "../../utils/types";
+import React from "react";
 import SEO from "../../components/standard/SEO";
 import Link from "next/link";
-import UiButton from "../../components/style/UiButton";
-import {FiArrowDown, FiSearch} from "react-icons/fi";
+import {FiSearch} from "react-icons/fi";
 import Button from "../../components/headless/Button";
 import Sections from "../../components/lander/v3";
 import Footer from "../../components/lander/Footer";
