@@ -143,7 +143,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
             )}
             <H1 small={!isPost}>{title}</H1>
             {!isModal && (
-                <UserButton user={pageUser} className="mt-8"/>                
+                <UserButton user={pageUser} className="mt-8 sm:hidden"/>
             )}
             {pageNode.type === "source" && !(sourceInfo as unknown as Node[]).every(d => isNodeEmpty(d)) && (
                 <SlateReadOnly value={sourceInfo as unknown as Node[]} className="text-gray-400" fontSize={16}/>

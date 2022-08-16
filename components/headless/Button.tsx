@@ -14,8 +14,8 @@ export default function Button(props: ButtonProps) {
     return href ? (
         <Link href={href}>
             {/* @ts-ignore */}
-            <a {...domProps} style={{display: block ? "block" : "inline-block"}}>
-                <div className={`${isLoading ? "invisible" : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
+            <a {...domProps}>
+                <div className={`${block ? "block" : "inline-block"} ${isLoading ? "invisible" : ""} ${props.childClassName || ""} ${props.flex ? "flex items-center" : ""}`}>
                     {children}
                 </div>
                 {isLoading && <div className="up-spinner"/>}
