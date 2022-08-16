@@ -11,7 +11,7 @@ export default function UserButton({user, className, imageSizeClasses, hideName}
                 className={`${imageSizeClasses || "w-6 h-6"} rounded-full`}
             />
             {!hideName && (
-                <span className="mr-2">{user.name}</span>
+                <span className="ml-2">{user.name}</span>
             )}
         </InlineButton>
     );
