@@ -1,7 +1,7 @@
 import {GetServerSideProps} from "next";
 import dbConnect from "../../../../utils/dbConnect";
 import getThisUser from "../../../../utils/getThisUser";
-import {ssr403, ssr404, ssrRedirect} from "next-response-helpers";
+import {ssr404, ssrRedirect} from "next-response-helpers";
 import {NodeModel} from "../../../../models/node";
 import {getProjectPageInfo} from "../../../../utils/getProjectPageInfo";
 
@@ -25,7 +25,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         const thisUser = await getThisUser(context);
 
-        if (!(thisUser && thisUser._id.toString() === pageUser._id.toString())) return ssr403;
+        if (!(thisUser && thisUser._id.toString() === pageUser._id.toString())) return ssr404;
 
         const slateInit = [{type: "p", children: [{text: ""}]}];
 

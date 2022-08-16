@@ -46,6 +46,6 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         await NotificationModel.deleteOne({_id: req.body.id});
 
-        return res200(req);
+        return res200(res);
     }
 });
