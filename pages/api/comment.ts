@@ -7,6 +7,7 @@ import getLookup from "../../utils/getLookup";
 import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
 import {NodeModel} from "../../models/node";
 import {NotificationModel} from "../../models/notification";
+import {LikeModel} from "../../models/like";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res) {
@@ -104,6 +105,12 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         await CommentModel.deleteOne({_id: req.body.id});
         await CommentModel.deleteMany({parentId: req.body.id});
+        // todo: delete notifications for subcomments
+        // todo: delete likes on subcomments
+        // todo: delete notifications for likes on subcomments
+        await NotificationModel.deleteMany({itemId: req.body.id});
+        await LikeModel.deleteMany({nodeId: req.body.id});
+        // todo: delete notifications for likes
 
         return res200(res);
     },
