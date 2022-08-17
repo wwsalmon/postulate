@@ -5,6 +5,7 @@ import getLookup from "../../utils/getLookup";
 import {res200} from "next-response-helpers";
 import mongoose from "mongoose";
 import {DatedObj, NodeObjPublic, ProjectObj, UserObj} from "../../utils/types";
+import {subDays} from "date-fns";
 
 export interface NotificationApiResponse {
     userId: string,
@@ -19,6 +20,9 @@ export interface NotificationApiResponse {
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res, session, thisUser) {
+        // delete read notifications more than 14 days old
+        await NotificationModel.deleteMany({read: true, createdAt: {$lt: subDays(new Date(), 14)}});
+
         const notifications = await NotificationModel.aggregate([
             {$match: {userId: mongoose.Types.ObjectId(thisUser._id)}},
             {

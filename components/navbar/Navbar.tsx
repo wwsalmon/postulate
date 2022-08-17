@@ -11,30 +11,32 @@ import {DatedObj} from "../../utils/types";
 import {NotificationApiResponse} from "../../pages/api/notification";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {formatDistanceToNow} from "date-fns";
+import Button from "../headless/Button";
 
 function getNotificationText(notification: DatedObj<NotificationApiResponse>) {
     if (["commentLike", "nodeLike"].includes(notification.type)) {
-        return `${notification.author.name} liked your ${notification.type === "commentLike" ? "comment" : notification.node.type}`;
+        return `liked your ${notification.type === "commentLike" ? "comment" : notification.node.type}`;
     }
 
-    if (notification.type === "commentComment") return `${notification.author.name} replied to your comment`;
+    if (notification.type === "commentComment") return `replied to your comment`;
 
-    return `${notification.author.name} commented on your ${notification.node.type}`;
+    return `commented on your ${notification.node.type}`;
 }
 
 function NotificationItem({notification}: {notification: DatedObj<NotificationApiResponse>}) {
     return (
-        <MoreMenuItem
+        <Button
             href={`${getProjectUrl(notification.node.user, notification.node.project)}/${notification.node.type.substring(0, 1)}/${notification.node.body.urlName}`}
-            className={`max-w-[240px] ${notification.read ? "opacity-50" : ""}`}
+            className={`max-w-[320px] p-3 ${notification.read ? "opacity-50" : "bg-white hover:bg-gray-50"}`}
+            block={true}
         >
-            <span className={notification.read ? "" : "font-bold"}>
-                {getNotificationText(notification)}
-            </span>
-            <span className="text-gray-500 ml-1">
+            <p>
+                <span className="font-medium">{notification.author.name}</span> {getNotificationText(notification)}
+            </p>
+            <p className="text-gray-400 text-sm font-manrope font-semibold">
                 {formatDistanceToNow(new Date(notification.createdAt))} ago
-            </span>
-        </MoreMenuItem>
+            </p>
+        </Button>
     );
 }
 
@@ -91,9 +93,11 @@ export default function Navbar() {
                                 )}
                             </div>
                         )}>
-                            {notificationsData.map(notification => (
-                                <NotificationItem notification={notification} key={notification._id}/>
-                            ))}
+                            <div className="overflow-y-auto max-h-[320px]" id="habada">
+                                {notificationsData.map(notification => (
+                                    <NotificationItem notification={notification} key={notification._id}/>
+                                ))}
+                            </div>
                         </MoreMenu>
                     )}
                     {session ? (
