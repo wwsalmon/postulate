@@ -15,13 +15,13 @@ import {formatDistanceToNow} from "date-fns";
 function NotificationItem({notification}: {notification: DatedObj<NotificationApiResponse>}) {
     return (
         <MoreMenuItem
-            href={`/${getProjectUrl(notification.node.user, notification.node.project)}/${notification.node.type.substring(0, 1)}/${notification.node.body.urlName}`}
+            href={`${getProjectUrl(notification.node.user, notification.node.project)}/${notification.node.type.substring(0, 1)}/${notification.node.body.urlName}`}
             className={`max-w-[240px] ${notification.read ? "opacity-50" : ""}`}
         >
             <span className={notification.read ? "" : "font-bold"}>
                 {notification.author.name} liked your {notification.type === "commentLike" ? "comment" : "post"}
             </span>
-            <span className="text-gray-500 ml-2">
+            <span className="text-gray-500 ml-1">
                 {formatDistanceToNow(new Date(notification.createdAt))} ago
             </span>
         </MoreMenuItem>
@@ -42,7 +42,7 @@ export default function Navbar() {
         });
     }, [status]);
 
-    const {data: notificationsData} = useSWR("/api/notification", session ? fetcher : () => []);
+    const {data: notificationsData} = useSWR(`/api/notification?authed=${!!session}`, session ? fetcher : () => []);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
