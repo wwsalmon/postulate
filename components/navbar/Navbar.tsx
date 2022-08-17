@@ -42,7 +42,7 @@ export default function Navbar() {
         });
     }, [status]);
 
-    const {data: notificationsData} = useSWR("/api/notification", fetcher);
+    const {data: notificationsData} = useSWR("/api/notification", session ? fetcher : () => []);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
@@ -68,7 +68,7 @@ export default function Navbar() {
                     </a>
                 </Link>
                 <div className="ml-auto flex items-center h-full">
-                    {notificationsData && (
+                    {session && notificationsData && (
                         <MoreMenu button={(
                             <div className="relative">
                                 <UiButton noBg={true} onClick={() => null} className="mr-2 py-2">
