@@ -2,8 +2,7 @@ import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {NotificationModel} from "../../models/notification";
 import getLookup from "../../utils/getLookup";
-import {res200, res400} from "next-response-helpers";
-import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
+import {res200} from "next-response-helpers";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res, session, thisUser) {
@@ -19,22 +18,6 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         return res200(res, notifications);
     },
-    async postFunction(req, res, session, thisUser) {
-        if (!req.body.id) return res400(res);
-        const checkResponse = checkExistsAndAuthed(req.body.id.toString(), res, thisUser, NotificationModel);
-        if (checkResponse) return checkResponse;
-
-        await NotificationModel.updateOne({_id: req.body.id}, {read: true});
-
-        return res200(res);
-    },
-    async deleteFunction(req, res, session, thisUser) {
-        if (!req.body.id) return res400(res);
-        const checkResponse = checkExistsAndAuthed(req.body.id.toString(), res, thisUser, NotificationModel);
-        if (checkResponse) return checkResponse;
-
-        await NotificationModel.deleteOne({_id: req.body.id});
-
-        return res200(res);
-    }
 });
+
+export default handler;

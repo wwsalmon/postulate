@@ -1,10 +1,12 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/react";
-import {FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
+import {FiBell, FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
 import {useEffect} from "react";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 import UiButton from "../style/UiButton";
+import useSWR from "swr";
+import {fetcher} from "../../utils/utils";
 
 export default function Navbar() {
     const router = useRouter();
@@ -19,6 +21,8 @@ export default function Navbar() {
             email: session.user.email,
         });
     }, [status]);
+
+    const {data: notificationsData} = useSWR("/api/notification", fetcher);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
@@ -44,6 +48,20 @@ export default function Navbar() {
                     </a>
                 </Link>
                 <div className="ml-auto flex items-center h-full">
+                    <MoreMenu button={(
+                        <div className="relative">
+                            <UiButton noBg={true} onClick={() => null} className="mr-2 py-2">
+                                <FiBell/>
+                            </UiButton>
+                            {notificationsData && !!notificationsData.filter(d => !d.read).length && (
+                                <div className="w-3 h-3 rounded-full bg-red-500 absolute right-3 top-0 text-[8px] text-white text-center font-bold">
+                                    <span>{notificationsData.filter(d => !d.read).length}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}>
+                        <MoreMenuItem>Test</MoreMenuItem>
+                    </MoreMenu>
                     {session ? (
                         <MoreMenu button={(
                             <button className="flex items-center p-1 rounded-md -mr-1 hover:bg-gray-100 transition">
