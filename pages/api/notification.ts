@@ -38,7 +38,7 @@ const handler: NextApiHandler = nextApiEndpoint({
             {$unwind: "$node"},
             getLookup("users", "_id", "authorId", "author"),
             {$unwind: "$author"},
-            {$sort: {createdAt: 1}},
+            {$sort: {createdAt: -1}},
         ]);
 
         return res200(res, notifications);

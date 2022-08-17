@@ -50,7 +50,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                     nodeId: ("nodeId" in thisNode) ? thisNode.nodeId : thisNode._id, // if comment, we want the actual node id
                     itemId: like._id,
                     read: false,
-                    type: isComment ? "commentLike" : "postLike",
+                    type: isComment ? "commentLike" : "nodeLike",
                 });
             }
         };

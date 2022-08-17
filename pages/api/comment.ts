@@ -1,10 +1,12 @@
 import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
-import {res200, res400, res403} from "next-response-helpers";
+import {res200, res400, res403, res404} from "next-response-helpers";
 import {CommentModel} from "../../models/comment";
 import mongoose from "mongoose";
 import getLookup from "../../utils/getLookup";
 import checkExistsAndAuthed from "../../utils/checkIfExistsAndAuthed";
+import {NodeModel} from "../../models/node";
+import {NotificationModel} from "../../models/notification";
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res) {
@@ -30,6 +32,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                 }
             },
             ...baseStages,
+            {$sort: {createdAt: -1}},
         ]);
 
         return res200(res, comments);
@@ -37,6 +40,8 @@ const handler: NextApiHandler = nextApiEndpoint({
     async postFunction(req, res, session, thisUser) {
         if (!thisUser) return res403(res);
         if (!req.body.body || !req.body.nodeId) return res400(res);
+        const thisNode = await NodeModel.findById(req.body.nodeId);
+        if (!thisNode) return res404(res);
 
         let commentObj = {
             body: req.body.body,
@@ -44,9 +49,49 @@ const handler: NextApiHandler = nextApiEndpoint({
             userId: thisUser._id,
         };
 
-        if (req.body.parentId) commentObj["parentId"] = req.body.parentId;
+        let thisParentComment = null;
 
-        await CommentModel.create(commentObj);
+        if (req.body.parentId) {
+            commentObj["parentId"] = req.body.parentId;
+            const parentCommentPipeline = await CommentModel.aggregate([
+                {$match: {_id: mongoose.Types.ObjectId(req.body.parentId)}},
+                getLookup("comments", "parentId", "_id", "subComments"),
+            ]);
+            thisParentComment = parentCommentPipeline[0];
+            if (!thisParentComment) return res404(res);
+        }
+
+        const thisComment = await CommentModel.create(commentObj);
+
+        let allUserIds = [];
+
+        if (thisParentComment) {
+            const subCommentIds = thisParentComment.subComments.map(d => d.userId);
+            const filteredUserIds = [thisParentComment.userId, ...subCommentIds].filter(d => d.toString() !== thisUser.toString());
+            allUserIds = Array.from(new Set(filteredUserIds));
+
+            const notifications = allUserIds.map(d => ({
+                userId: d,
+                authorId: thisUser._id,
+                nodeId: thisNode._id,
+                itemId: thisComment._id,
+                read: false,
+                type: "commentComment",
+            }));
+
+            await NotificationModel.insertMany(notifications);
+        }
+
+        if (thisNode.userId.toString() !== thisUser._id.toString() && !allUserIds.some(d => d.toString() === thisNode.userId.toString())) {
+            await NotificationModel.create({
+                userId: thisNode.userId,
+                authorId: thisUser._id,
+                nodeId: thisNode._id,
+                itemId: thisComment._id,
+                read: false,
+                type: "nodeComment",
+            })
+        }
 
         return res200(res);
     },

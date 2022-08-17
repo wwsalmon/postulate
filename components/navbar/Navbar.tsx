@@ -12,6 +12,16 @@ import {NotificationApiResponse} from "../../pages/api/notification";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {formatDistanceToNow} from "date-fns";
 
+function getNotificationText(notification: DatedObj<NotificationApiResponse>) {
+    if (["commentLike", "nodeLike"].includes(notification.type)) {
+        return `${notification.author.name} liked your ${notification.type === "commentLike" ? "comment" : notification.node.type}`;
+    }
+
+    if (notification.type === "commentComment") return `${notification.author.name} replied to your comment`;
+
+    return `${notification.author.name} commented on your ${notification.node.type}`;
+}
+
 function NotificationItem({notification}: {notification: DatedObj<NotificationApiResponse>}) {
     return (
         <MoreMenuItem
@@ -19,7 +29,7 @@ function NotificationItem({notification}: {notification: DatedObj<NotificationAp
             className={`max-w-[240px] ${notification.read ? "opacity-50" : ""}`}
         >
             <span className={notification.read ? "" : "font-bold"}>
-                {notification.author.name} liked your {notification.type === "commentLike" ? "comment" : "post"}
+                {getNotificationText(notification)}
             </span>
             <span className="text-gray-500 ml-1">
                 {formatDistanceToNow(new Date(notification.createdAt))} ago
