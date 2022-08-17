@@ -7,6 +7,26 @@ import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 import UiButton from "../style/UiButton";
 import useSWR from "swr";
 import {fetcher} from "../../utils/utils";
+import {DatedObj} from "../../utils/types";
+import {NotificationApiResponse} from "../../pages/api/notification";
+import getProjectUrl from "../../utils/getProjectUrl";
+import {formatDistanceToNow} from "date-fns";
+
+function NotificationItem({notification}: {notification: DatedObj<NotificationApiResponse>}) {
+    return (
+        <MoreMenuItem
+            href={`/${getProjectUrl(notification.node.user, notification.node.project)}/${notification.node.type.substring(0, 1)}/${notification.node.body.urlName}`}
+            className={`max-w-[240px] ${notification.read ? "opacity-50" : ""}`}
+        >
+            <span className={notification.read ? "" : "font-bold"}>
+                {notification.author.name} liked your {notification.type === "commentLike" ? "comment" : "post"}
+            </span>
+            <span className="text-gray-500 ml-2">
+                {formatDistanceToNow(new Date(notification.createdAt))} ago
+            </span>
+        </MoreMenuItem>
+    );
+}
 
 export default function Navbar() {
     const router = useRouter();
@@ -48,20 +68,24 @@ export default function Navbar() {
                     </a>
                 </Link>
                 <div className="ml-auto flex items-center h-full">
-                    <MoreMenu button={(
-                        <div className="relative">
-                            <UiButton noBg={true} onClick={() => null} className="mr-2 py-2">
-                                <FiBell/>
-                            </UiButton>
-                            {notificationsData && !!notificationsData.filter(d => !d.read).length && (
-                                <div className="w-3 h-3 rounded-full bg-red-500 absolute right-3 top-0 text-[8px] text-white text-center font-bold">
-                                    <span>{notificationsData.filter(d => !d.read).length}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}>
-                        <MoreMenuItem>Test</MoreMenuItem>
-                    </MoreMenu>
+                    {notificationsData && (
+                        <MoreMenu button={(
+                            <div className="relative">
+                                <UiButton noBg={true} onClick={() => null} className="mr-2 py-2">
+                                    <FiBell/>
+                                </UiButton>
+                                {!!notificationsData.filter(d => !d.read).length && (
+                                    <div className="w-3 h-3 rounded-full bg-red-500 absolute right-3 top-0 text-[8px] text-white text-center font-bold">
+                                        <span>{notificationsData.filter(d => !d.read).length}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}>
+                            {notificationsData.map(notification => (
+                                <NotificationItem notification={notification} key={notification._id}/>
+                            ))}
+                        </MoreMenu>
+                    )}
                     {session ? (
                         <MoreMenu button={(
                             <button className="flex items-center p-1 rounded-md -mr-1 hover:bg-gray-100 transition">

@@ -6,6 +6,7 @@ export interface NotificationObj {
     authorId: string,
     itemId: string,
     read: boolean,
+    type: string,
 }
 
 const NotificationSchema = new Schema({
@@ -14,6 +15,7 @@ const NotificationSchema = new Schema({
     nodeId: mongoose.Schema.Types.ObjectId, // ID of update of comment to generate link and notification message
     itemId: {type: mongoose.Schema.Types.ObjectId, required: false}, // ID of the comment for likeComment
     read: {type: Boolean, required: true},
+    type: {type: String, required: true}, // nodeLike, commentLike, nodeComment, commentComment
 }, {
     timestamps: true,
 });

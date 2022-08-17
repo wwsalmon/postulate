@@ -34,23 +34,25 @@ const handler: NextApiHandler = nextApiEndpoint({
         } else {
             const isComment = req.body.isComment; // comment or post?
             const thisModel = isComment ? CommentModel : NodeModel;
-            const thisNode = thisModel.findById(req.body.nodeId);
+            const thisNode = await thisModel.findById(req.body.nodeId);
 
             if (!thisNode) return res404(res);
 
-            await LikeModel.create({
+            const like = await LikeModel.create({
                 nodeId: req.body.nodeId,
                 userId: thisUser._id,
             });
 
-            if (isComment) {
-
-            } else {
-
+            if (thisNode.userId.toString() !== thisUser._id.toString()) {
+                await NotificationModel.create({
+                    userId: thisNode.userId,
+                    authorId: thisUser._id,
+                    nodeId: ("nodeId" in thisNode) ? thisNode.nodeId : thisNode._id, // if comment, we want the actual node id
+                    itemId: like._id,
+                    read: false,
+                    type: isComment ? "commentLike" : "postLike",
+                });
             }
-
-            await NotificationModel.create({
-            });
         };
 
         return res200(res);

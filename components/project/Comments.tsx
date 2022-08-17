@@ -100,7 +100,7 @@ function CommentItem({
 
     function onLike() {
         if (thisUser) {
-            axios.post("/api/like", {nodeId: comment._id}).then(() => setLikesIter(prev => prev + 1));
+            axios.post("/api/like", {nodeId: comment._id, isComment: true}).then(() => setLikesIter(prev => prev + 1));
         } else router.push("/auth/signin");
     }
 
