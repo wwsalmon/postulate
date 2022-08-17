@@ -1,6 +1,6 @@
 import Container from "../../../components/style/Container";
 import H1 from "../../../components/style/H1";
-import {ProjectFields} from "../../new/project";
+import {ProjectFields} from "../../new/repository";
 import getProjectSSRFunction from "../../../utils/getProjectSSRFunction";
 import {ProjectPageProps} from "../../../utils/getPublicNodeSSRFunction";
 import SEO from "../../../components/standard/SEO";

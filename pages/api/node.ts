@@ -10,7 +10,7 @@ import {NodeTypes} from "../../utils/types";
 import {getErrorIfNotExistsAndAuthed, isUserIdMatch} from "../../utils/apiUtils";
 import {ShortcutModel} from "../../models/shortcut";
 import getLookup from "../../utils/getLookup";
-import shortcut from "./shortcut";
+import {NotificationModel} from "../../models/notification";
 
 const baseBodyFields = ["title"]
 const sourceBodyFields = [...baseBodyFields, "sourceInfo", "notes", "summary", "takeaways"];
@@ -100,8 +100,6 @@ const handler: NextApiHandler = nextApiEndpoint({
                     }
                 },
             ]);
-
-            console.log(graph);
 
             const newNodes = isOwner ? graph[0].sample : graph[0].sample.map(node => {
                 let newNode = {...node};
@@ -197,6 +195,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         await NodeModel.deleteOne({_id: id});
         await ShortcutModel.deleteMany({targetId: id});
+        await NotificationModel.deleteMany({nodeId: id});
 
         return res200(res);
     }

@@ -21,7 +21,7 @@ import UiH3 from "../../components/style/UiH3";
 import {getInputStateProps} from "react-controlled-component-helpers";
 import ProjectCard, {ProjectCardFeatured} from "../../components/profile/ProjectCard";
 import {ProjectModel} from "../../models/project";
-import {Field} from "../new/project";
+import {Field} from "../new/repository";
 import ActivityFeed from "../../components/explore/ActivityFeed";
 import ExploreNodeCard from "../../components/explore/ExploreNodeCard";
 import TabButton from "../../components/style/TabButton";
@@ -119,7 +119,7 @@ function UserProfileSearch({pageUser, thisUser}: { pageUser: DatedObj<UserObj>, 
                     <FiSearch className="mr-4 text-gray-400"/>
                     <input
                         type="text"
-                        placeholder="Search projects and notes"
+                        placeholder="Search repos and notes"
                         className="sm:w-48 focus:outline-none"
                         {...getInputStateProps(query, setQuery)}
                     />
@@ -188,7 +188,7 @@ export default function UserProfile({
                 <div className="flex items-center mt-12 mb-8">
                     <H3>Pinned repositories</H3>
                     {isOwner && (
-                        <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+                        <UiButton className="ml-auto" href="/new/repository">+ New</UiButton>
                     )}
                 </div>
                 {numProjects === 0 && (
@@ -218,7 +218,7 @@ export default function UserProfile({
                             >
                                 <div className="flex items-center justify-center rounded-full p-2 border text-sm text-gray-500">
                                     <FiPlus/>
-                                    <span className="ml-2">Add featured project</span>
+                                    <span className="ml-2">Add featured repo</span>
                                 </div>
                             </button>
                             <FeaturedProjectModal
@@ -230,12 +230,12 @@ export default function UserProfile({
                             />
                         </>
                     )}
-                    <Link href={`/@${pageUser.username}/projects`}>
+                    <Link href={`/@${pageUser.username}/repositories`}>
                         <a
                             className="flex items-center justify-center font-medium up-gray-500 hover:up-gray-700 up-bg-gray-50 rounded-md hover:bg-white hover:shadow"
                             style={{minHeight: 160, transition: "all 0.3s ease"}}
                         >
-                            <span className="mr-2">All projects ({numProjects})</span>
+                            <span className="mr-2">All repos ({numProjects})</span>
                             <FiArrowRight/>
                         </a>
                     </Link>

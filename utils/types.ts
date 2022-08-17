@@ -33,20 +33,6 @@ export interface SnippetObj {
     slateBody: Node[],
 }
 
-export type privacyTypes = "public" | "private" | "unlisted" | "draft";
-
-export interface PostObj {
-    urlName: string,
-    projectId: string, // ID
-    projectIds: string[], // ID[]
-    userId: string, // ID
-    title: string,
-    body: string,
-    slateBody?: Node[],
-    tags?: string[],
-    privacy: privacyTypes,
-}
-
 export interface ImageObj {
     key: string, // key of S3 object
     userId: string, // ID of user who uploaded the object

@@ -7,7 +7,7 @@ import {UserModel} from "../../models/user";
 import React, {useState} from "react";
 import {ssrRedirect} from "next-response-helpers";
 import UiH3 from "../../components/style/UiH3";
-import {Field} from "../new/project";
+import {Field} from "../new/repository";
 import UiButton from "../../components/style/UiButton";
 import axios from "axios";
 import {useRouter} from "next/router";
@@ -91,7 +91,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
         if (!thisUser) return {props: {}};
 
-        return ssrRedirect("/projects");
+        return ssrRedirect("/repositories");
     } catch (e) {
         console.log(e);
         return ssrRedirect("/");

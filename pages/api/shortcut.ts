@@ -39,7 +39,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         const nodeError = getErrorIfNotExistsAndAuthed(thisNode, thisUser, res);
         if (nodeError) return nodeError;
 
-        if (!("urlName" in thisNode.body)) return res500(res, {error: "Target node is not published"});
+        if (!("urlName" in thisNode.body)) return res500(res, new Error("Target node is not published"));
 
         const thisShortcut = await ShortcutModel.create({
             userId: thisUser._id,

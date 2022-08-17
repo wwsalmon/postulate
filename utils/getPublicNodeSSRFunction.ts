@@ -9,6 +9,7 @@ import {NodeWithShortcut} from "../components/project/MainShell";
 import {ShortcutModel} from "../models/shortcut";
 import getLookup from "./getLookup";
 import {getProjectPageInfo} from "./getProjectPageInfo";
+import {NotificationModel} from "../models/notification";
 
 export interface ProjectPageProps {
     pageUser: DatedObj<UserObj>,
@@ -73,6 +74,10 @@ const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (n
         if (!thisUser || (thisUser._id.toString() !== pageProject.userId.toString())) {
             delete newPageNode.body.title;
             delete newPageNode.body.body;
+        }
+
+        if (thisUser) {
+            await NotificationModel.updateMany({nodeId: pageNode._id}, {read: true});
         }
 
         return {props: cleanForJSON({pageUser, pageProject, pageNode: newPageNode, thisUser})};

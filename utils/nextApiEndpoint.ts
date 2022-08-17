@@ -7,7 +7,7 @@ import {res403, res405, res500} from "next-response-helpers";
 import {Session} from "next-auth";
 import {Document} from "mongoose";
 
-export type MethodFunction = (req: NextApiRequest, res: NextApiResponse, session: Session, thisUser?: UserObj & Document | DatedObj<UserObj>) => any;
+export type MethodFunction = (req: NextApiRequest, res: NextApiResponse, session: Session, thisUser?: UserObj & Document) => any;
 
 export default function nextApiEndpoint({getFunction, postFunction, deleteFunction, allowUnAuthed}: {
                                             getFunction?: MethodFunction,

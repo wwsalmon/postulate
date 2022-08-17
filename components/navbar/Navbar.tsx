@@ -1,10 +1,44 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/react";
-import {FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
+import {FiBell, FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
 import {useEffect} from "react";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
 import UiButton from "../style/UiButton";
+import useSWR from "swr";
+import {fetcher} from "../../utils/utils";
+import {DatedObj} from "../../utils/types";
+import {NotificationApiResponse} from "../../pages/api/notification";
+import getProjectUrl from "../../utils/getProjectUrl";
+import {formatDistanceToNow} from "date-fns";
+import Button from "../headless/Button";
+
+function getNotificationText(notification: DatedObj<NotificationApiResponse>) {
+    if (["commentLike", "nodeLike"].includes(notification.type)) {
+        return `liked your ${notification.type === "commentLike" ? "comment" : notification.node.type}`;
+    }
+
+    if (notification.type === "commentComment") return `replied to your comment`;
+
+    return `commented on your ${notification.node.type}`;
+}
+
+function NotificationItem({notification}: {notification: DatedObj<NotificationApiResponse>}) {
+    return (
+        <Button
+            href={`${getProjectUrl(notification.node.user, notification.node.project)}/${notification.node.type.substring(0, 1)}/${notification.node.body.urlName}`}
+            className={`max-w-[320px] p-3 ${notification.read ? "opacity-50" : "bg-white hover:bg-gray-50"}`}
+            block={true}
+        >
+            <p>
+                <span className="font-medium">{notification.author.name}</span> {getNotificationText(notification)}
+            </p>
+            <p className="text-gray-400 text-sm font-manrope font-semibold">
+                {formatDistanceToNow(new Date(notification.createdAt))} ago
+            </p>
+        </Button>
+    );
+}
 
 export default function Navbar() {
     const router = useRouter();
@@ -20,13 +54,15 @@ export default function Navbar() {
         });
     }, [status]);
 
+    const {data: notificationsData} = useSWR(`/api/notification?authed=${!!session}`, session ? fetcher : () => []);
+
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
-                <Link href={session ? "/projects" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
-                <Link href={session ? "/projects" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
                 {session && (
-                    <Link href={"/projects"}>
+                    <Link href={"/repositories"}>
                         <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
                             <div className="mr-3">
                                 <FiGrid/>
@@ -44,6 +80,26 @@ export default function Navbar() {
                     </a>
                 </Link>
                 <div className="ml-auto flex items-center h-full">
+                    {session && notificationsData && (
+                        <MoreMenu button={(
+                            <div className="relative">
+                                <UiButton noBg={true} onClick={() => null} className="mr-2 py-2">
+                                    <FiBell/>
+                                </UiButton>
+                                {!!notificationsData.filter(d => !d.read).length && (
+                                    <div className="w-3 h-3 rounded-full bg-red-500 absolute right-3 top-0 text-[8px] text-white text-center font-bold">
+                                        <span>{notificationsData.filter(d => !d.read).length}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}>
+                            <div className="overflow-y-auto max-h-[320px]" id="habada">
+                                {notificationsData.map(notification => (
+                                    <NotificationItem notification={notification} key={notification._id}/>
+                                ))}
+                            </div>
+                        </MoreMenu>
+                    )}
                     {session ? (
                         <MoreMenu button={(
                             <button className="flex items-center p-1 rounded-md -mr-1 hover:bg-gray-100 transition">
@@ -67,7 +123,7 @@ export default function Navbar() {
             </div>
             <div className="fixed left-0 bottom-0 w-full bg-white h-12 sm:hidden flex items-center">
                 {session && (
-                    <Link href={"/projects"}>
+                    <Link href={"/repositories"}>
                         <a className={`flex items-center justify-center opacity-50 hover:opacity-100 px-4 w-1/3`}>
                             <div className="mr-3">
                                 <FiGrid/>

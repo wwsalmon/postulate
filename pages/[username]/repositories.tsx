@@ -15,20 +15,20 @@ import UiButton from "../../components/style/UiButton";
 import UserButton from "../../components/standard/UserButton";
 import SEO from "../../components/standard/SEO";
 
-export default function Projects({pageUser, thisUser, projects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, projects: DatedObj<ProjectObj>[] }) {
+export default function Repositories({pageUser, thisUser, projects}: { pageUser: DatedObj<UserObj>, thisUser: DatedObj<UserObj>, projects: DatedObj<ProjectObj>[] }) {
     const isOwner = thisUser && pageUser._id === thisUser._id;
 
     return (
         <Container>
-            <SEO title={`${pageUser.name}'s projects`}/>
+            <SEO title={`${pageUser.name}'s repositories`}/>
             <div className="flex items-center mb-8">
                 <UserButton user={pageUser}/>
                 <span className="mx-2 text-gray-300">/</span>
             </div>
             <div className="flex items-center">
-                <H1>All projects</H1>
+                <H1>All repositories</H1>
                 {isOwner && (
-                    <UiButton className="ml-auto" href="/new/project">+ New</UiButton>
+                    <UiButton className="ml-auto" href="/new/repository">+ New</UiButton>
                 )}
             </div>
             {projects.length ? (
@@ -38,7 +38,7 @@ export default function Projects({pageUser, thisUser, projects}: { pageUser: Dat
                     ))}
                 </div>
             ) : (
-                <p className="text-gray-400 mt-8">No projects yet. Create one by clicking the button above!</p>
+                <p className="text-gray-400 mt-8">No repositories yet. Create one by clicking the button above!</p>
             )}
 
         </Container>
