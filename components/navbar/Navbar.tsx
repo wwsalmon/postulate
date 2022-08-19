@@ -42,7 +42,7 @@ function NotificationItem({notification}: {notification: DatedObj<NotificationAp
 
 export default function Navbar() {
     const router = useRouter();
-    const {data: session} = useSession();
+    const {data: session, status} = useSession();
 
     const isPublicPage = router.route.substring(0, 28) === "/[username]/[projectUrlName]";
 
