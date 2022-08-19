@@ -42,17 +42,9 @@ function NotificationItem({notification}: {notification: DatedObj<NotificationAp
 
 export default function Navbar() {
     const router = useRouter();
-    const {data: session, status} = useSession();
+    const {data: session} = useSession();
 
     const isPublicPage = router.route.substring(0, 28) === "/[username]/[projectUrlName]";
-
-    useEffect(() => {
-        // @ts-ignore window.analytics undefined below
-        if (session) window.analytics.identify(session.userId, {
-            username: session.username,
-            email: session.user.email,
-        });
-    }, [status]);
 
     const {data: notificationsData} = useSWR(`/api/notification?authed=${!!session}`, session ? fetcher : () => []);
 
