@@ -24,7 +24,7 @@ export default function nextApiEndpoint({getFunction, postFunction, deleteFuncti
             await dbConnect();
 
             const thisUser = session ? (await UserModel.findOne({email: session.user.email})) : null;
-            if (!(req.method === "GET" || thisUser || allowUnAuthed) || (session && !thisUser)) return res403(res);
+            if (!(req.method === "GET" || thisUser || allowUnAuthed)) return res403(res);
 
             switch (req.method) {
                 case "GET": {

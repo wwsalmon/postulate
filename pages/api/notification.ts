@@ -2,7 +2,7 @@ import {NextApiHandler} from "next";
 import nextApiEndpoint from "../../utils/nextApiEndpoint";
 import {NotificationModel} from "../../models/notification";
 import getLookup from "../../utils/getLookup";
-import {res200} from "next-response-helpers";
+import {res200, res403} from "next-response-helpers";
 import mongoose from "mongoose";
 import {DatedObj, NodeObjPublic, ProjectObj, UserObj} from "../../utils/types";
 import {subDays} from "date-fns";
@@ -20,6 +20,7 @@ export interface NotificationApiResponse {
 
 const handler: NextApiHandler = nextApiEndpoint({
     async getFunction(req, res, session, thisUser) {
+        if (!thisUser) return res403(res);
         // delete read notifications more than 14 days old
         await NotificationModel.deleteMany({read: true, createdAt: {$lt: subDays(new Date(), 14)}});
 
