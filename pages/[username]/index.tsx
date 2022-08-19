@@ -285,6 +285,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const numProjects = await ProjectModel.find({userId: pageUser._id}).countDocuments();
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         return {
             props: {

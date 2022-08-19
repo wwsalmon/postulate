@@ -18,6 +18,7 @@ const getProjectSSRFunction: (type?: NodeTypes, secured?: boolean) => GetServerS
         const {pageUser, pageProject} = pageInfo;
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         if (secured && (!thisUser || thisUser._id.toString() !== pageUser._id.toString())) return ssr404;
 

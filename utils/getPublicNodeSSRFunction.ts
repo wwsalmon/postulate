@@ -68,6 +68,7 @@ const getPublicNodeSSRFunction: (nodeType: NodeTypes) => GetServerSideProps = (n
         }
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         let newPageNode = {...pageNode};
 

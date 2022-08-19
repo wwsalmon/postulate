@@ -67,6 +67,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const projects = await ProjectModel.find({userId: pageUser._id}).sort({updatedAt: -1});
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         return { props: { pageUser: cleanForJSON(pageUser), thisUser: cleanForJSON(thisUser), projects: cleanForJSON(projects), key: username }};
     } catch (e) {

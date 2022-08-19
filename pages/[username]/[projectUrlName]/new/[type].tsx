@@ -24,6 +24,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const {pageUser, pageProject} = pageInfo;
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         if (!(thisUser && thisUser._id.toString() === pageUser._id.toString())) return ssr404;
 

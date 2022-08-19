@@ -99,6 +99,7 @@ export default function NewProject(props: {thisUser: DatedObj<UserObj>}) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
     try {
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
         if (!thisUser) return ssrRedirect("/auth/signin");
         return {props: cleanForJSON({thisUser})};
     } catch (e) {

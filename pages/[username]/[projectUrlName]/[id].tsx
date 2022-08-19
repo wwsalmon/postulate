@@ -249,6 +249,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         await dbConnect();
 
         const thisUser = await getThisUser(context);
+if (thisUser.redirect) return thisUser.redirect;
 
         if (!thisUser) return ssr404;
 
