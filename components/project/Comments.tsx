@@ -57,7 +57,7 @@ function CommentForm({
                     placeholder="Write a comment..."
                     style={{resize: "none"}}
                 />
-                <p className="invisible p-3 border">{newComment}<br/></p>
+                <p className="invisible p-3 border whitespace-pre-line">{newComment}<br/></p>
             </div>
             <div className="flex items-center">
                 <UiButton
