@@ -120,7 +120,7 @@ export default function NodeInner(props: PublicNodePageProps & {isModal?: boolea
     const isOwner = thisUser && pageNode.userId === thisUser._id;
     const isPublished = "urlName" in pageNode.body;
     const isExternal = !!pageNode.shortcut;
-    const originalProject = isExternal && pageNode.project[0];
+    const originalProject = isExternal && pageNode.project;
     const title = publishedTitle || privateTitle;
     const body = publishedBody || privateBody;
     const notes = publishedNotes || privateNotes;
