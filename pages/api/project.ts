@@ -41,7 +41,7 @@ const handler: NextApiHandler = nextApiEndpoint({
     postFunction: async function postFunction(req, res, session, thisUser) {
         const {name, description, urlName, id} = req.body;
 
-        if (!(name && description && urlName)) return res400(res);
+        if (!(name && urlName)) return res400(res);
 
         let existingProjectQuery = {userId: thisUser._id, urlName: urlName};
 
@@ -56,7 +56,7 @@ const handler: NextApiHandler = nextApiEndpoint({
         }, {returnOriginal: false})) : (await ProjectModel.create({
             userId: thisUser._id,
             name: name,
-            description: description,
+            description: description || "",
             urlName: urlName,
         }));
 

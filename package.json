@@ -1,6 +1,6 @@
 {
   "name": "updately-pro",
-  "version": "0.25.2",
+  "version": "0.25.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,6 +17,7 @@
     "@types/react": "^17.0.0",
     "autoprefixer": "^10.2.3",
     "axios": "^0.21.1",
+    "classnames": "^2.3.2",
     "crypto-js": "^4.0.0",
     "date-fns": "^2.16.1",
     "dotenv": "^8.2.0",

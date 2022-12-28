@@ -1,7 +1,7 @@
 import {Editable, ReactEditor, Slate, withReact} from "slate-react";
-import {createEditor, Node, Text, Element as SlateElement} from "slate";
+import {createEditor, Node, Text, Element as SlateElement, Transforms, Editor} from "slate";
 import {withHistory} from "slate-history";
-import {Dispatch, SetStateAction, useCallback, useMemo} from "react";
+import {Dispatch, SetStateAction, useCallback, useEffect, useMemo} from "react";
 import withLinks, {SlateLinkBalloon} from "./withLinks";
 import {withShortcuts} from "./shortcuts";
 import {onHotkey} from "./hotkeys";
@@ -72,6 +72,26 @@ export function SlateReadOnly({value, fontSize, className}: {value: Node[], font
     const editor = useMemo(customSlateEditorFactory, []);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
+
+    useEffect(() => {
+        Transforms.delete(editor, {
+            at: {
+                anchor: Editor.start(editor, []),
+                focus: Editor.end(editor, []),
+            },
+        });
+
+        // Removes empty node
+        Transforms.removeNodes(editor, {
+            at: [0],
+        });
+
+        // Insert array of children nodes
+        Transforms.insertNodes(
+            editor,
+            value
+        );
+    }, [value]);
 
     return (
         <div className={`prose ${className || ""}`} style={{fontSize: fontSize || 20}}>

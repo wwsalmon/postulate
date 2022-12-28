@@ -68,7 +68,7 @@ const handler: NextApiHandler = nextApiEndpoint({
 
         if (thisParentComment) {
             const subCommentIds = thisParentComment.subComments.map(d => d.userId);
-            const filteredUserIds = [thisParentComment.userId, ...subCommentIds].filter(d => d.toString() !== thisUser.toString());
+            const filteredUserIds = [thisParentComment.userId, ...subCommentIds].filter(d => d.toString() !== thisUser._id.toString());
             allUserIds = Array.from(new Set(filteredUserIds));
 
             const notifications = allUserIds.map(d => ({
@@ -91,7 +91,7 @@ const handler: NextApiHandler = nextApiEndpoint({
                 itemId: thisComment._id,
                 read: false,
                 type: "nodeComment",
-            })
+            });
         }
 
         return res200(res);
