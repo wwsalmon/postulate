@@ -18,9 +18,9 @@ export const onEnter = (e: KeyboardEvent<HTMLDivElement>, editor: ReactEditor & 
         if (Text.isText(selectedLeaf) && [selectedLeaf.text.length, 0].includes(editor.selection.anchor.offset)) {
             insertEmptyLine(editor);
 
-            if (editor.selection.anchor.offset === 0) {
+            if ([0, editor.children.length - 2].includes(editor.selection.anchor.path[0])) {
                 Transforms.select(editor, {
-                    path: [editor.selection.anchor.path[0] + 1, editor.selection.anchor.path[1]],
+                    path: [editor.selection.anchor.path[0] + 1, 0],
                     offset: 0,
                 });
             }
