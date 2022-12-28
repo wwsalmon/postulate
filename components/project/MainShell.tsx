@@ -28,6 +28,7 @@ import H3 from "../style/H3";
 import PublicNavbar from "./PublicNavbar";
 import TabButton from "../style/TabButton";
 import classNames from "classnames";
+import {getIsProjectSubpage} from "../navbar/Navbar";
 
 export type NodeWithShortcut = NodeObj & {shortcut?: DatedObj<ShortcutObj>, project?: DatedObj<ProjectObj>};
 
@@ -240,7 +241,9 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
 
     return (
         <Container>
-            <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
+            {getIsProjectSubpage(router.route) && (
+                <PublicNavbar pageUser={pageUser} pageProject={pageProject}/>
+            )}
             <SEO title={pageProject.name}/>
             <div className="items-center mb-8 flex">
                 <UserButton user={pageUser}/>

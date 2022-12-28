@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {signOut, useSession} from "next-auth/react";
-import {FiBell, FiChevronDown, FiGrid, FiSearch, FiUser} from "react-icons/fi";
+import {FiBell, FiChevronDown, FiGrid, FiLogOut, FiSearch, FiUser} from "react-icons/fi";
 import {useEffect} from "react";
 import {useRouter} from "next/router";
 import {MoreMenu, MoreMenuItem} from "../headless/MoreMenu";
@@ -12,6 +12,7 @@ import {NotificationApiResponse} from "../../pages/api/notification";
 import getProjectUrl from "../../utils/getProjectUrl";
 import {formatDistanceToNow} from "date-fns";
 import Button from "../headless/Button";
+import classNames from "classnames";
 
 function getNotificationText(notification: DatedObj<NotificationApiResponse>) {
     if (["commentLike", "nodeLike"].includes(notification.type)) {
@@ -40,37 +41,45 @@ function NotificationItem({notification}: {notification: DatedObj<NotificationAp
     );
 }
 
+export function getIsProjectSubpage(route: string) {
+    return route.substring(0, 28) === "/[username]/[projectUrlName]" && !["", "/posts", "/evergreens", "/sources"].includes(route.substring(28));
+}
+
 export default function Navbar() {
     const router = useRouter();
     const {data: session, status} = useSession();
 
-    const isPublicPage = router.route.substring(0, 28) === "/[username]/[projectUrlName]";
+    const isProjectSubpage = getIsProjectSubpage(router.route);
 
     const {data: notificationsData} = useSWR(`/api/notification?authed=${!!session}`, session ? fetcher : () => []);
 
     return (
         <div className="w-full bg-white sticky mb-8 top-0 z-30">
             <div className="mx-auto h-12 sm:h-16 flex items-center px-4">
-                <Link href={session ? "/repositories" : "/"}><a><img src="/logo.svg" className={`${isPublicPage ? "hidden sm:block" : ""} h-8 mr-10`}/></a></Link>
-                <Link href={session ? "/repositories" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isPublicPage ? "sm:hidden" : "hidden"} mr-10`}/></a></Link>
-                {session && (
-                    <Link href={"/repositories"}>
-                        <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
-                            <div className="mr-3">
-                                <FiGrid/>
-                            </div>
-                            Projects
-                        </a>
-                    </Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/logo.svg" className={`${isProjectSubpage ? "hidden" : ""} h-8 mr-10`}/></a></Link>
+                <Link href={session ? "/repositories" : "/"}><a><img src="/postulate-tile.svg" className={`h-6 ${isProjectSubpage ? "" : "hidden"} mr-10`}/></a></Link>
+                {!isProjectSubpage && (
+                    <>
+                        {session && (
+                            <Link href={"/repositories"}>
+                                <a className={`hidden ${isProjectSubpage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
+                                    <div className="mr-3">
+                                        <FiGrid/>
+                                    </div>
+                                    Projects
+                                </a>
+                            </Link>
+                        )}
+                        <Link href="/explore">
+                            <a className={`hidden ${isProjectSubpage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
+                                <div className="mr-3">
+                                    <FiSearch/>
+                                </div>
+                                Explore
+                            </a>
+                        </Link>
+                    </>
                 )}
-                <Link href="/explore">
-                    <a className={`hidden ${isPublicPage ? "lg" : "md"}:flex items-center opacity-50 hover:opacity-100 mr-10`}>
-                        <div className="mr-3">
-                            <FiSearch/>
-                        </div>
-                        Explore
-                    </a>
-                </Link>
                 <div className="ml-auto flex items-center h-full">
                     {session && notificationsData && (
                         <MoreMenu button={(
@@ -99,8 +108,10 @@ export default function Navbar() {
                                 <img src={session ? session.user.image : ""} className="w-6 sm:w-8 rounded-full ml-2"/>
                             </button>
                         )}>
-                            <MoreMenuItem href="/profile">Profile</MoreMenuItem>
-                            <MoreMenuItem onClick={() => signOut()}>Sign out</MoreMenuItem>
+                            <MoreMenuItem href="/repositories" flex={true}><span className="mr-2"><FiGrid/></span>Projects</MoreMenuItem>
+                            <MoreMenuItem href="/explore" flex={true}><span className="mr-2"><FiSearch/></span>Explore</MoreMenuItem>
+                            <MoreMenuItem href="/profile" flex={true}><span className="mr-2"><FiUser/></span>Profile</MoreMenuItem>
+                            <MoreMenuItem onClick={() => signOut()} flex={true}><span className="mr-2"><FiLogOut/></span>Sign out</MoreMenuItem>
                         </MoreMenu>
                     ) : status === "loading" ? (
                         <p>Loading...</p>
