@@ -27,6 +27,7 @@ import ExploreNodeCard from "../explore/ExploreNodeCard";
 import H3 from "../style/H3";
 import PublicNavbar from "./PublicNavbar";
 import TabButton from "../style/TabButton";
+import classNames from "classnames";
 
 export type NodeWithShortcut = NodeObj & {shortcut?: DatedObj<ShortcutObj>, project?: DatedObj<ProjectObj>};
 
@@ -269,9 +270,7 @@ export default function MainShell({pageProject, pageUser, thisUser, children}: P
                         </>
                     )}
                 </div>
-                {pageProject.description && (
-                    <H2 className="mt-2">{pageProject.description}</H2>
-                )}
+                <H2 className={classNames("mt-2", !pageProject.description && "opacity-50")}>{pageProject.description || "Project has no description"}</H2>
             </div>
             <div className="my-12 md:flex items-center">
                 <div className="ml-auto flex items-center order-2 w-full md:w-auto mb-6 md:mb-0">
