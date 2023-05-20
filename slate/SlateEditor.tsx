@@ -82,9 +82,13 @@ export function SlateReadOnly({value, fontSize, className}: {value: Node[], font
         });
 
         // Removes empty node
-        Transforms.removeNodes(editor, {
-            at: [0],
-        });
+        try {
+            Transforms.removeNodes(editor, {
+                at: [0],
+            });
+        } catch (e) {
+            console.log("did not remove node");
+        }
 
         // Insert array of children nodes
         Transforms.insertNodes(
