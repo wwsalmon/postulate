@@ -74,12 +74,16 @@ export function SlateReadOnly({value, fontSize, className}: {value: Node[], font
     const renderLeaf = useCallback(props => <Leaf {...props} />, []);
 
     useEffect(() => {
-        Transforms.delete(editor, {
-            at: {
-                anchor: Editor.start(editor, []),
-                focus: Editor.end(editor, []),
-            },
-        });
+        try {
+            Transforms.delete(editor, {
+                at: {
+                    anchor: Editor.start(editor, []),
+                    focus: Editor.end(editor, []),
+                },
+            });
+        } catch (e) {
+            console.log("did not delete editor");
+        }
 
         // Removes empty node
         try {
